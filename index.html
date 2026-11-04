@@ -378,7 +378,21 @@ async function renderPNG(){
   }
   x.font=`${fs}px "Courier Prime","Courier New",Courier,monospace`;x.textBaseline='alphabetic';x.globalAlpha=.93;
   ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BH*.1+i*lh+lh*.68;
-   for(let k=s;k<e;k++){if(text[k]===' ')continue;x.fillStyle=INKS[cols[k]];x.fillText(text[k],pad+BW*.14+(k-s)*cw,y)}});
+   for(let k=s;k<e;k++){
+    if(text[k]===' ')continue;
+    const tx=pad+BW*.14+(k-s)*cw;
+    /* Match the live preview's Moebius/tricolor ribbon mapping and RGB fringe. */
+    x.fillStyle=ribbonColor(k);
+    if(ribbonInverted){
+     x.save();
+     x.globalAlpha=.65;
+     x.fillText(text[k],tx-.7,y);
+     x.fillText(text[k],tx+.7,y);
+     x.restore();
+    }
+    x.fillStyle=ribbonColor(k);
+    x.fillText(text[k],tx,y);
+   }});
   x.globalAlpha=1}
  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('png')),'image/png'))}
 
@@ -387,7 +401,7 @@ async function legacyCopy(blob){try{const url=URL.createObjectURL(blob),im=new I
  const r=document.createRange();r.selectNode(im);const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();d.remove();return ok}catch(e){return false}}
 const WA_MSG='Created with Selectric\neasylandx.github.io/selec';
 const waC={k:'',p:null};
-function getPNG(){const k=text+'|'+cols.join('')+'|'+Array.from(paperImages.children).map(i=>i.src).join(',');if(waC.k!==k||!waC.p){waC.k=k;waC.p=renderPNG();waC.p.catch(()=>{waC.k=''})}return waC.p}
+function getPNG(){const k=text+'|'+cols.join('')+'|'+ribbonInverted+'|'+mirrorWriting+'|'+Array.from(paperImages.children).map(i=>i.src).join(',');if(waC.k!==k||!waC.p){waC.k=k;waC.p=renderPNG();waC.p.catch(()=>{waC.k=''})}return waC.p}
 let waT=0;ta.addEventListener('input',()=>{clearTimeout(waT);waT=setTimeout(()=>{if(text&&!letterMode)getPNG()},700)});
 $('bWA').onclick=async()=>{
  initAudio();sPop();
