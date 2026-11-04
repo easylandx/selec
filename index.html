@@ -2,12 +2,12 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
 <title>IBM Selectric</title>
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#c4161c">
 <meta name="description" content="Functional IBM Selectric typewriter mockup. Type, edit, and experience classic typewriter feel.">
 <meta name="application-name" content="Selectric">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Selectric">
 <link rel="manifest" href="selec.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -130,7 +130,13 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #iosHint.on{display:flex}
 #iosHint button{flex:none;border:0;background:none;font:16px/1 system-ui,sans-serif;color:#777;padding:0 2px;cursor:pointer}
 @media (max-width:480px){#pwaBar{left:12px;top:calc(env(safe-area-inset-top,0px) + 106px)}}
+#topRed,#sideL,#sideR{position:fixed;z-index:200;top:0;background:#c4161c;pointer-events:none}
+#topRed{left:0;right:0;height:env(safe-area-inset-top,0px)}
+#sideL{left:0;bottom:0;width:env(safe-area-inset-left,0px)}
+#sideR{right:0;bottom:0;width:env(safe-area-inset-right,0px)}
+#bRestart:active svg{transform:rotate(-120deg);transition:transform .25s}
 </style></head><body class="io">
+<div id="topRed"></div><div id="sideL"></div><div id="sideR"></div>
 <div id="pad"></div>
 <div id="app">
  <div id="stage">
@@ -148,6 +154,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
  <button id="bURL" aria-label="Paste text to type out" data-ia="url"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4.5" width="14" height="17" rx="2.5"/><path d="M9 4.5V4a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 4v.5M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></button>
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
  <button id="bMirror" type="button" aria-label="Mirror writing" title="Mirror writing"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h5M5 7l2-2M5 7l2 2M19 17h-5M19 17l-2-2M19 17l-2 2"/><path d="M3 4v16M21 4v16" opacity=".45"/></svg></button>
+<button id="bRestart" type="button" aria-label="Restart" data-ia="restart" title="Restart"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4161c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></button>
 </div>
 <div id="aiModal"><div id="aiCard" role="dialog" aria-label="Write a letter" data-ia="dlg">
  <h2 data-i="dlg">Write a letter</h2>
@@ -195,7 +202,7 @@ const I18N={
   copiedPhone:'Letter copied — paste it in the chat',copiedDesk:'Letter copied — press Ctrl+V in the chat',
   written:'Letter written — tap the page icon to see it',
   urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
-  install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close'},
+  install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
   hint:'Detalles (opcional)',aboutPh:'Primero elige un tipo de carta',cancel:'Cancelar',go:'Escribir',writing:'Escribiendo…',
@@ -205,7 +212,7 @@ const I18N={
   copiedPhone:'Carta copiada — pégala en el chat',copiedDesk:'Carta copiada — pulsa Ctrl+V en el chat',
   written:'Carta escrita — toca el icono de la página para verla',
   urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
-  install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar'}
+  install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar',restart:'Reiniciar',restartQ:'¿Reiniciar todo? Se borrarán tu carta, fotos y ajustes.'}
 };
 let LANG='en';
 try{const sv=localStorage.getItem('sel-lang');LANG=(sv==='es'||sv==='en')?sv:((navigator.language||'en').toLowerCase().startsWith('es')?'es':'en')}catch(e){LANG=(navigator.language||'en').toLowerCase().startsWith('es')?'es':'en'}
@@ -816,6 +823,7 @@ function applyLang(){
  const cur=aiSel&&LT.find(x=>x[0]===aiSel);if(cur)$('aiAbout').placeholder=ltH(cur)}
 $('bLang').onclick=()=>{initAudio();sPop();LANG=LANG==='es'?'en':'es';try{localStorage.setItem('sel-lang',LANG)}catch(e){}applyLang();$('bLang').blur()};
 applyLang();
+$('bRestart').onclick=()=>{try{initAudio();sPop()}catch(e){}if(confirm(S('restartQ'))){try{if(typing)typing=null}catch(e){}location.reload()}};
 $('bView').innerHTML=ICON_DOC;
 addEventListener('resize',layout);
 if(window.visualViewport){visualViewport.addEventListener('resize',layout);visualViewport.addEventListener('scroll',layout)}
