@@ -319,14 +319,14 @@ $('bWA').onclick=async()=>{
  let copied=await cp;
  let blob;try{blob=await pr}catch(e){toast(S('imgFail'));return}
  if(!copied)copied=await legacyCopy(blob);
+ if(phone){
+  /* iPhone: never show a share sheet or download — go straight into WhatsApp */
+  location.href='whatsapp://send?text='+encodeURIComponent(WA_MSG);return}
  if(!copied){
-  if(phone&&navigator.canShare){const f=new File([blob],'letter.png',{type:'image/png'});
-   if(navigator.canShare({files:[f]})){try{await navigator.share({files:[f],text:WA_MSG});return}catch(e){return}}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='letter.png';a.click();
   toast(S('saved'));}
- else toast(phone?S('copiedPhone'):S('copiedDesk'),3500);
- if(phone){setTimeout(()=>{location.href='whatsapp://send?text='+encodeURIComponent(WA_MSG)},350)}
- else{if(w)w.location='https://web.whatsapp.com/send?text='+encodeURIComponent(WA_MSG);else window.open('https://web.whatsapp.com/send?text='+encodeURIComponent(WA_MSG),'_blank')}};
+ else toast(S('copiedDesk'),3500);
+ {if(w)w.location='https://web.whatsapp.com/send?text='+encodeURIComponent(WA_MSG);else window.open('https://web.whatsapp.com/send?text='+encodeURIComponent(WA_MSG),'_blank')}};
 
 
 /* ================= KEYS ON THE TYPEWRITER IMAGE ================= */
