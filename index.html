@@ -62,6 +62,10 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fab2 #bURL.busy svg{stroke:#fff}
 #fab2 #bInvert.on{background:#c4161c;border-color:#a90f15;box-shadow:0 2px 10px rgba(196,22,28,.35)}
 #fab2 #bInvert.on svg{stroke:#fff}
+#fab2 #bMirror.on{background:#1c3f9e;border-color:#173584;box-shadow:0 2px 10px rgba(28,63,158,.32)}
+#fab2 #bMirror.on svg{stroke:#fff}
+.mirror-writing .ln{width:calc(var(--u)*660);transform:scaleX(-1);transform-origin:center}
+.page.mirror-writing .ln{width:72%}
 #sheet.ribbon-chaos .ln span,#letter.ribbon-chaos .ln span{text-shadow:-.7px 0 rgba(196,22,28,.65),.7px 0 rgba(28,63,158,.65),0 0 1px currentColor}
 
 #ta{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;font-size:16px;border:0;padding:0;resize:none}
@@ -108,6 +112,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
  <button id="bAI" aria-label="Write a letter for me" data-ia="ai"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3l2 5.2L17.2 10 12 12l-2 5.2L8 12 2.8 10 8 8.2z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9z"/></svg></button>
  <button id="bURL" aria-label="Paste text to type out" data-ia="url"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4.5" width="14" height="17" rx="2.5"/><path d="M9 4.5V4a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 4v.5M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></button>
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
+ <button id="bMirror" type="button" aria-label="Mirror writing" title="Mirror writing"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h5M5 7l2-2M5 7l2 2M19 17h-5M19 17l-2-2M19 17l-2 2"/><path d="M3 4v16M21 4v16" opacity=".45"/></svg></button>
 </div>
 <div id="aiModal"><div id="aiCard" role="dialog" aria-label="Write a letter" data-ia="dlg">
  <h2 data-i="dlg">Write a letter</h2>
@@ -140,7 +145,7 @@ const fsU=(PWU-2*MU)/COLS/0.6,lhU=fsU*1.5,cwU=fsU*0.6;
 const INKS=['#17171c','#c4161c','#1c3f9e'];
 const $=id=>document.getElementById(id),root=document.documentElement;
 const app=$('app'),sheet=$('sheet'),ta=$('ta'),letterEl=$('letter');
-let text='',cols=[],inkIdx=0,letterMode=false,u=1,lines=[[0,0]],ribbonInverted=false;
+let text='',cols=[],inkIdx=0,letterMode=false,u=1,lines=[[0,0]],ribbonInverted=false,mirrorWriting=false;
 let quiet=false,fed=false;const PEEK=105;
 /* ================= LANGUAGE (EN / ES) ================= */
 const I18N={
@@ -273,14 +278,14 @@ function render(){lines=wrap(text);const n=lines.length-1;
  let h=lines.map(([s,e])=>`<div class="ln" style="height:${lhU*u}px">${runs(s,e)}</div>`).join('');
  const last=lines[n],cl=last[1]-last[0];
  h+=`<i class="caret" style="left:${cl*cwU*u}px;top:${n*lhU*u+lhU*u*.16}px;height:${lhU*u*.68}px"></i>`;
- sheet.innerHTML=h;sheet.style.transform=`translateY(${-n*lhU*u}px)`;paperH()}
+ sheet.innerHTML=h;sheet.classList.toggle('mirror-writing',mirrorWriting);sheet.style.transform=`translateY(${-n*lhU*u}px)`;paperH()}
 function paperH(){if(!fed)return;$('paper').style.height=((PEEK+(lines.length-1)*lhU)*u)+'px'}
 
 function buildLetter(){
  const pw=Math.min(innerWidth-24,(innerHeight-100)/RATIO,794),ph=pw*RATIO;
  const fs=pw*0.72/COLS/0.6,lh=fs*1.5,np=Math.max(1,Math.ceil(lines.length/LPP));let h='';
  for(let p=0;p<np;p++){
-  h+=`<div class="page" style="width:${pw}px;height:${ph}px;font-size:${fs}px;line-height:${lh}px">`;
+  h+=`<div class="page${mirrorWriting?' mirror-writing':''}" style="width:${pw}px;height:${ph}px;font-size:${fs}px;line-height:${lh}px">`;
   lines.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{h+=`<div class="ln" style="left:${pw*.14}px;top:${ph*.1+i*lh}px;height:${lh}px">${runs(s,e)}</div>`});
   h+='</div>'}
  letterEl.innerHTML=h}
@@ -308,6 +313,7 @@ document.addEventListener('keydown',e=>{if(!letterMode&&!aiOpen&&!urlOpen&&docum
 $('bView').onclick=()=>{initAudio();sPage();setMode(!letterMode)};
 $('bInk').onclick=()=>{initAudio();sInk();inkIdx=(inkIdx+1)%INKS.length;$('bInk').style.setProperty('--c',INKS[inkIdx]);if(!letterMode)ta.focus()};
 $('bInvert').onclick=()=>{initAudio();sInk();ribbonInverted=!ribbonInverted;$('bInvert').classList.toggle('on',ribbonInverted);$('sheet').classList.toggle('ribbon-chaos',ribbonInverted);$('letter').classList.toggle('ribbon-chaos',ribbonInverted);render();if(letterMode)buildLetter();toast(ribbonInverted?S('ribbonOn'):S('ribbonOff'),2600);if(!letterMode)ta.focus()};
+$('bMirror').onclick=()=>{initAudio();sInk();mirrorWriting=!mirrorWriting;$('bMirror').classList.toggle('on',mirrorWriting);render();if(letterMode)buildLetter();toast(LANG==='es'?(mirrorWriting?'Escritura en espejo activada':'Escritura normal restaurada'):(mirrorWriting?'Mirror writing on':'Normal writing restored'),2600);if(!letterMode)ta.focus()};
 $('intro').onclick=()=>{document.body.classList.remove('io');initAudio();sRustle();try{scrollTo(0,1)}catch(e){}ta.focus({preventScroll:true});const i=$('intro');i.style.opacity=0;setTimeout(()=>i.style.display='none',500);
  setTimeout(()=>{$('clip').classList.add('in');$('paper').classList.add('in');fed=true;paperH();sFeed();setTimeout(()=>$('paper').classList.remove('in'),1450)},520)};
 
