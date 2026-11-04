@@ -310,10 +310,13 @@ async function legacyCopy(blob){try{const url=URL.createObjectURL(blob),im=new I
  const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';d.appendChild(im);document.body.appendChild(d);
  const r=document.createRange();r.selectNode(im);const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();d.remove();return ok}catch(e){return false}}
 const WA_MSG='Created with Selectric\neasylandx.github.io/selec';
+const waC={k:'',p:null};
+function getPNG(){const k=text+'|'+cols.join('');if(waC.k!==k||!waC.p){waC.k=k;waC.p=renderPNG();waC.p.catch(()=>{waC.k=''})}return waC.p}
+let waT=0;ta.addEventListener('input',()=>{clearTimeout(waT);waT=setTimeout(()=>{if(text&&!letterMode)getPNG()},700)});
 $('bWA').onclick=async()=>{
  initAudio();sPop();
  const phone=isPhone();
- const pr=renderPNG();pr.catch(()=>{});
+ const pr=getPNG();
  /* copy the image straight away, inside the click, with no confirmation step */
  const cp=(navigator.clipboard&&window.ClipboardItem)?navigator.clipboard.write([new ClipboardItem({'image/png':pr})]).then(()=>true,()=>false):Promise.resolve(false);
  let w=null;if(!phone){try{w=window.open('about:blank','_blank')}catch(e){}}
@@ -321,8 +324,8 @@ $('bWA').onclick=async()=>{
  let blob;try{blob=await pr}catch(e){toast(S('imgFail'));return}
  if(!copied)copied=await legacyCopy(blob);
  if(phone){
-  /* iPhone: never show a share sheet or download — go straight into WhatsApp */
-  location.href='whatsapp://send?text='+encodeURIComponent(WA_MSG);return}
+  /* iPhone: universal link (no custom-scheme “open this page in WhatsApp?” prompt), no share sheet, no download */
+  location.href='https://wa.me/?text='+encodeURIComponent(WA_MSG);return}
  if(!copied){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='letter.png';a.click();
   toast(S('saved'));}
