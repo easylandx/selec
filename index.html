@@ -56,6 +56,11 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 .aiF{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:12px;color:#555}
 .aiF input,.aiF textarea,#urlIn{font:16px system-ui,sans-serif;padding:10px;border:1px solid #d9d3c6;border-radius:10px;background:#fff;color:#17171c;width:100%;resize:none}
 .aiRow{display:flex;gap:10px}.aiRow .aiF{flex:1;min-width:0}
+#aiTypes .aiCat{grid-column:1/-1;margin:8px 0 0;font:700 11.5px/1.2 system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#7a7364}
+#aiTypes .aiCat:first-child{margin-top:0}
+#aiG{display:flex;gap:8px}
+#aiG button{flex:1;font:600 13.5px/1.25 system-ui,sans-serif;padding:10px 6px;border-radius:10px;border:1px solid #d9d3c6;background:#fff;color:#17171c;cursor:pointer;text-align:center}
+#aiG button.sel{background:#17171c;color:#fff;border-color:#17171c}
 .aiAct{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
 .aiAct button,.aiAct #urlGo{font:600 15px system-ui,sans-serif;padding:11px 18px;border-radius:999px;border:1px solid #d9d3c6;background:#fff;color:#17171c;cursor:pointer}
 .aiAct #aiGo,.aiAct #urlGo{background:#c4161c;border-color:#c4161c;color:#fff}
@@ -165,6 +170,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
  <div id="aiTypes"></div>
  <div class="aiRow"><label class="aiF"><span data-i="to">To</span><input id="aiTo" type="text" placeholder="Name (optional)" data-ip="toPh" autocomplete="off"></label><label class="aiF"><span data-i="from">From</span><input id="aiFrom" type="text" placeholder="Your name (optional)" data-ip="fromPh" autocomplete="off"></label></div>
  <label class="aiF"><span id="aiHintL" data-i="hint">Details (optional)</span><textarea id="aiAbout" rows="2" placeholder="Choose a letter type first" data-ip="aboutPh" autocomplete="off"></textarea></label>
+ <div class="aiF"><span data-i="forL">The letter is for…</span><div id="aiG" role="group"></div></div>
  <div class="aiAct"><button id="aiCancel" type="button" data-i="cancel">Cancel</button><button id="aiGo" type="button" disabled data-i="go">Write it</button></div>
 </div></div>
 <div id="urlModal"><div id="urlCard" role="dialog" aria-label="Paste text" data-ia="urlDlg">
@@ -188,7 +194,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 <div id="tip" role="tooltip"></div>
 <div id="toast"></div>
 <script>
-const IMG_W=1536,PXU=396,PWU=741,MU=40,COLS=36,Y0=262,LPP=22,RATIO=1.4142;
+const IMG_W=1536,PXU=396,PWU=741,MU=40,COLS=36,Y0=262,LPP=38,RATIO=2.16;
 const fsU=(PWU-2*MU)/COLS/0.6,lhU=fsU*1.5,cwU=fsU*0.6;
 const INKS=['#17171c','#c4161c','#1c3f9e'];
 const $=id=>document.getElementById(id),root=document.documentElement;
@@ -199,7 +205,7 @@ let quiet=false,fed=false;const PEEK=105;
 const I18N={
  en:{ta:'Type here',kb:'Use the iPhone keyboard',ai:'Write a letter for me',dlg:'Write a letter',
   sub:'Pick a type and I’ll type it out for you on the Selectric.',to:'To',from:'From',toPh:'Name (optional)',fromPh:'Your name (optional)',
-  hint:'Details (optional)',aboutPh:'Choose a letter type first',cancel:'Cancel',go:'Write it',writing:'Writing…',
+  hint:'Details (optional)',forL:'The letter is for…',aboutPh:'Choose a letter type first',cancel:'Cancel',go:'Write it',writing:'Writing…',
   skip:'Tap to finish typing',ink:'Ribbon colour',view:'Finished letter view',wa:'Share on WhatsApp',
   introAlt:'IBM Selectric Typewriter box',introP:'Tap the box to open',lang:'Language',
   imgFail:'Couldn’t create the letter image',saved:'Letter saved as an image',
@@ -209,7 +215,7 @@ const I18N={
   install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',tipUpload:'Add a photo to the paper',tipInk:'Change ribbon colour',tipView:'Switch between typewriter and finished letter',tipWA:'Share the letter on WhatsApp',tipKb:'Use the iPhone keyboard',tipAI:'Write a letter for me',tipURL:'Paste text to type out',tipInvert:'Ribbon Möbius strip effect',tipMirror:'Mirror writing',tipRestart:'Restart everything',tipLang:'Switch language (EN / ES)',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
-  hint:'Detalles (opcional)',aboutPh:'Primero elige un tipo de carta',cancel:'Cancelar',go:'Escribir',writing:'Escribiendo…',
+  hint:'Detalles (opcional)',forL:'La carta es para…',aboutPh:'Primero elige un tipo de carta',cancel:'Cancelar',go:'Escribir',writing:'Escribiendo…',
   skip:'Toca para terminar de escribir',ink:'Color de la cinta',view:'Ver la carta terminada',wa:'Compartir por WhatsApp',
   introAlt:'Caja de la máquina de escribir IBM Selectric',introP:'Toca la caja para abrirla',lang:'Idioma',
   imgFail:'No se pudo crear la imagen de la carta',saved:'Carta guardada como imagen',
@@ -332,12 +338,12 @@ function render(){lines=wrap(text);const n=lines.length-1;
 function paperH(){if(!fed)return;const textHeight=PEEK+(lines.length-1)*lhU;$('paper').style.height=(textHeight*u)+'px'}
 
 function buildLetter(){
- const pw=Math.min(innerWidth-24,(innerHeight-100)/RATIO,794),ph=pw*RATIO;
+ const pw=Math.min(innerWidth-24,794),ph=pw*RATIO;
  const fs=pw*0.72/COLS/0.6,lh=fs*1.5,np=Math.max(1,Math.ceil(lines.length/LPP));let h='';
  for(let p=0;p<np;p++){
   h+=`<div class="page${mirrorWriting?' mirror-writing':''}" style="width:${pw}px;height:${ph}px;font-size:${fs}px;line-height:${lh}px">`;
-  lines.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{h+=`<div class="ln" style="left:${pw*.14}px;top:${ph*.1+i*lh}px;height:${lh}px">${runs(s,e)}</div>`});
-  Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0),pageNo=Math.floor(line/LPP);if(pageNo===p){const localLine=line%LPP;h+=`<img class="pageInlineImage" src="${img.src}" alt="${esc(img.alt||'Uploaded image')}" style="position:absolute;left:${pw*.14+col*(fs*.6)}px;top:${ph*.1+localLine*lh}px;width:min(38%,250px);height:190px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 2px 7px rgba(0,0,0,.2);z-index:1;pointer-events:none">`}});
+  lines.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{h+=`<div class="ln" style="left:${pw*.14}px;top:${pw*.14+i*lh}px;height:${lh}px">${runs(s,e)}</div>`});
+  Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0),pageNo=Math.floor(line/LPP);if(pageNo===p){const localLine=line%LPP;h+=`<img class="pageInlineImage" src="${img.src}" alt="${esc(img.alt||'Uploaded image')}" style="position:absolute;left:${pw*.14+col*(fs*.6)}px;top:${pw*.14+localLine*lh}px;width:min(38%,250px);height:190px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 2px 7px rgba(0,0,0,.2);z-index:1;pointer-events:none">`}});
   h+='</div>'}
  letterEl.innerHTML=h}
 
@@ -406,11 +412,11 @@ async function renderPNG(){
   for(const im of Array.from(paperImages.children)){
    const line=Number(im.dataset.line||0),col=Number(im.dataset.col||0);if(Math.floor(line/LPP)!==p||!im.complete||!im.naturalWidth)continue;
    const boxW=Math.min(BW*.38,250),boxH=190,ratio=Math.min(boxW/im.naturalWidth,boxH/im.naturalHeight),dw=im.naturalWidth*ratio,dh=im.naturalHeight*ratio;
-   const ix=pad+BW*.14+col*cw,iy=py+BH*.1+(line%LPP)*lh;
+   const ix=pad+BW*.14+col*cw,iy=py+BW*.14+(line%LPP)*lh;
    x.save();x.fillStyle='#fff';x.shadowColor='rgba(0,0,0,.2)';x.shadowBlur=7;x.fillRect(ix,iy,boxW,boxH);x.drawImage(im,ix+(boxW-dw)/2,iy+(boxH-dh)/2,dw,dh);x.restore();
   }
   x.font=`${fs}px "Courier Prime","Courier New",Courier,monospace`;x.textBaseline='alphabetic';x.globalAlpha=.93;
-  ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BH*.1+i*lh+lh*.68;
+  ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BW*.14+i*lh+lh*.68;
    for(let k=s;k<e;k++){
     if(text[k]===' ')continue;
     const tx=pad+BW*.14+(k-s)*cw;
@@ -500,33 +506,70 @@ $('bKb').onclick=()=>{initAudio();osKb=!osKb;ta.setAttribute('inputmode',osKb?'t
 /* ================= LETTER WRITER ================= */
 const AI_ENDPOINT='';   /* optional: URL of your own AI proxy that answers {letter:"..."} — leave empty to use the built-in writer */
 const LT=[
- ['love','Love Letters',0,'Something special about them (optional)'],
- ['thanks','Thank-You Letters',0,'What are you thankful for? e.g. your help with the move'],
- ['condolence','Condolence Letters',0,'The loss, e.g. the passing of your father'],
- ['apology','Apology Letters',0,'What are you sorry for? e.g. missing your birthday'],
- ['getwell','Get-Well Letters',0,'What happened? e.g. your surgery'],
- ['update','Friendly / Update Letters',0,'Your news, e.g. we moved to a new house'],
- ['cover','Cover Letters',1,'The job, e.g. the Marketing Assistant role'],
- ['resign','Resignation Letters',1,'Your job title, e.g. Sales Manager'],
- ['recommend','Letters of Recommendation',1,'Who is it for? e.g. Maria Lopez'],
- ['complaint','Complaint Letters',1,'The problem, e.g. a late and damaged delivery'],
- ['inquiry','Business Inquiry Letters',1,'What you want to know about, e.g. your catering services'],
- ['invite','Invitation Letters',0,'The event, e.g. my birthday dinner on Saturday at 8'],
- ['congrats','Congratulatory Letters',0,'The achievement, e.g. your promotion'],
- ['intent','Letter of Intent',1,'Your intent, e.g. rent the apartment at 12 Oak Street'],
- ['demand','Demand Letters',1,'What is owed, e.g. the unpaid invoice of the 3rd of May'],
- ['followup','Follow-Up Letters',0,'What you are following up on, e.g. our meeting last week'],
- ['farewell','Farewell Letters',0,'Why you are leaving, e.g. I move to Madrid']
+ ['love','Love Letter',0,'Something special about them (optional)'],
+ ['thanks','Thank-You Letter',0,'What are you thankful for? e.g. your help with the move'],
+ ['condolence','Condolence / Sympathy Letter',0,'The loss, e.g. the passing of your father'],
+ ['apology','Apology Letter',0,'What are you sorry for? e.g. missing your birthday'],
+ ['getwell','Get-Well Letter',0,'What happened? e.g. your surgery'],
+ ['update','Friendly / Update Letter',0,'Your news, e.g. we moved to a new house'],
+ ['cover','Cover Letter',1,'The job, e.g. the Marketing Assistant role'],
+ ['resign','Resignation Letter',1,'Your job title, e.g. Sales Manager'],
+ ['recommend','Letter of Recommendation / Reference',1,'Who is it for? e.g. Maria Lopez'],
+ ['complaint','Complaint Letter',1,'The problem, e.g. a late and damaged delivery'],
+ ['inquiry','Business Inquiry Letter',1,'What you want to know about, e.g. your catering service'],
+ ['invite','Invitation Letter',0,'The event, e.g. my birthday dinner on Saturday at 8'],
+ ['congrats','Congratulatory Letter',0,'The achievement, e.g. your promotion'],
+ ['intent','Letter of Intent (LOI)',1,'Your intent, e.g. rent the apartment at 12 Oak Street'],
+ ['demand','Demand Letter',1,'What is owed, e.g. the unpaid invoice of the 3rd of May'],
+ ['followup','Follow-Up Letter',0,'What you are following up on, e.g. our meeting last week'],
+ ['farewell','Farewell / Goodbye Letter',0,'Why you are leaving, e.g. I move to Madrid'],
+ ['anniversary','Anniversary Letter',0,'The occasion, e.g. our 5th anniversary'],
+ ['birthday','Birthday Letter',0,'Their age or a memory, e.g. turning 30'],
+ ['welcome','Welcome Letter',0,'Where are they joining? e.g. our team'],
+ ['offer','Offer Letter',1,'The job title, e.g. Sales Manager'],
+ ['announcement','Announcement Letter',0,'The news, e.g. we are opening a new office on 1 March'],
+ ['promotion','Promotion / Commendation Letter',1,'Who and why, e.g. Ana Ruiz, promoted to Team Lead'],
+ ['partnership','Partnership Proposal Letter',1,'The proposal, e.g. a joint marketing campaign with your company'],
+ ['termination','Termination Letter',1,'The role or contract, e.g. employment as Sales Assistant'],
+ ['timecapsule','Time Capsule Letter (To Your Future Self)',0,'What to record, e.g. my hopes, worries and daily life right now'],
+ ['unsent','Unsent Letter (Cathartic Release)',0,'What you need to say, e.g. what I never told you after we stopped talking'],
+ ['legacy','Ethical Will / Legacy Letter',0,'Values or lessons to pass on, e.g. kindness, honest work, family'],
+ ['open','Open Letter',1,'The issue, e.g. the lack of safe cycle lanes in our city'],
+ ['clientexit','Breakup / Exit Letter to a Client',1,'The reason, e.g. our working styles and goals no longer align'],
+ ['fan','Fan / Appreciation Letter to a Creator',0,'Their work and its impact, e.g. your novel helped me through a hard year'],
+ ['contingency','The "If You Are Reading This" Letter',0,'When to open it, e.g. before my first Everest expedition'],
+ ['gratitude','Historical Gratitude & Recognition Letter',0,'Who and what to honor, e.g. my old coach and her 1998 championship record'],
+ ['stranger','Letter to an Anonymous Stranger',0,'The message they should find, e.g. you are doing better than you think'],
+ ['momentum','The "Momentum" / Milestone Amplification Letter',1,'The upcoming milestone, e.g. the launch of our community garden in April'],
+ ['reversepitch','The Reverse Pitch Letter',1,'What you offer and who qualifies, e.g. brand design for sustainable food startups'],
+ ['legacyannounce','The Evolution / Legacy Announcement Letter',1,'The product or service, e.g. the final version of our desktop app, moving to a new platform'],
+ ['object','Letter to a Beloved Object / Artifact',0,'The object, e.g. my 1985 typewriter that wrote my first novel'],
+ ['peer','Letter to an Inspiring Peer / Ally',0,'How they inspired you, e.g. your feedback made my work sharper'],
+ ['epiphany','The 10-Minute Epiphany Letter',0,'The question or block, e.g. why I keep avoiding my novel'],
+ ['peace','Make-Peace / Reconciliation Letter',0,'What happened or what you hope for, e.g. our argument last summer']
 ];
+const LT_CAT=[
+ ['Personal & Emotional','Personal y emocional',['love','anniversary','birthday','getwell','update','farewell','apology','condolence']],
+ ['Social & Relationship Building','Social y relaciones',['thanks','congrats','invite','welcome','announcement','peace']],
+ ['Professional & Employment','Profesional y laboral',['cover','recommend','followup','offer','promotion','resign']],
+ ['Business & Formal','Empresarial y formal',['inquiry','intent','partnership','complaint','demand','termination']],
+ ['Personal & Existential','Personal y existencial',['timecapsule','unsent','legacy']],
+ ['Unconventional Professional & Creative','Profesional y creativo no convencional',['open','clientexit','fan']],
+ ['Existential, Historical & Speculative','Existencial, histórico y especulativo',['contingency','gratitude','stranger']],
+ ['Strategic, Guerilla & Business Unconventional','Estratégico, de guerrilla y empresarial no convencional',['momentum','reversepitch','legacyannounce']],
+ ['Psychological & Creative Writing Exercises','Ejercicios psicológicos y de escritura creativa',['object','peer','epiphany']]];
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const sentence=s=>{s=(s||'').trim();if(!s)return '';s=cap(s);return /[.!?]$/.test(s)?s:s+'.'};
 const noTo=s=>(s||'').trim().replace(LANG==='es'?/^(de|para)\s+/i:/^to\s+/i,'');
-function writeLocal(id,to,from,about){
- if(LANG==='es')return writeES(id,to,from,about);
+function writeLocal(id,to,from,about,g){
+ if(LANG==='es')return writeES(id,to,from,about,g);
+ g=g||'';
  to=(to||'').trim();from=(from||'').trim();about=(about||'').trim();
  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
  const close=c=>c+(from?'\n'+from:'');
  const dear=d=>'Dear '+(to||d)+',';
+ const sm=g==='m'?'Sir':g==='f'?'Madam':'Sir or Madam';
+ const PR=g==='m'?{s:'he',S:'He',o:'him',p:'his',be:'is',v:'s'}:g==='f'?{s:'she',S:'She',o:'her',p:'her',be:'is',v:'s'}:{s:'they',S:'They',o:'them',p:'their',be:'are',v:''};
  const P={
  love:()=>[`My dearest${to?' '+to:''},`,
   `I have been trying to find the right words, and I keep arriving at the same ones: I love you. ${about?sentence(about)+' It reminds me how lucky I am.':'Every day beside you feels like a small miracle.'}`,
@@ -558,29 +601,49 @@ function writeLocal(id,to,from,about){
   `Things here are moving along. I have been trying to make time for the people and things I care about, and you are always on that list. I often think of the good times we have shared.`,
   `Please write back and tell me how you are, what you have been up to, and when we might catch up in person.`,
   close('Warm regards,')],
+ anniversary:()=>[`My dearest${to?' '+to:''},`,
+  `Happy anniversary! ${about?sentence(about)+' ':''}Looking back on everything we have shared, I am filled with gratitude.`,
+  `Thank you for the laughter, for the hard days we got through hand in hand, and for the small moments that make ordinary life special. With you, every year feels like the first.`,
+  `Here is to what we have built and to everything still ahead. I love you today more than ever.`,
+  close('Always yours,')],
+ birthday:()=>[dear('Friend'),
+  `Happy birthday${about?' — '+about:''}! Today is your day, and I wanted you to know how glad I am to have you in my life.`,
+  `I hope this new year brings you good health, joy and plenty of reasons to smile. You deserve every good thing that comes your way.`,
+  `Enjoy your day, surround yourself with the people you love and treat yourself to something special. Sending you a big hug and wishing you many more.`,
+  close('With love,')],
+ welcome:()=>[dear('Friend'),
+  `Welcome${about?' to '+about:''}! We are so glad to have you with us.`,
+  `We hope you will feel at home right away. Everyone is looking forward to getting to know you, and we are here to help with anything you need while you settle in.`,
+  `Please do not hesitate to ask questions, big or small. Once again, a warm welcome. We cannot wait to see what we will do together.`,
+  close('Warmly,')],
+ offer:()=>[date,dear('Candidate'),
+  `We are delighted to offer you the position of ${about||'the role we discussed'} with our company. Your experience and background impressed us, and we believe you will be a great addition to the team.`,
+  `The terms of the offer, including salary, working hours and start date, are set out in the attached document. This offer remains open for seven days from the date of this letter.`,
+  `If you accept, please sign a copy of this letter and return it to us. We are happy to answer any questions. We look forward to welcoming you.`,
+  close('Sincerely,')],
  cover:()=>[date,dear('Hiring Manager'),
   `I am writing to apply for ${about||'the open position at your company'}. With my background, my drive to learn and my genuine interest in your work, I believe I would be a strong addition to your team.`,
   `In my previous roles I have built a record of reliability, clear communication and getting things done. I enjoy solving problems alongside colleagues, and I take pride in careful work that others can depend on.`,
   `I would welcome the opportunity to discuss how I can contribute. Thank you for your time and consideration. I look forward to hearing from you.`,
   close('Sincerely,')],
- resign:()=>[date,dear('Sir or Madam'),
+ resign:()=>[date,dear(sm),
   `Please accept this letter as formal notice of my resignation from my position${about?' as '+about:''}, effective two weeks from today.`,
   `This was not an easy decision. I am grateful for the opportunities, the support and the people I have worked with here. I have learned a great deal and will always value my time with the team.`,
   `During my remaining time I will do everything I can to ensure a smooth handover of my duties. Please let me know how I can help.`,
   `Thank you again, and I wish the company continued success.`,
   close('Sincerely,')],
- recommend:()=>[date,dear('Sir or Madam'),
-  `It is a pleasure to recommend ${about||'this candidate'} without reservation. I have known and worked with them long enough to speak with confidence about their abilities and character.`,
-  `They are dependable, curious and a pleasure to work with. They take initiative, communicate clearly and consistently deliver careful, thoughtful work. Colleagues trust them, and they rise to every challenge.`,
-  `I am confident they will be a valuable asset to your organization. Please feel free to contact me if you would like any further information.`,
+ recommend:()=>[date,dear(sm),
+  `It is a pleasure to recommend ${about||'this candidate'} without reservation. I have known and worked with ${PR.o} long enough to speak with confidence about ${PR.p} abilities and character.`,
+  `${PR.S} ${PR.be} dependable, curious and a pleasure to work with. ${PR.S} take${PR.v} initiative, communicate${PR.v} clearly and consistently deliver${PR.v} careful, thoughtful work. Colleagues trust ${PR.o}, and ${PR.s} rise${PR.v} to every challenge.`,
+  `I am confident ${PR.s} will be a valuable asset to your organization. Please feel free to contact me if you would like any further information.`,
   close('Sincerely,')],
- complaint:()=>[date,dear('Sir or Madam'),
+ complaint:()=>[date,dear(sm),
   `I am writing to complain about ${about||'a recent experience with your company'}. I have valued your service, and I expected a better standard.`,
   `The problem has caused me real inconvenience and so far it has not been resolved. I believe this falls short of what you promise your customers.`,
   `I would like the matter to be investigated and corrected promptly, with an appropriate remedy. I would appreciate a written reply within fourteen days.`,
   `Thank you for your attention to this matter.`,
   close('Sincerely,')],
- inquiry:()=>[date,dear('Sir or Madam'),
+ inquiry:()=>[date,dear(sm),
   `I am writing to inquire about ${about||'your products and services'}. Your company comes highly recommended, and I would like to learn more.`,
   `Could you please send me details on availability, pricing and any terms or minimum requirements? If possible, I would also welcome a short call or meeting to discuss my needs.`,
   `Thank you for your time. I look forward to your reply and to the possibility of working together.`,
@@ -595,12 +658,12 @@ function writeLocal(id,to,from,about){
   `This success is the result of your talent, hard work and determination, and you have earned every bit of it. I am so proud of you and so happy for you.`,
   `I hope you take time to celebrate and enjoy this moment. I cannot wait to see what you do next.`,
   close('With warmest congratulations,')],
- intent:()=>[date,dear('Sir or Madam'),
+ intent:()=>[date,dear(sm),
   `This letter expresses my sincere intent to ${noTo(about)||'pursue the opportunity we have discussed'}. I am writing to confirm my interest and my readiness to move forward.`,
   `I understand the purpose and expectations involved, and I am prepared to commit the time, effort and resources required. I believe the arrangement would benefit everyone, and I am open to discussing its terms in good faith.`,
   `Please consider this letter a statement of my intentions, subject to the final agreement of all parties. I look forward to your response.`,
   close('Respectfully,')],
- demand:()=>[date,dear('Sir or Madam'),
+ demand:()=>[date,dear(sm),
   `This letter is a formal demand regarding ${about||'the matter outstanding between us'}. Despite my earlier attempts to resolve it, it remains unsettled.`,
   `I request that you settle the matter in full within fourteen days of the date of this letter, and confirm in writing how and when you will do so.`,
   `If I do not receive a satisfactory response by then, I will have no choice but to consider all available remedies, including legal action, without further notice.`,
@@ -615,35 +678,167 @@ function writeLocal(id,to,from,about){
   `The time has come to say goodbye${about?', as '+about:''}, and I find it harder than I expected.`,
   `Thank you for the laughter, the support and the good memories we have made together. You have made a real difference to my days, and I will carry that with me wherever I go.`,
   `This is not the end of our connection. Please keep in touch, and know that you will always have a friend in me. Take care of yourself, and may the road ahead be kind.`,
-  close('With affection,')]
+  close('With affection,')],
+ announcement:()=>[dear('Friend'),
+  `I am pleased to share some news with you: ${about?about.replace(/[.!?]+$/,'')+'.':'we have an important announcement to make.'}`,
+  `We wanted you to hear it directly from us before it spreads further. We are excited about what this means and grateful for the support that helped us get here.`,
+  `If you have any questions or would like more details, please do not hesitate to get in touch. We look forward to sharing more with you soon.`,
+  close('Warm regards,')],
+ promotion:()=>[date,dear('Colleague'),
+  `It is with great pleasure that I write to recognize ${about||'your outstanding contribution to the team'}. Your work has not gone unnoticed.`,
+  `You have shown dedication, reliability and a real commitment to excellence. You take initiative, support your colleagues and consistently deliver results that raise the standard for everyone around you.`,
+  `Any changes to your role, responsibilities or compensation will be confirmed separately. On behalf of the whole team, congratulations and thank you. We look forward to everything you will achieve next.`,
+  close('With sincere appreciation,')],
+ partnership:()=>[date,dear(sm),
+  `I am writing to propose a partnership between our organizations${about?', namely '+about:''}. We admire the work you do and believe our strengths complement each other well.`,
+  `We see clear benefits for both sides: shared audiences, pooled resources and the chance to deliver more value to our customers than either of us could alone. We are open to shaping the scope, responsibilities and terms together so that the arrangement is fair and sustainable.`,
+  `I would welcome a call or meeting to explore the idea in more detail. Thank you for your time and consideration. I look forward to your reply.`,
+  close('Kind regards,')],
+ termination:()=>[date,dear(sm),
+  `This letter is formal notice that ${about?'the following is being terminated: '+about.replace(/[.!?]+$/,'')+'.':'the agreement between us is being terminated.'} The termination takes effect thirty days from the date of this letter.`,
+  `This decision has been made after careful consideration. Any final payments, return of property and outstanding obligations will be handled in accordance with the applicable terms and the law. Please contact me to arrange the details.`,
+  `We appreciate the time and effort involved and wish you all the best going forward. Please confirm receipt of this letter in writing.`,
+  close('Sincerely,')],
+ timecapsule:()=>[date,'Dear Future Me,',
+  `I am writing this on ${date}, to be opened many years from now. ${about?'What I want to record: '+about.replace(/[.!?]+$/,'')+'.':'I want to capture who I am and how I see the world today.'}`,
+  `Right now my days are full of ordinary things I may one day forget: the people I see most, the worries that keep me up, the little joys that get me through. I hope I have stayed curious, kind and brave. I hope the things that scare me today seem small to you.`,
+  `Whatever has happened since, be gentle with yourself. Remember that you did the best you could with what you knew. Look back at this letter and see how far you have come.`,
+  close('With hope,')],
+ unsent:()=>[to?'To '+to+',':'To you,',
+  `This letter will never be sent, which is exactly why I can finally say everything honestly. ${about?sentence(about):'There are things I have never been able to say out loud.'}`,
+  `I am angry, I am hurt, and sometimes I am simply tired of carrying it. I did not get the apology, the explanation or the ending I needed. So I am writing it here, in my own words, without softening anything.`,
+  `By putting this on paper I am setting it down. I do not need your answer anymore. I release what I have held, and I choose to move forward lighter.`,
+  close('Finally, in peace,')],
+ legacy:()=>[to?'To '+to+',':'To my dear family,',
+  `I am writing this to pass on what matters most to me, which no will or bank account can carry. ${about?'Above all I want you to remember '+about.replace(/[.!?]+$/,'')+'.':'These are the values and lessons that shaped my life.'}`,
+  `Life has taught me that kindness costs little and means everything, that honest work and honest words build a life you can rest easy in, and that people matter more than possessions. I have made mistakes, and I learned more from them than from my successes.`,
+  `Thank you for the love and the joy you have given me. Be good to one another, forgive quickly, and keep telling the stories of those who came before you. My love goes with you always.`,
+  close('With all my love,')],
+ open:()=>['An Open Letter'+(to?' to '+to:'')+',',
+  `I am writing publicly to address ${about||'a matter of widespread concern'}. This is not a private grievance. It affects many people, and it deserves open discussion.`,
+  `The facts are clear and the consequences are real. Those with the power to change this have a responsibility to act, and the silence so far has not served the people most affected.`,
+  `I call on you to acknowledge the problem, to explain what you intend to do, and to act without delay. We will be watching, and we are ready to work with you toward a solution.`,
+  close('Respectfully,')],
+ clientexit:()=>[date,dear(to||sm),
+  `Thank you for the opportunity to work together. After careful consideration, I have decided to end our professional relationship, effective thirty days from the date of this letter.`,
+  `${about?'The reason is simple: '+about.replace(/[.!?]+$/,'')+'.':'Our goals and ways of working no longer align.'} This is not a decision I take lightly, and I believe it is best for both of us.`,
+  `I will complete all work in progress and any outstanding deliverables during the notice period, and I will provide a smooth handover. Any final invoices will follow the agreed terms. I wish you every success and would be glad to recommend other professionals who may be a better fit.`,
+  close('Sincerely,')],
+ fan:()=>[dear('Friend'),
+  `I wanted to write and thank you for your work. ${about?sentence(about):'It has meant more to me than I can easily explain.'}`,
+  `Your work arrived at a moment when I needed it. It changed the way I think, and it has stayed with me long after I finished. It inspired me to try new things and to keep going when I was ready to give up.`,
+  `You do not need to reply. I simply wanted you to know that your work reached someone and made a real difference. Thank you for making it.`,
+  close('With gratitude,')],
+ contingency:()=>[date,to?'Dear '+to+',':'Dear Me,',
+  `If you are reading this, the moment I wrote about has arrived${about?': '+about.replace(/[.!?]+$/,''):''}. I sealed this letter on ${date} so that it would find you exactly now.`,
+  `Take a slow breath. Whatever you are about to do, or have just done, I am proud of you. I wrote this when I could see clearly what matters most, and I want it to steady you.`,
+  `Remember why you began, who is cheering for you, and how much you have already overcome. Trust your preparation, and be kind to yourself whatever happens next.`,
+  close('With complete confidence in you,')],
+ gratitude:()=>[date,dear('Friend'),
+  `It has been many years, and I realize I never thanked you properly. ${about?sentence(about):'What you did back then has stayed with me ever since.'}`,
+  `With the perspective of time, I can see how much it mattered: the standard you set, the doors it opened, the people it inspired. It deserved more recognition than it received then, and I want to offer it now.`,
+  `Thank you, sincerely and long overdue. Your achievement still stands as something to be proud of.`,
+  close('With lasting appreciation,')],
+ stranger:()=>[to?'Dear '+to+',':'Dear Stranger,',
+  `You do not know me and I do not know you, yet here we are: you found this letter exactly when you were meant to. ${about?sentence(about):'I hope it brings you a smile.'}`,
+  `I do not know what kind of day you are having, but I hope this small note reminds you that someone out there wished you well. You matter, and your presence makes the world a little better.`,
+  `Pass it on if you like: leave a kind word for the next person. Be well.`,
+  from?close('Warmly,'):'Warmly,\nA friend you have not met yet'],
+ momentum:()=>[date,dear('Friends and Supporters'),
+  `I am delighted to share the momentum building around ${about||'our upcoming milestone'}. Something exciting is about to happen, and you are part of it.`,
+  `Every step so far has been powered by people like you: your ideas, your time and your encouragement. Together we have built real energy, and the launch is closer than ever. Now is the moment to celebrate how far we have come and to look at what this makes possible.`,
+  `Please save the date, share the news with your friends, and join us as we take this next step. The best is still ahead.`,
+  close('With excitement,')],
+ reversepitch:()=>[date,dear(to||sm),
+  `Rather than pitching you my services, I would like to explain why you may wish to pitch me.${about?' The short version: '+about.replace(/[.!?]+$/,'')+'.':''}`,
+  `I take on a limited number of projects each year, and I choose them carefully. The best collaborations begin with clear goals, respect for the craft, and a willingness to try something ambitious. If that sounds like you, I would love to hear your story.`,
+  `To start the conversation, send me a short note about your project, your timeline and what success would look like. I will reply personally.`,
+  close('Looking forward to your pitch,')],
+ legacyannounce:()=>[date,dear('Valued Users'),
+  `Today we celebrate a milestone as we announce the next chapter for ${about||'a product that has served so many of you so well'}. After years of dependable service, it is time for it to evolve.`,
+  `It earned its place through the trust of everyone who used it. It taught us what good design feels like, and its lessons live on in everything that comes next. We are archiving it with honor, and its legacy will continue in the next generation.`,
+  `Thank you for being part of this story. We will share every detail of the transition, and we invite you to look forward with us.`,
+  close('With gratitude and pride,')],
+ object:()=>[to?'Dear '+to+',':'Dear Old Friend,',
+  `I have wanted to write to you for a long time. ${about?sentence(about):'You have been with me through so much.'}`,
+  `You were never just a thing. You were reliable on the days I was not, and you carried my ideas, my late nights and my small victories. Every scratch and worn corner tells part of our story, and I would not trade a single one.`,
+  `Thank you for your faithful service and quiet craftsmanship. You are a reminder that well-made things deserve to be cherished. You will always have a place of honor with me.`,
+  close('With affection,')],
+ peer:()=>[dear('Friend'),
+  `I want to tell you how much I respect you. ${about?sentence(about):'Working alongside you has made me better.'}`,
+  `You hold a high standard and you share your knowledge generously. Because of you I have sharpened my skills, asked better questions and aimed higher than I would have on my own. It is a rare gift to have someone like that in your corner.`,
+  `Thank you for pushing me and for being a true ally. I look forward to what we will do next, and I will keep raising my own standards in return.`,
+  close('With respect and gratitude,')],
+ epiphany:()=>[date,to?'To '+to+',':'To me,',
+  `Timer is running. Ten minutes, no editing, no stopping. ${about?'The question: '+about.replace(/[.!?]+$/,'')+'.':'I am going to write whatever comes.'}`,
+  `Here is what comes up first: I care about this more than I admit. Maybe I am afraid it will not be good enough, or maybe I am afraid it will, and then I will have to keep going. Either way, the wanting is real, and that is worth noticing.`,
+  `What would I do if no one were watching? I would start messily and let it be rough. I would follow the part that feels alive and ignore the rest for now.`,
+  `Time is almost up, and I already know the next step. I will take it today.`,
+  close('Unedited and honest,')],
+ peace:()=>[dear('Friend'),
+  `I have been thinking about you, and I would like to make peace. ${about?'What is on my mind: '+about.replace(/[.!?]+$/,'')+'.':'Too much time has passed with distance between us.'}`,
+  `I value what we have shared far more than any disagreement. I am sorry for my part in what happened, and I understand that you may see things differently. I would like to listen to your side and to move forward with kindness.`,
+  `There is no pressure and no rush. Whenever you are ready, I would love to talk, have a coffee, or simply hear how you are. The door is open.`,
+  close('With warmth and hope,')]
  };
  return P[id]().join('\n\n')}
 
 const LT_ES={
- love:['Cartas de amor','Algo especial sobre esa persona (opcional)'],
- thanks:['Cartas de agradecimiento','¿Por qué das las gracias? p. ej. tu ayuda con la mudanza'],
- condolence:['Cartas de pésame','La pérdida, p. ej. el fallecimiento de tu padre'],
- apology:['Cartas de disculpa','¿Por qué te disculpas? p. ej. no haber ido a tu cumpleaños'],
- getwell:['Cartas para desear mejoría','¿Qué ha pasado? p. ej. tu operación'],
- update:['Cartas amistosas / novedades','Tus novedades, p. ej. nos hemos mudado a una casa nueva'],
- cover:['Cartas de presentación','El puesto, p. ej. el puesto de Asistente de Marketing'],
- resign:['Cartas de renuncia','Tu cargo, p. ej. Gerente de Ventas'],
- recommend:['Cartas de recomendación','¿Para quién es? p. ej. María López'],
- complaint:['Cartas de queja','El problema, p. ej. una entrega tardía y dañada'],
- inquiry:['Cartas de consulta comercial','Sobre qué quieres informarte, p. ej. sus servicios de catering'],
- invite:['Cartas de invitación','El evento, p. ej. mi cena de cumpleaños el sábado a las 8'],
- congrats:['Cartas de felicitación','El logro, p. ej. tu ascenso'],
- intent:['Carta de intención','Tu intención, p. ej. alquilar el piso de la calle Roble 12'],
- demand:['Cartas de reclamación','Lo que se debe, p. ej. la factura impagada del 3 de mayo'],
- followup:['Cartas de seguimiento','Sobre qué haces seguimiento, p. ej. nuestra reunión de la semana pasada'],
- farewell:['Cartas de despedida','Por qué te vas, p. ej. me mudo a Madrid']
+ love:['Carta de amor','Algo especial sobre esa persona (opcional)'],
+ thanks:['Carta de agradecimiento','¿Por qué das las gracias? p. ej. tu ayuda con la mudanza'],
+ condolence:['Carta de pésame / condolencia','La pérdida, p. ej. el fallecimiento de tu padre'],
+ apology:['Carta de disculpa','¿Por qué te disculpas? p. ej. no haber ido a tu cumpleaños'],
+ getwell:['Carta para desear mejoría','¿Qué ha pasado? p. ej. tu operación'],
+ update:['Carta amistosa / novedad','Tus novedades, p. ej. nos hemos mudado a una casa nueva'],
+ cover:['Carta de presentación','El puesto, p. ej. el puesto de Asistente de Marketing'],
+ resign:['Carta de renuncia','Tu cargo, p. ej. Gerente de Ventas'],
+ recommend:['Carta de recomendación / referencia','¿Para quién es? p. ej. María López'],
+ complaint:['Carta de queja','El problema, p. ej. una entrega tardía y dañada'],
+ inquiry:['Carta de consulta comercial','Sobre qué quieres informarte, p. ej. su servicio de catering'],
+ invite:['Carta de invitación','El evento, p. ej. mi cena de cumpleaños el sábado a las 8'],
+ congrats:['Carta de felicitación','El logro, p. ej. tu ascenso'],
+ intent:['Carta de intención (LOI)','Tu intención, p. ej. alquilar el piso de la calle Roble 12'],
+ demand:['Carta de reclamación','Lo que se debe, p. ej. la factura impagada del 3 de mayo'],
+ followup:['Carta de seguimiento','Sobre qué haces seguimiento, p. ej. nuestra reunión de la semana pasada'],
+ farewell:['Carta de despedida / adiós','Por qué te vas, p. ej. me mudo a Madrid'],
+ anniversary:['Carta de aniversario','La ocasión, p. ej. nuestro quinto aniversario'],
+ birthday:['Carta de cumpleaños','La edad o un recuerdo, p. ej. cumples 30 años'],
+ welcome:['Carta de bienvenida','¿Adónde se incorpora? p. ej. nuestro equipo'],
+ offer:['Carta de oferta de empleo','El puesto, p. ej. Gerente de Ventas'],
+ announcement:['Carta de anuncio / comunicado','La noticia, p. ej. abrimos una nueva oficina el 1 de marzo'],
+ promotion:['Carta de ascenso / reconocimiento','Quién y por qué, p. ej. Ana Ruiz, ascendida a jefa de equipo'],
+ partnership:['Carta de propuesta de colaboración','La propuesta, p. ej. una campaña conjunta con su empresa'],
+ termination:['Carta de despido / rescisión','El puesto o contrato, p. ej. empleo como auxiliar de ventas'],
+ timecapsule:['Carta cápsula del tiempo (a tu yo del futuro)','Qué quieres dejar escrito, p. ej. mis ilusiones, miedos y mi día a día actual'],
+ unsent:['Carta no enviada (desahogo)','Lo que necesitas decir, p. ej. lo que nunca te dije tras dejar de hablarnos'],
+ legacy:['Testamento ético / carta de legado','Valores o lecciones que transmitir, p. ej. bondad, trabajo honrado, familia'],
+ open:['Carta abierta','El asunto, p. ej. la falta de carriles bici seguros en nuestra ciudad'],
+ clientexit:['Carta de ruptura / salida a un cliente','El motivo, p. ej. nuestras formas de trabajar y objetivos ya no coinciden'],
+
+ fan:['Carta de admirador / agradecimiento a un creador','Su obra y su efecto, p. ej. tu novela me ayudó en un año difícil'],
+ contingency:['Carta «Si estás leyendo esto»','Cuándo abrirla, p. ej. antes de mi primera expedición al Everest'],
+ gratitude:['Carta de reconocimiento y gratitud histórica','A quién y qué honrar, p. ej. mi antigua entrenadora y su récord de 1998'],
+ stranger:['Carta a un desconocido anónimo','El mensaje que debe encontrar, p. ej. lo estás haciendo mejor de lo que crees'],
+ momentum:['Carta de impulso / amplificación de un hito','El próximo hito, p. ej. la inauguración de nuestro huerto comunitario en abril'],
+ reversepitch:['Carta de propuesta inversa','Qué ofreces y quién encaja, p. ej. diseño de marca para startups de alimentación sostenible'],
+ legacyannounce:['Carta de anuncio de evolución / legado','El producto o servicio, p. ej. la última versión de nuestra aplicación de escritorio'],
+ object:['Carta a un objeto querido','El objeto, p. ej. mi máquina de escribir de 1985 con la que escribí mi primera novela'],
+ peer:['Carta a un colega / aliado inspirador','Cómo te inspiró, p. ej. tus comentarios afinaron mi trabajo'],
+ epiphany:['Carta epifanía de 10 minutos','La pregunta o el bloqueo, p. ej. por qué evito mi novela'],
+ peace:['Carta para hacer las paces','Qué pasó o qué esperas, p. ej. nuestra discusión del verano pasado']
 };
-function writeES(id,to,from,about){
+function writeES(id,to,from,about,g){
+ g=g||'';const pl=g==='t'||g==='tf',fem=g==='f'||g==='tf';
  to=(to||'').trim();from=(from||'').trim();about=(about||'').trim();
  const date=new Date().toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
  const close=c=>c+(from?'\n'+from:'');
- const dp=()=>'Querido/a '+(to||'amigo/a')+',';
- const df=d=>to?'Estimado/a '+to+',':d;
+ const dp=()=>{if(!g)return 'Querido/a '+(to||'amigo/a')+',';
+  const a=pl?(fem?'Queridas':'Queridos'):(fem?'Querida':'Querido');
+  return a+' '+(to||(pl?(fem?'amigas':'amigos'):(fem?'amiga':'amigo')))+','};
+ const df=(d,nm,nf,npm,npf)=>{if(!g)return to?'Estimado/a '+to+',':d;
+  const a=pl?(fem?'Estimadas':'Estimados'):(fem?'Estimada':'Estimado');
+  return a+' '+(to||(pl?(fem?npf:npm):(fem?nf:nm)))+','};
+ const cand=g==='m'?'este candidato':g==='f'?'esta candidata':g==='t'?'estos candidatos':g==='tf'?'estas candidatas':'esta persona';
  const P={
  love:()=>[to?to+', mi amor,':'Mi amor,',
   `He estado buscando las palabras justas y siempre llego a las mismas: te quiero. ${about?sentence(about)+' Me recuerda cuánta suerte tengo.':'Cada día a tu lado se siente como un pequeño milagro.'}`,
@@ -675,29 +870,49 @@ function writeES(id,to,from,about){
   `Por aquí las cosas avanzan. He intentado sacar tiempo para las personas y las cosas que me importan, y tú siempre estás en esa lista. Pienso a menudo en los buenos momentos que hemos compartido.`,
   `Escríbeme y cuéntame cómo estás, qué has estado haciendo y cuándo podríamos vernos en persona.`,
   close('Un abrazo,')],
- cover:()=>[date,df('Estimado/a responsable de selección,'),
+ anniversary:()=>[to?to+', mi amor,':'Mi amor,',
+  `¡Feliz aniversario!${about?' '+sentence(about):''} Al mirar atrás y ver todo lo que hemos vivido juntos, me invade la gratitud.`,
+  `Gracias por las risas, por los días difíciles que superamos de la mano y por los pequeños momentos que hacen especial lo cotidiano. Contigo, cada año se siente como el primero.`,
+  `Brindo por lo que hemos construido y por todo lo que nos espera. Te quiero hoy más que nunca.`,
+  close('Con todo mi amor,')],
+ birthday:()=>[dp(),
+  `¡Feliz cumpleaños${about?', '+about:''}! Hoy es tu día y quería que lo supieras: me alegra muchísimo que formes parte de mi vida.`,
+  `Deseo que este nuevo año te traiga salud, alegría y muchas razones para sonreír. Mereces todo lo bueno que llegue y más.`,
+  `Disfruta de tu día, rodéate de quienes más quieres y date todos los gustos. Un fuerte abrazo y que cumplas muchos más.`,
+  close('Con cariño,')],
+ welcome:()=>[dp(),
+  `¡Te damos la bienvenida${about?' a '+about:''}! Nos alegra muchísimo contar contigo.`,
+  `Esperamos que te sientas como en casa desde el primer momento. Todos tenemos ganas de conocerte y estamos aquí para ayudarte con lo que necesites mientras te instalas.`,
+  `No dudes en preguntar lo que quieras, grande o pequeño. Una vez más, te damos una calurosa bienvenida. No vemos la hora de ver qué haremos juntos.`,
+  close('Con afecto,')],
+ offer:()=>[date,df('Estimado/a candidato/a,','candidato','candidata','candidatos','candidatas'),
+  `Nos complace ofrecerle el puesto de ${about||'la vacante de la que hemos hablado'} en nuestra empresa. Su perfil y su trayectoria nos han impresionado y creemos que será una gran incorporación al equipo.`,
+  `Las condiciones de la oferta, incluidas la retribución, el horario y la fecha de incorporación, se detallan en el documento adjunto. Esta oferta es válida durante siete días desde la fecha de esta carta.`,
+  `Si acepta, le rogamos que firme una copia de esta carta y nos la devuelva. Quedamos a su disposición para resolver cualquier duda. Esperamos poder darle la bienvenida pronto.`,
+  close('Atentamente,')],
+ cover:()=>[date,df('Estimado/a responsable de selección,','responsable de selección','responsable de selección','responsables de selección','responsables de selección'),
   `Le escribo para presentar mi candidatura en relación con ${about||'la vacante abierta en su empresa'}. Con mi experiencia, mis ganas de aprender y un interés genuino por su trabajo, creo que sería una buena incorporación a su equipo.`,
   `En mis puestos anteriores he demostrado responsabilidad, comunicación clara y capacidad para sacar el trabajo adelante. Disfruto resolviendo problemas junto a mis compañeros y me enorgullece hacer un trabajo cuidadoso con el que se pueda contar.`,
   `Agradecería la oportunidad de conversar sobre cómo puedo contribuir. Gracias por su tiempo y su consideración. Quedo a la espera de sus noticias.`,
   close('Atentamente,')],
- resign:()=>[date,df('Estimado/a señor/a,'),
+ resign:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
   `Por medio de la presente le comunico formalmente mi renuncia al puesto${about?' de '+about:''} que ocupo, con efecto a partir de dos semanas desde hoy.`,
   `No ha sido una decisión fácil. Agradezco las oportunidades, el apoyo y las personas con las que he trabajado aquí. He aprendido mucho y siempre valoraré mi paso por el equipo.`,
   `Durante el tiempo que me queda haré todo lo posible para asegurar un traspaso ordenado de mis funciones. Por favor, dígame cómo puedo ayudar.`,
   `Gracias de nuevo, y le deseo a la empresa muchos éxitos.`,
   close('Atentamente,')],
- recommend:()=>[date,df('Estimado/a señor/a,'),
-  `Es un placer recomendar sin reservas a ${about||'esta persona'}. He podido observar de cerca su trabajo durante el tiempo suficiente para hablar con seguridad de sus capacidades y de su carácter.`,
+ recommend:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `Es un placer recomendar sin reservas a ${about||cand}. He podido observar de cerca su trabajo durante el tiempo suficiente para hablar con seguridad de sus capacidades y de su carácter.`,
   `Destaca por su responsabilidad, su curiosidad y su trato agradable. Toma la iniciativa, se comunica con claridad y entrega siempre un trabajo cuidadoso y reflexivo. Sus compañeros confían en su criterio y afronta cada reto con éxito.`,
   `Tengo plena confianza en que aportará un gran valor a su organización. No dude en contactarme si desea más información.`,
   close('Atentamente,')],
- complaint:()=>[date,df('Estimado/a señor/a,'),
+ complaint:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
   `Le escribo para presentar una queja por ${about||'una experiencia reciente con su empresa'}. He valorado su servicio y esperaba un nivel mejor.`,
   `El problema me ha causado verdaderas molestias y hasta ahora no se ha resuelto. Considero que esto no está a la altura de lo que ustedes prometen a sus clientes.`,
   `Solicito que el asunto se investigue y se corrija con prontitud, con una compensación adecuada. Agradecería una respuesta por escrito en un plazo de catorce días.`,
   `Gracias por su atención a este asunto.`,
   close('Atentamente,')],
- inquiry:()=>[date,df('Estimado/a señor/a,'),
+ inquiry:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
   `Le escribo para informarme sobre ${about||'sus productos y servicios'}. Su empresa viene muy recomendada y me gustaría saber más.`,
   `¿Podría enviarme información sobre disponibilidad, precios y cualquier condición o requisito mínimo? Si es posible, también agradecería una breve llamada o reunión para comentar mis necesidades.`,
   `Gracias por su tiempo. Quedo a la espera de su respuesta y de la posibilidad de trabajar juntos.`,
@@ -712,12 +927,12 @@ function writeES(id,to,from,about){
   `Este éxito es fruto de tu talento, tu esfuerzo y tu determinación, y te lo has ganado por completo. Siento un enorme orgullo por ti y me alegro de corazón.`,
   `Espero que te tomes tiempo para celebrar y disfrutar de este momento. No veo la hora de ver qué haces después.`,
   close('Con mis más sinceras felicitaciones,')],
- intent:()=>[date,df('Estimado/a señor/a,'),
+ intent:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
   `Mediante esta carta expreso mi sincera intención de ${noTo(about)||'aprovechar la oportunidad de la que hemos hablado'}. Le escribo para confirmar mi interés y mi disposición a seguir adelante.`,
   `Entiendo el propósito y las expectativas que conlleva, y me comprometo a dedicar el tiempo, el esfuerzo y los recursos necesarios. Creo que el acuerdo beneficiaría a todos y quedo a su disposición para hablar de sus condiciones de buena fe.`,
   `Le ruego que considere esta carta una declaración de mis intenciones, sujeta al acuerdo final de todas las partes. Quedo a la espera de su respuesta.`,
   close('Respetuosamente,')],
- demand:()=>[date,df('Estimado/a señor/a,'),
+ demand:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
   `Esta carta es un requerimiento formal en relación con ${about||'el asunto pendiente entre nosotros'}. A pesar de mis intentos anteriores por resolverlo, sigue sin solucionarse.`,
   `Le solicito que salde el asunto por completo en un plazo de catorce días desde la fecha de esta carta, y que confirme por escrito cómo y cuándo lo hará.`,
   `Si para entonces no recibo una respuesta satisfactoria, no tendré más remedio que considerar todas las acciones a mi alcance, incluidas las legales, sin más aviso.`,
@@ -732,26 +947,206 @@ function writeES(id,to,from,about){
   `Ha llegado el momento de decir adiós${about?', ya que '+about:''}, y me resulta más difícil de lo que esperaba.`,
   `Gracias por las risas, el apoyo y los buenos recuerdos que hemos creado juntos. Has marcado una verdadera diferencia en mis días y me llevaré eso conmigo adonde vaya.`,
   `Esto no es el final de nuestra conexión. Mantengamos el contacto y recuerda que siempre tendrás una amistad en mí. Cuídate mucho y que el camino que te espera sea amable.`,
+  close('Con cariño,')],
+ announcement:()=>[dp(),
+  `Me alegra compartir contigo una noticia: ${about?about.replace(/[.!?]+$/,'')+'.':'tenemos un anuncio importante que hacer.'}`,
+  `Queríamos que lo supieras directamente por nosotros antes de que se difunda más. Estamos muy ilusionados con lo que significa y agradecidos por el apoyo que nos ha traído hasta aquí.`,
+  `Si tienes alguna pregunta o quieres más detalles, no dudes en ponerte en contacto. Esperamos contarte más muy pronto.`,
+  close('Un cordial saludo,')],
+ promotion:()=>[date,df('Estimado/a compañero/a,','compañero','compañera','compañeros','compañeras'),
+  `Es un verdadero placer escribirle para reconocer ${about||'su sobresaliente contribución al equipo'}. Su trabajo no ha pasado desapercibido.`,
+  `Ha demostrado dedicación, responsabilidad y un auténtico compromiso con la excelencia. Toma la iniciativa, apoya a sus compañeros y logra resultados que elevan el nivel de todos los que le rodean.`,
+  `Cualquier cambio en su puesto, funciones o retribución se le confirmará por separado. En nombre de todo el equipo, enhorabuena y gracias. Esperamos con interés todo lo que logrará a partir de ahora.`,
+  close('Con sincero reconocimiento,')],
+ partnership:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `Le escribo para proponerle una colaboración entre nuestras organizaciones${about?', en concreto '+about:''}. Admiramos el trabajo que realizan y creemos que nuestras fortalezas se complementan muy bien.`,
+  `Vemos beneficios claros para ambas partes: audiencias compartidas, recursos conjuntos y la posibilidad de ofrecer más valor a nuestros clientes del que podríamos aportar por separado. Estamos abiertos a definir juntos el alcance, las responsabilidades y las condiciones para que el acuerdo sea justo y sostenible.`,
+  `Agradecería una llamada o reunión para estudiar la idea con más detalle. Gracias por su tiempo y su consideración. Quedo a la espera de su respuesta.`,
+  close('Cordialmente,')],
+ termination:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `Mediante la presente le comunico formalmente ${about?'la terminación de lo siguiente: '+about.replace(/[.!?]+$/,'')+'.':'la terminación del acuerdo que nos vincula.'} Esta surtirá efecto treinta días después de la fecha de esta carta.`,
+  `Esta decisión se ha tomado tras una cuidadosa reflexión. Los pagos finales, la devolución de bienes y las obligaciones pendientes se tramitarán conforme a las condiciones aplicables y a la normativa vigente. Le ruego que se ponga en contacto conmigo para concretar los detalles.`,
+  `Agradecemos el tiempo y el esfuerzo dedicados y le deseamos lo mejor en adelante. Le ruego que confirme por escrito la recepción de esta carta.`,
+  close('Atentamente,')],
+ timecapsule:()=>[date,'A mi yo del futuro,',
+  `Escribo esto el ${date}, para que lo abras dentro de muchos años. ${about?'Lo que quiero dejar escrito: '+about.replace(/[.!?]+$/,'')+'.':'Quiero captar quién soy y cómo veo el mundo hoy.'}`,
+  `Ahora mismo mis días están llenos de cosas corrientes que quizá algún día olvide: las personas que más veo, las preocupaciones que me quitan el sueño, las pequeñas alegrías que me sostienen. Espero que sigas con curiosidad, bondad y valentía. Espero que lo que hoy me asusta te parezca pequeño.`,
+  `Pase lo que pase desde entonces, trátate con cariño. Recuerda que hiciste lo mejor que pudiste con lo que sabías. Mira esta carta y comprueba cuánto has avanzado.`,
+  close('Con esperanza,')],
+ unsent:()=>[to?'Para '+to+',':'Para ti,',
+  `Esta carta nunca se enviará, y precisamente por eso puedo por fin decirlo todo con sinceridad. ${about?sentence(about):'Hay cosas que nunca he sido capaz de decir en voz alta.'}`,
+  `Estoy enfadado/a, dolido/a y a veces simplemente cansado/a de cargar con esto. No recibí la disculpa, la explicación ni el final que necesitaba. Así que lo escribo aquí, con mis propias palabras, sin suavizar nada.`,
+  `Al ponerlo sobre el papel, lo suelto. Ya no necesito tu respuesta. Dejo ir lo que he guardado y elijo seguir adelante más ligero/a.`,
+  close('Por fin, en paz,')],
+ legacy:()=>[to?'Para '+to+',':'Queridos míos,',
+  `Escribo esto para transmitiros lo que más me importa, lo que ningún testamento ni cuenta bancaria puede llevar. ${about?'Sobre todo quiero que recordéis '+about.replace(/[.!?]+$/,'')+'.':'Estos son los valores y las lecciones que han marcado mi vida.'}`,
+  `La vida me ha enseñado que la bondad cuesta poco y significa todo, que el trabajo honrado y las palabras sinceras construyen una vida con la que se puede dormir tranquilo, y que las personas importan más que las cosas. He cometido errores y he aprendido más de ellos que de mis éxitos.`,
+  `Gracias por el cariño y la alegría que me habéis dado. Cuidaos unos a otros, perdonad pronto y seguid contando las historias de quienes vinieron antes que vosotros. Mi amor os acompaña siempre.`,
+  close('Con todo mi amor,')],
+ open:()=>['Carta abierta'+(to?(/^el /i.test(to)?' al '+to.slice(3):' a '+to):'')+',',
+  `Escribo públicamente para referirme a ${about||'un asunto de preocupación general'}. No se trata de una queja privada. Afecta a muchas personas y merece un debate abierto.`,
+  `Los hechos son claros y las consecuencias, reales. Quienes tienen el poder de cambiar esto tienen la responsabilidad de actuar, y el silencio hasta ahora no ha servido a las personas más afectadas.`,
+  `Le pido que reconozca el problema, que explique qué piensa hacer y que actúe sin demora. Estaremos pendientes y estamos dispuestos a colaborar en la búsqueda de una solución.`,
+  close('Atentamente,')],
+ clientexit:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `Le agradezco la oportunidad de haber trabajado juntos. Tras una cuidadosa reflexión, he decidido poner fin a nuestra relación profesional, con efecto a los treinta días de la fecha de esta carta.`,
+  `${about?'El motivo es sencillo: '+about.replace(/[.!?]+$/,'')+'.':'Nuestros objetivos y formas de trabajar ya no coinciden.'} No es una decisión que tome a la ligera y creo que es lo mejor para ambos.`,
+  `Durante el plazo de preaviso completaré todos los trabajos en curso y los entregables pendientes, y garantizaré un traspaso ordenado. Las facturas finales seguirán las condiciones acordadas. Le deseo mucho éxito y con gusto le recomendaré a otros profesionales que puedan encajar mejor.`,
+  close('Atentamente,')],
+ fan:()=>[df('Estimado/a creador/a,','creador','creadora','creadores','creadoras'),
+  `Quería escribirte para darte las gracias por tu trabajo. ${about?sentence(about):'Ha significado para mí más de lo que puedo explicar con facilidad.'}`,
+  `Tu obra llegó en un momento en que la necesitaba. Cambió mi forma de pensar y se ha quedado conmigo mucho después de terminarla. Me animó a probar cosas nuevas y a seguir adelante cuando estaba a punto de rendirme.`,
+  `No hace falta que me respondas. Solo quería que supieras que tu trabajo llegó a alguien y marcó una verdadera diferencia. Gracias por crearlo.`,
+  close('Con gratitud,')],
+ contingency:()=>[date,to?'Para '+to+',':'Para mí,',
+  `Si estás leyendo esto, ha llegado el momento del que hablaba${about?': '+about.replace(/[.!?]+$/,''):''}. Sellé esta carta el ${date} para que te encontrara justo ahora.`,
+  `Respira despacio. Hagas lo que hagas, o acabes de hacer, estoy orgulloso/a de ti. Escribí esto cuando veía con claridad lo que más importa, y quiero que te dé calma.`,
+  `Recuerda por qué empezaste, quién te anima y cuánto has superado ya. Confía en tu preparación y trátate con cariño pase lo que pase.`,
+  close('Con plena confianza en ti,')],
+ gratitude:()=>[date,dp(),
+  `Han pasado muchos años y me doy cuenta de que nunca te di las gracias como merecías. ${about?sentence(about):'Lo que hiciste entonces se ha quedado conmigo desde entonces.'}`,
+  `Con la perspectiva del tiempo, veo cuánto significó: el listón que marcaste, las puertas que abrió, las personas a las que inspiró. Merecía más reconocimiento del que recibió entonces, y quiero ofrecértelo ahora.`,
+  `Gracias, de corazón y con mucho retraso. Tu logro sigue siendo motivo de orgullo.`,
+  close('Con aprecio duradero,')],
+ stranger:()=>[to?'Querido/a '+to+',':'Querido/a desconocido/a,',
+  `No me conoces y no te conozco, y sin embargo aquí estás: has encontrado esta carta justo cuando debías. ${about?sentence(about):'Espero que te arranque una sonrisa.'}`,
+  `No sé cómo es tu día, pero espero que esta nota te recuerde que alguien, en algún lugar, te desea lo mejor. Importas, y tu presencia hace el mundo un poco mejor.`,
+  `Si quieres, pásala: deja unas palabras amables para la siguiente persona. Cuídate mucho.`,
+  from?close('Con cariño,'):'Con cariño,\nAlguien que aún no conoces'],
+ momentum:()=>[date,df('Queridos amigos y colaboradores,','amigo','amiga','amigos','amigas'),
+  `Me alegra compartir el impulso que está tomando ${about||'nuestro próximo hito'}. Algo emocionante está a punto de suceder y formas parte de ello.`,
+  `Cada paso hasta ahora ha salido adelante gracias a personas como tú: tus ideas, tu tiempo y tu ánimo. Juntos hemos creado una energía real y el lanzamiento está más cerca que nunca. Es el momento de celebrar lo recorrido y de mirar lo que esto hace posible.`,
+  `Guarda la fecha, comparte la noticia con tus amistades y acompáñanos en este siguiente paso. Lo mejor está por venir.`,
+  close('Con ilusión,')],
+ reversepitch:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `En lugar de ofrecerle mis servicios, quiero explicarle por qué quizá le interese presentarme su propuesta a mí.${about?' En resumen: '+about.replace(/[.!?]+$/,'')+'.':''}`,
+  `Acepto un número limitado de proyectos al año y los elijo con cuidado. Las mejores colaboraciones empiezan con objetivos claros, respeto por el oficio y ganas de intentar algo ambicioso. Si se reconoce en esto, me encantará conocer su historia.`,
+  `Para empezar la conversación, envíeme una breve nota sobre su proyecto, sus plazos y cómo sería el éxito para usted. Le responderé personalmente.`,
+  close('A la espera de su propuesta,')],
+ legacyannounce:()=>[date,df('Estimados usuarios,','usuario','usuaria','usuarios','usuarias'),
+  `Hoy celebramos un hito al anunciar el siguiente capítulo de ${about||'un producto que tantas personas han valorado'}. Tras años de servicio fiable, ha llegado el momento de que evolucione.`,
+  `Se ganó su lugar gracias a la confianza de todas las personas que lo usaron. Nos enseñó cómo se siente un buen diseño y sus lecciones siguen vivas en todo lo que viene. Lo archivamos con honor y su legado continuará en la siguiente generación.`,
+  `Gracias por formar parte de esta historia. Compartiremos todos los detalles de la transición y os invitamos a mirar hacia delante con nosotros.`,
+  close('Con gratitud y orgullo,')],
+ object:()=>[to?'Querido/a '+to+',':'Viejo amigo,',
+  `Hace tiempo que quería escribirte. ${about?sentence(about):'Has estado conmigo en tantas cosas.'}`,
+  `Nunca fuiste solo una cosa. Eras fiable los días en que yo no lo era, y cargaste con mis ideas, mis noches en vela y mis pequeñas victorias. Cada arañazo y cada esquina gastada cuenta parte de nuestra historia y no cambiaría ni uno.`,
+  `Gracias por tu servicio fiel y tu silenciosa maestría. Eres un recordatorio de que las cosas bien hechas merecen ser queridas. Siempre tendrás un lugar de honor conmigo.`,
+  close('Con cariño,')],
+ peer:()=>[dp(),
+  `Quiero decirte cuánto te respeto. ${about?sentence(about):'Trabajar a tu lado me ha hecho mejor.'}`,
+  `Mantienes un listón alto y compartes tu conocimiento con generosidad. Gracias a ti he afinado mis habilidades, me he hecho mejores preguntas y he apuntado más alto de lo que habría hecho por mi cuenta. Es un regalo poco común tener a alguien así de tu lado.`,
+  `Gracias por empujarme y por ser un apoyo de verdad. Tengo ganas de ver qué haremos después y seguiré elevando mis propios estándares.`,
+  close('Con respeto y gratitud,')],
+ epiphany:()=>[date,to?'Para '+to+',':'Para mí,',
+  `El reloj corre. Diez minutos, sin editar, sin parar. ${about?'La pregunta: '+about.replace(/[.!?]+$/,'')+'.':'Voy a escribir lo que venga.'}`,
+  `Esto es lo primero que aparece: me importa más de lo que admito. Quizá temo que no sea lo bastante bueno, o quizá temo que lo sea y tener que seguir adelante. Sea como sea, el deseo es real y eso merece atención.`,
+  `¿Qué haría si nadie me mirara? Empezaría sin pulir y dejaría que quedara áspero. Seguiría la parte que se siente viva y ignoraría el resto por ahora.`,
+  `Casi se acaba el tiempo y ya sé el siguiente paso. Lo daré hoy.`,
+  close('Sin editar y con sinceridad,')],
+ peace:()=>[dp(),
+  `Llevo tiempo pensando en ti y me gustaría hacer las paces. ${about?'Pienso sobre todo en esto: '+about.replace(/[.!?]+$/,'')+'.':'Ha pasado demasiado tiempo con distancia entre nosotros.'}`,
+  `Valoro lo que hemos compartido mucho más que cualquier desacuerdo. Lamento mi parte en lo ocurrido y entiendo que tú puedas verlo de otra manera. Me gustaría escuchar tu versión y seguir adelante con cariño.`,
+  `No hay presión ni prisa. Cuando te sientas preparado/a, me encantaría hablar, tomar un café o simplemente saber cómo estás. La puerta está abierta.`,
+  close('Con cariño y esperanza,')]
+ };
+ const PL={
+anniversary:()=>[dp(),
+  `¡Feliz aniversario!${about?' '+sentence(about):''} Al mirar atrás y ver todo lo que habéis vivido juntos, me invade la alegría por vosotros.`,
+  `Gracias por vuestro ejemplo, por las risas, por los días difíciles que superáis de la mano y por los pequeños momentos que hacen especial lo cotidiano.`,
+  `Brindo por lo que habéis construido y por todo lo que os espera. Os quiero hoy más que nunca.`,
+  close('Con todo mi cariño,')],
+ birthday:()=>[dp(),
+  `¡Feliz cumpleaños${about?', '+about:''}! Hoy es vuestro día y quería que lo supierais: me alegra muchísimo que forméis parte de mi vida.`,
+  `Deseo que este nuevo año os traiga salud, alegría y muchas razones para sonreír. Merecéis todo lo bueno que llegue y más.`,
+  `Disfrutad de vuestro día, rodeaos de quienes más queréis y daos todos los gustos. Un fuerte abrazo y que cumpláis muchos más.`,
+  close('Con cariño,')],
+ welcome:()=>[dp(),
+  `¡Os damos la bienvenida${about?' a '+about:''}! Nos alegra muchísimo contar con vosotros.`,
+  `Esperamos que os sintáis como en casa desde el primer momento. Todos tenemos ganas de conoceros y estamos aquí para ayudaros con lo que necesitéis mientras os instaláis.`,
+  `No dudéis en preguntar lo que queráis, grande o pequeño. Una vez más, os damos una calurosa bienvenida. No vemos la hora de ver qué haremos juntos.`,
+  close('Con afecto,')],
+ love:()=>[to?to+', mis amores,':'Mis amores,',
+  `He estado buscando las palabras justas y siempre llego a las mismas: os quiero. ${about?sentence(about)+' Me recuerda cuánta suerte tengo.':'Cada día a vuestro lado se siente como un pequeño milagro.'}`,
+  `Sois las primeras personas a quienes quiero contarles las buenas noticias y las últimas voces que quiero oír por la noche. Vuestra risa convierte los días normales en días dorados, y vuestra bondad me inspira a ser mejor persona.`,
+  `Pase lo que pase mañana, quiero afrontarlo con vosotros. Gracias por quererme exactamente como soy.`,
+  close('Con todo mi amor,')],
+ thanks:()=>[dp(),
+  `Muchas gracias${about?' por '+about:''}. No puedo deciros cuánto significa para mí.`,
+  `Vuestra amabilidad y vuestra generosidad marcaron una verdadera diferencia, y lo recordaré durante mucho tiempo. Es raro encontrar a personas que dan con tanta libertad su tiempo y su corazón.`,
+  `Espero poder devolveros el favor algún día. Mientras tanto, quiero que sepáis que os lo agradezco de verdad.`,
+  close('Con mi más sincero agradecimiento,')],
+ condolence:()=>[dp(),
+  `Lamento profundamente ${about||'vuestra pérdida'}. Os acompaño en el sentimiento y os envío mi más sentido pésame.`,
+  `No hay palabras que puedan aliviar una pérdida así, pero quiero que sepáis que estáis en mis pensamientos. El cariño, los recuerdos y las historias compartidas permanecerán con vosotros y con todos los que fueron tocados por esa vida.`,
+  `Si hay algo que pueda hacer, ya sea una comida, un traslado o simplemente escucharos, no dudéis en pedírmelo. No tenéis que pasar por esto a solas.`,
+  close('Con mi más profundo pésame,')],
+ apology:()=>[dp(),
+  `Os escribo para pediros perdón${about?' por '+about:''}. Lo he pensado mucho y lo siento de verdad.`,
+  `Me equivoqué y entiendo cómo os afectó. No hay excusa y no quiero daros ninguna. Merecíais algo mejor de mi parte.`,
+  `Me gustaría arreglarlo. Si queréis, me encantaría tener la oportunidad de hablar, y os prometo escucharos. Decidáis lo que decidáis, espero que con el tiempo podáis perdonarme.`,
+  close('Con sinceridad,')],
+ getwell:()=>[dp(),
+  `${about?'Lamenté mucho enterarme de '+about+'.':'Lamenté mucho saber que no os habéis encontrado bien.'} Espero que estéis descansando y que os cuiden bien.`,
+  `No os preocupéis por nada salvo por recuperaros. Tomaos todo el tiempo que necesitéis y dejad que los demás os ayuden. Sois más fuertes de lo que creéis y sé que pronto estaréis de nuevo en pie.`,
+  `Estoy pensando en vosotros y os envío mis mejores deseos de una pronta recuperación. Si necesitáis cualquier cosa, solo decídmelo.`,
+  close('Que os mejoréis pronto,')],
+ update:()=>[dp(),
+  `Espero que esta carta os encuentre bien. Ha pasado demasiado tiempo desde la última vez que hablamos y quería contaros algunas novedades. ${about?sentence(about):'La vida ha estado ajetreada, pero buena.'}`,
+  `Por aquí las cosas avanzan. He intentado sacar tiempo para las personas y las cosas que me importan, y vosotros siempre estáis en esa lista. Pienso a menudo en los buenos momentos que hemos compartido.`,
+  `Escribidme y contadme cómo estáis, qué habéis estado haciendo y cuándo podríamos vernos en persona.`,
+  close('Un abrazo,')],
+ recommend:()=>[date,df('Estimado/a señor/a,','señor','señora','señores','señoras'),
+  `Es un placer recomendar sin reservas a ${about||cand}. He podido observar de cerca su trabajo durante el tiempo suficiente para hablar con seguridad de sus capacidades y de su carácter.`,
+  `Destacan por su responsabilidad, su curiosidad y su trato agradable. Toman la iniciativa, se comunican con claridad y entregan siempre un trabajo cuidadoso y reflexivo. Sus compañeros confían en su criterio y afrontan cada reto con éxito.`,
+  `Tengo plena confianza en que aportarán un gran valor a su organización. No dude en contactarme si desea más información.`,
+  close('Atentamente,')],
+ invite:()=>[dp(),
+  `Os invitamos con mucho cariño a ${about||'una ocasión especial'}. Significaría muchísimo contar con vosotros.`,
+  `Estamos preparando un rato relajado y alegre, con buena comida y buena compañía, y sencillamente no sería lo mismo sin vosotros.`,
+  `Por favor, decidnos si podréis venir. Esperamos de corazón veros.`,
+  close('Con mucho cariño,')],
+ congrats:()=>[dp(),
+  `¡Enhorabuena${about?' por '+about:''}! Me alegré muchísimo al enterarme de la noticia.`,
+  `Este éxito es fruto de vuestro talento, vuestro esfuerzo y vuestra determinación, y os lo habéis ganado por completo. Siento un enorme orgullo por vosotros y me alegro de corazón.`,
+  `Espero que os toméis tiempo para celebrar y disfrutar de este momento. No veo la hora de ver qué hacéis después.`,
+  close('Con mis más sinceras felicitaciones,')],
+ followup:()=>[dp(),
+  `Espero que estéis bien. Os escribo para dar seguimiento a ${about||'nuestra reciente conversación'}, porque quería asegurarme de que no se hubiera quedado en el olvido.`,
+  `Entiendo que andáis con mucho trabajo, así que no quiero presionaros. Si necesitáis más información de mi parte, con gusto os la facilito enseguida.`,
+  `¿Podríais decirme en qué punto están las cosas cuando tengáis un momento? Gracias por vuestro tiempo. Espero tener noticias vuestras.`,
+  close('Un cordial saludo,')],
+ farewell:()=>[dp(),
+  `Ha llegado el momento de decir adiós${about?', ya que '+about:''}, y me resulta más difícil de lo que esperaba.`,
+  `Gracias por las risas, el apoyo y los buenos recuerdos que hemos creado juntos. Habéis marcado una verdadera diferencia en mis días y me llevaré eso conmigo adonde vaya.`,
+  `Esto no es el final de nuestra conexión. Mantengamos el contacto y recordad que siempre tendréis una amistad en mí. Cuidaos mucho y que el camino que os espera sea amable.`,
   close('Con cariño,')]
  };
- return P[id]().join('\n\n')}
-async function makeLetter(id,to,from,about){
+ const FPL=[[/\b(L|l)e (escribo|comunico|solicito|ruego)/g,'$1es $2'],[/que salde\b/g,'que salden'],[/que confirme por escrito cómo y cuándo lo hará/g,'que confirmen por escrito cómo y cuándo lo harán'],[/que actúe con/g,'que actúen con'],[/que considere esta/g,'que consideren esta'],[/no dude en/g,'no duden en'],[/dígame/g,'díganme'],[/¿Podría enviarme/g,'¿Podrían enviarme'],[/ofrecerle\b/g,'ofrecerles'],[/que será una gran/g,'que serán una gran'],[/Si acepta, le rogamos que firme/g,'Si aceptan, les rogamos que firmen'],[/nos la devuelva/g,'nos la devuelvan'],[/darle la bienvenida/g,'darles la bienvenida']];
+ if(pl&&PL[id])return PL[id]().join('\n\n');
+ let out=P[id]();
+ if(pl&&['cover','resign','complaint','inquiry','intent','demand','offer'].includes(id))out=out.map(l=>FPL.reduce((a,[r,t])=>a.replace(r,t),l));
+ return out.join('\n\n')}
+async function makeLetter(id,to,from,about,g){
  let letter='';
- if(AI_ENDPOINT){try{const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:(LT.find(t=>t[0]===id)||[])[1],lang:LANG,to,from,about})});
+ if(AI_ENDPOINT){try{const r=await fetch(AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:(LT.find(t=>t[0]===id)||[])[1],lang:LANG,to,from,about,pronoun:g||''})});
   const j=await r.json();letter=(j.letter||j.text||'').trim()}catch(e){}}
- if(!letter)letter=writeLocal(id,to,from,about);
+ if(!letter)letter=writeLocal(id,to,from,about,g);
  // Add a single-line, right-aligned Spanish date using Roman numerals.
  const now=new Date();
  const roman=n=>{const vals=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let out='';for(const [v,sym] of vals)while(n>=v){out+=sym;n-=v}return out};
  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
- const date=roman(now.getDate())+' '+months[now.getMonth()]+' '+roman(now.getFullYear());
+ const monthsEn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+ const date=roman(now.getDate())+' '+(LANG==='es'?months:monthsEn)[now.getMonth()]+' '+roman(now.getFullYear());
+ /* If the letter already starts with a date line (any format, either language), drop it so the date is never printed twice. */
+ const isDateLine=l=>/^(?:\d{1,2}|[IVXLCDM]+)\s+(?:de\s+)?\p{L}+(?:\s+de)?\s+(?:\d{4}|[IVXLCDM]+)$/iu.test(l)||/^\p{L}+\s+\d{1,2},?\s+\d{4}$/u.test(l)||/^\d{1,2}\s+\p{L}+,?\s+\d{4}$/u.test(l);
  const firstLine=(letter.split(/\r?\n/,1)[0]||'').trim();
- const body=/^(?:\d{1,2}|[IVXLCDM]+)\s+(?:de\s+)?\p{L}+(?:\s+de)?\s+(?:\d{4}|[IVXLCDM]+)$/iu.test(firstLine)?letter.slice(letter.indexOf('\n')+1).replace(/^\n+/, ''):letter;
+ const body=isDateLine(firstLine)?letter.slice(letter.indexOf('\n')+1).replace(/^\n+/, ''):letter;
  const dateLine=' '.repeat(Math.max(0,COLS-date.length))+date;
  return dateLine+'\n'+body}
 
 /* ---- modal ---- */
-let aiOpen=false,aiSel=null,typing=null;
+let aiOpen=false,aiSel=null,typing=null,gSel='';
 const aiModal=$('aiModal'),aiTypes=$('aiTypes'),aiGo=$('aiGo');
 aiTypes.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;sInk();
  aiSel=b.dataset.id;aiTypes.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));
@@ -765,7 +1160,7 @@ document.addEventListener('keydown',e=>{if(aiOpen&&e.key==='Escape')closeAI()});
 aiGo.onclick=async()=>{if(!aiSel)return;initAudio();sPop();
  const to=$('aiTo').value,from=$('aiFrom').value,about=$('aiAbout').value,id=aiSel;
  aiGo.disabled=true;aiGo.textContent=S('writing');$('bAI').classList.add('busy');
- let txt;try{txt=await makeLetter(id,to,from,about)}finally{aiGo.textContent=S('go');aiGo.disabled=false;$('bAI').classList.remove('busy')}
+ let txt;try{txt=await makeLetter(id,to,from,about,gSel)}finally{aiGo.textContent=S('go');aiGo.disabled=false;$('bAI').classList.remove('busy')}
  closeAI();autoType(txt)};
 
 /* ---- the Selectric types it out ---- */
@@ -814,8 +1209,15 @@ urlGo.onclick=()=>{
  initAudio();sPop();urlIn.value='';closeURL();autoType(txt)};
 
 const ltN=t=>LANG==='es'?LT_ES[t[0]][0]:t[1],ltH=t=>LANG==='es'?LT_ES[t[0]][1]:t[3];
+function buildG(){const box=$('aiG');if(!box)return;box.innerHTML='';
+ const O=LANG==='es'?[['m','Él'],['f','Ella'],['t','Ellos'],['tf','Ellas']]:[['m','He'],['f','She'],['t','Them']];
+ O.forEach(([c,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.dataset.g=c;
+  if(gSel===c||(LANG==='en'&&gSel==='tf'&&c==='t'))b.classList.add('sel');box.appendChild(b)})}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#aiG button');if(!b)return;sInk();
+ const c=b.dataset.g,on=gSel===c||(LANG==='en'&&gSel==='tf'&&c==='t');gSel=on?'':c;buildG()});
 function buildTypes(){aiTypes.innerHTML='';
- LT.forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=ltN(t);b.dataset.id=t[0];if(t[0]===aiSel)b.classList.add('sel');aiTypes.appendChild(b)})}
+ LT_CAT.forEach(c=>{const h=document.createElement('div');h.className='aiCat';h.textContent=LANG==='es'?c[1]:c[0];aiTypes.appendChild(h);
+  c[2].forEach(id=>{const t=LT.find(x=>x[0]===id);if(!t)return;const b=document.createElement('button');b.type='button';b.textContent=ltN(t);b.dataset.id=t[0];if(t[0]===aiSel)b.classList.add('sel');aiTypes.appendChild(b)})})}
 function applyLang(){
  root.lang=LANG;
  document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=S(e.dataset.i)});
@@ -823,7 +1225,7 @@ function applyLang(){
  document.querySelectorAll('[data-ip]').forEach(e=>{e.placeholder=S(e.dataset.ip)});
  document.querySelectorAll('[data-ial]').forEach(e=>{e.alt=S(e.dataset.ial)});
  document.querySelectorAll('#bLang .lg').forEach(e=>e.classList.toggle('on',e.dataset.l===LANG));
- buildTypes();
+ buildTypes();buildG();
  const cur=aiSel&&LT.find(x=>x[0]===aiSel);if(cur)$('aiAbout').placeholder=ltH(cur)}
 $('bLang').onclick=()=>{initAudio();sPop();LANG=LANG==='es'?'en':'es';try{localStorage.setItem('sel-lang',LANG)}catch(e){}applyLang();$('bLang').blur()};
 applyLang();
