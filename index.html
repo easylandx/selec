@@ -225,7 +225,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 <script>
 const IMG_W=1536,PXU=396,PWU=741,MU=40,COLS=36,Y0=262,LPP=38,RATIO=2.16;
 const fsU=(PWU-2*MU)/COLS/0.6,lhU=fsU*1.5,cwU=fsU*0.6;
-const INKS=['#17171c','#c4161c','#1c3f9e'];
+const INKS=['#17171c','#c4161c','#1c3f9e','#1f7a3a','#7a2ea8','#d9731a'];
 const $=id=>document.getElementById(id),root=document.documentElement;
 const app=$('app'),sheet=$('sheet'),ta=$('ta'),letterEl=$('letter');
 const pageColors=[];let text='',cols=[],inkIdx=0,letterMode=false,u=1,lines=[[0,0]],ribbonInverted=false,mirrorWriting=false;
@@ -240,7 +240,7 @@ const I18N={
   imgFail:'Couldn’t create the letter image',saved:'Letter saved as an image',
   copiedPhone:'Letter copied — paste it in the chat',copiedDesk:'Letter copied — press Ctrl+V in the chat',
   written:'Letter written — tap the page icon to see it',
-  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Choose one and the Selectric will type it as ASCII art.',emoPh:'Search emojis…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',tipCollab:'Write together — invite via WhatsApp',collabMsg:'Come write a letter with me on the Selectric ✍️',collabHostOk:'Your partner joined — you each have your own ribbon colour',collabGuest:'Connected — you’re typing on the same sheet',collabLeft:'Your partner left the sheet',collabErr:'Couldn’t start the shared letter — check your connection',collabWait:'Connecting to the shared letter…',collabIn:'You’re already writing together',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
+  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Choose one and the Selectric will type it as ASCII art.',emoPh:'Search emojis…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',tipCollab:'Write together — invite via WhatsApp',collabMsg:'Come write a letter with me on the Selectric ✍️',collabHostOk:'Someone joined — everyone has their own ribbon colour',collabGuest:'Connected — you’re typing on the same sheet',collabLeft:'Someone left the sheet',collabFull:'This shared letter is full (6 people)',collabErr:'Couldn’t start the shared letter — check your connection',collabWait:'Connecting to the shared letter…',collabIn:'You’re already writing together',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
   install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',tipUpload:'Add a photo to the paper',tipInk:'Change ribbon colour',tipView:'Switch between typewriter and finished letter',tipWA:'Share the letter on WhatsApp',tipKb:'Use the iPhone keyboard',tipAI:'Write a letter for me',tipURL:'Paste text to type out',tipInvert:'Ribbon Möbius strip effect',tipMirror:'Mirror writing',tipRestart:'Restart everything',tipLang:'Switch language (EN / ES)',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
@@ -250,7 +250,7 @@ const I18N={
   imgFail:'No se pudo crear la imagen de la carta',saved:'Carta guardada como imagen',
   copiedPhone:'Carta copiada — pégala en el chat',copiedDesk:'Carta copiada — pulsa Ctrl+V en el chat',
   written:'Carta escrita — toca el icono de la página para verla',
-  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Elige uno y la Selectric lo escribirá como ASCII art.',emoPh:'Buscar emojis…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Tu compañero se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Tu compañero ha salido de la hoja',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
+  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Elige uno y la Selectric lo escribirá como ASCII art.',emoPh:'Buscar emojis…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Alguien se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Alguien ha salido de la hoja',collabFull:'Esta carta compartida está completa (6 personas)',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
   install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar',tipUpload:'Añadir una foto al papel',tipInk:'Cambiar el color de la cinta',tipView:'Alternar máquina y carta terminada',tipWA:'Compartir la carta por WhatsApp',tipKb:'Usar el teclado del iPhone',tipAI:'Escríbeme una carta',tipURL:'Pegar texto para escribirlo',tipInvert:'Efecto cinta Möbius',tipMirror:'Escritura en espejo',tipRestart:'Reiniciar todo',tipLang:'Cambiar idioma (EN / ES)',restart:'Reiniciar',restartQ:'¿Reiniciar todo? Se borrarán tu carta, fotos y ajustes.'}
 };
 let LANG='en';
@@ -1482,7 +1482,7 @@ palPop.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)ret
 
 
 /* ================= COLLABORATIVE LETTER (peer-to-peer, PeerJS) ================= */
-const collab={role:null,peer:null,conn:null,id:null,applying:false,tm:0};
+const collab={role:null,peer:null,conn:null,conns:[],id:null,applying:false,tm:0},MAXP=6;
 const okInk=v=>(Number.isInteger(v)&&v>=0&&v<INKS.length)||(typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v));
 function loadPeer(){return window.Peer?Promise.resolve():new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=res;sc.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(sc)})}
 function collabLive(on){$('bCollab').classList.toggle('on',on)}
@@ -1493,8 +1493,9 @@ function collabIn(){if(collab.role!=='guest'||collab.applying)return false;
  else toast(S('collabWait'));
  ta.value=old;return true}
 function collabAfter(){if(!collab.applying)collabSend()}
-function collabSend(){const c=collab.conn;if(collab.role!=='host'||!c||!c.open||collab.tm)return;
- collab.tm=setTimeout(()=>{collab.tm=0;if(c.open)c.send({k:'st',t:text,c:cols.slice(),p:Array.from(pageColors,v=>v===undefined?'~':v)})},100)}
+const collabSnap=()=>({k:'st',t:text,c:cols.slice(),p:Array.from(pageColors,v=>v===undefined?'~':v)});
+function collabSend(){if(collab.role!=='host'||collab.tm||!collab.conns.length)return;
+ collab.tm=setTimeout(()=>{collab.tm=0;const m=collabSnap();collab.conns.forEach(g=>{if(g.c.open)g.c.send(m)})},100)}
 function applyState(m){if(!m||typeof m.t!=='string'||!Array.isArray(m.c)||!Array.isArray(m.p))return;
  collab.applying=true;quiet=true;const grew=m.t.length>text.length;
  ta.value=m.t;ta.dispatchEvent(new Event('input'));quiet=false;
@@ -1515,12 +1516,13 @@ function collabHost(){if(collab.id)return Promise.resolve(collab.id);
   pr.on('error',rej);
   pr.on('disconnected',()=>{try{pr.reconnect()}catch(e){}});
   pr.on('connection',c=>{c.on('open',()=>{
-   if(collab.conn&&collab.conn.open){c.close();return}
-   collab.conn=c;collabLive(true);
-   c.send({k:'hi',ink:(inkIdx+1)%INKS.length});c.send({k:'st',t:text,c:cols.slice(),p:Array.from(pageColors,v=>v===undefined?'~':v)});
+   if(collab.conns.length>=MAXP-1){c.send({k:'full'});setTimeout(()=>c.close(),400);return}
+   const used=new Set([inkIdx,...collab.conns.map(g=>g.ink)]);let ink=0;while(used.has(ink)&&ink<INKS.length-1)ink++;
+   collab.conns.push({c,ink});collabLive(true);
+   c.send({k:'hi',ink});c.send(collabSnap());
    toast(S('collabHostOk'),4500)});
    c.on('data',hostData);
-   c.on('close',()=>{if(collab.conn===c){collab.conn=null;collabLive(false);toast(S('collabLeft'))}})})}))}
+   c.on('close',()=>{const n=collab.conns.length;collab.conns=collab.conns.filter(g=>g.c!==c);if(collab.conns.length<n){if(!collab.conns.length)collabLive(false);toast(S('collabLeft'))}})})}))}
 async function collabJoin(id){collab.role='guest';toast(S('collabWait'),4000);
  try{await loadPeer()}catch(e){collab.role=null;toast(S('collabErr'));return}
  const pr=new Peer();collab.peer=pr;
@@ -1529,7 +1531,7 @@ async function collabJoin(id){collab.role='guest';toast(S('collabWait'),4000);
   c.on('open',()=>{collab.conn=c;collabLive(true);toast(S('collabGuest'),4000)});
   c.on('data',m=>{if(!m)return;
    if(m.k==='hi'&&Number.isInteger(m.ink)&&m.ink>=0&&m.ink<INKS.length){inkIdx=m.ink;$('bInk').style.setProperty('--c',INKS[inkIdx])}
-   else if(m.k==='st')applyState(m)});
+   else if(m.k==='st')applyState(m);else if(m.k==='full'){collab.role=null;toast(S('collabFull'),4500)}});
   c.on('close',()=>{collab.conn=null;collab.role=null;collabLive(false);toast(S('collabLeft'))})})}
 function collabURL(id){const b=/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://easylandx.github.io/selec/';return b+'?join='+id}
 $('bCollab').onclick=async()=>{initAudio();sPop();
