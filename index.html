@@ -88,6 +88,8 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #palPop button{width:32px;height:32px;padding:0;border-radius:50%;border:2px solid rgba(0,0,0,.18);cursor:pointer}
 #palPop button.sel{border-color:#17171c;box-shadow:inset 0 0 0 2px #fff}
 .pgpage{position:absolute;left:0;right:0;box-shadow:0 0 calc(var(--u)*10) rgba(0,0,0,.10);pointer-events:none}
+#fab2 #bCollab.on{background:#25D366;border-color:#1fb956}
+#fab2 #bCollab.on svg{stroke:#fff}
 #fab2 #bKb{display:none}
 #fab2 #bKb.on{background:#17171c;border-color:#17171c}
 #fab2 #bKb.on svg{stroke:#fff}
@@ -178,6 +180,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
  <button id="bURL" aria-label="Paste text to type out" data-ia="url"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4.5" width="14" height="17" rx="2.5"/><path d="M9 4.5V4a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 4v.5M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></button>
  <button id="bEmoji" type="button" aria-label="Emoji as ASCII art" data-ia="tipEmoji"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8.5 14.5c1 1.5 2.100 2.200 3.500 2.200s2.500-.7 3.500-2.200M9 9.500h.01M15 9.500h.01"/></svg></button>
  <button id="bPaper" type="button" aria-label="Paper colour" data-ia="tipPaper"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-.9 2-1.800 0-1.300-1.200-1.500-1.200-2.700 0-1 .8-1.700 1.900-1.700H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3Z"/><path d="M7.500 11.500h.01M10 7.500h.01M15 7.500h.01"/></svg></button>
+ <button id="bCollab" type="button" aria-label="Write together" data-ia="tipCollab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.200"/><path d="M3 20c0-3.300 2.700-5.500 6-5.500s6 2.200 6 5.500"/><circle cx="17" cy="9" r="2.500"/><path d="M17 14.500c2.600 0 4.500 1.800 4.500 4.500"/></svg></button>
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
  <button id="bMirror" type="button" aria-label="Mirror writing" title="Mirror writing"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h5M5 7l2-2M5 7l2 2M19 17h-5M19 17l-2-2M19 17l-2 2"/><path d="M3 4v16M21 4v16" opacity=".45"/></svg></button>
 <button id="bRestart" type="button" aria-label="Restart" data-ia="restart" title="Restart"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4161c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></button>
@@ -237,7 +240,7 @@ const I18N={
   imgFail:'Couldn’t create the letter image',saved:'Letter saved as an image',
   copiedPhone:'Letter copied — paste it in the chat',copiedDesk:'Letter copied — press Ctrl+V in the chat',
   written:'Letter written — tap the page icon to see it',
-  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Choose one and the Selectric will type it as ASCII art.',emoPh:'Search emojis…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
+  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Choose one and the Selectric will type it as ASCII art.',emoPh:'Search emojis…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',tipCollab:'Write together — invite via WhatsApp',collabMsg:'Come write a letter with me on the Selectric ✍️',collabHostOk:'Your partner joined — you each have your own ribbon colour',collabGuest:'Connected — you’re typing on the same sheet',collabLeft:'Your partner left the sheet',collabErr:'Couldn’t start the shared letter — check your connection',collabWait:'Connecting to the shared letter…',collabIn:'You’re already writing together',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
   install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',tipUpload:'Add a photo to the paper',tipInk:'Change ribbon colour',tipView:'Switch between typewriter and finished letter',tipWA:'Share the letter on WhatsApp',tipKb:'Use the iPhone keyboard',tipAI:'Write a letter for me',tipURL:'Paste text to type out',tipInvert:'Ribbon Möbius strip effect',tipMirror:'Mirror writing',tipRestart:'Restart everything',tipLang:'Switch language (EN / ES)',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
@@ -247,7 +250,7 @@ const I18N={
   imgFail:'No se pudo crear la imagen de la carta',saved:'Carta guardada como imagen',
   copiedPhone:'Carta copiada — pégala en el chat',copiedDesk:'Carta copiada — pulsa Ctrl+V en el chat',
   written:'Carta escrita — toca el icono de la página para verla',
-  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Elige uno y la Selectric lo escribirá como ASCII art.',emoPh:'Buscar emojis…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
+  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Elige uno y la Selectric lo escribirá como ASCII art.',emoPh:'Buscar emojis…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Tu compañero se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Tu compañero ha salido de la hoja',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
   install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar',tipUpload:'Añadir una foto al papel',tipInk:'Cambiar el color de la cinta',tipView:'Alternar máquina y carta terminada',tipWA:'Compartir la carta por WhatsApp',tipKb:'Usar el teclado del iPhone',tipAI:'Escríbeme una carta',tipURL:'Pegar texto para escribirlo',tipInvert:'Efecto cinta Möbius',tipMirror:'Escritura en espejo',tipRestart:'Reiniciar todo',tipLang:'Cambiar idioma (EN / ES)',restart:'Reiniciar',restartQ:'¿Reiniciar todo? Se borrarán tu carta, fotos y ajustes.'}
 };
 let LANG='en';
@@ -341,7 +344,7 @@ function wrap(t){const out=[];let o=0;const ps=t.split('\n');
   out.push([o,o+s.length]);o+=s.length+1}
  return out}
 function ribbonColor(i){
- if(!ribbonInverted){const v=cols[i]??inkIdx;return typeof v==='string'?v:INKS[v]}
+ if(!ribbonInverted){const v=cols[i]??inkIdx;return typeof v==='string'?(/^#[0-9a-f]{6}$/i.test(v)?v:INKS[0]):(INKS[v]||INKS[0])}
  const twist=[1,2,0,2,1,0,1,0,2,0,2,1,1,2,0,1,0,2];
  return INKS[twist[i%twist.length]];
 }
@@ -401,10 +404,10 @@ function setMode(m){if(typeof finishAuto==='function')finishAuto();letterMode=m;
  $('bInk').style.display=m?'none':'';$('bLang').style.display=m?'none':'';$('fab2').style.display=m?'none':'';$('bUpload').style.display=m?'none':'';$('bView').innerHTML=m?ICON_TW:ICON_DOC;
  if(m){ta.blur();lines=wrap(text);buildLetter();letterEl.scrollTop=0}else{ta.focus();}}
 
-ta.addEventListener('input',()=>{const t=ta.value.replace(/\r/g,'');const old=text.length;let p=0;const m=Math.min(t.length,text.length);
+ta.addEventListener('input',()=>{if(collabIn())return;const t=ta.value.replace(/\r/g,'');const old=text.length;let p=0;const m=Math.min(t.length,text.length);
  while(p<m&&t[p]===text[p])p++;
- cols.length=p;for(let i=p;i<t.length;i++)cols.push(window.pendInk||inkIdx);
- text=t;render();ta.setSelectionRange(t.length,t.length);
+ cols.length=p;for(let i=p;i<t.length;i++)cols.push(window.pendInk??inkIdx);
+ text=t;render();collabAfter();ta.setSelectionRange(t.length,t.length);
  if(quiet){}else if(t.length>old){const c=t[t.length-1];
   if(c==='\n')sReturn();else if(c===' ')sSpace();else sKey();
   const L=lines[lines.length-1];if(c!=='\n'&&L[1]-L[0]===COLS-5)setTimeout(sBell,80)}
@@ -1474,12 +1477,75 @@ $('bPaper').onclick=()=>{palPop.classList.contains('on')?closePal():openPal()};
 document.addEventListener('pointerdown',e=>{if(palPop.classList.contains('on')&&!e.target.closest('#palPop,#bPaper'))closePal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePal()});
 palPop.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
- const c=b.dataset.c||null,cp=curPageNo();pageColors.length=cp;pageColors[cp]=c;
- sInk();$('bPaper').style.background=c||'';render();closePal()});
+ const c=b.dataset.c||null,cp=curPageNo();if(collab.role==='guest'){if(collab.conn&&collab.conn.open)collab.conn.send({k:'pc',cp,c});closePal();return}pageColors.length=cp;pageColors[cp]=c;
+ sInk();$('bPaper').style.background=c||'';render();closePal();collabSend()});
+
+
+/* ================= COLLABORATIVE LETTER (peer-to-peer, PeerJS) ================= */
+const collab={role:null,peer:null,conn:null,id:null,applying:false,tm:0};
+const okInk=v=>(Number.isInteger(v)&&v>=0&&v<INKS.length)||(typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v));
+function loadPeer(){return window.Peer?Promise.resolve():new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=res;sc.onerror=()=>rej(new Error('peerjs'));document.head.appendChild(sc)})}
+function collabLive(on){$('bCollab').classList.toggle('on',on)}
+/* the guest's keystrokes go to the host; the host's sheet is the one true copy */
+function collabIn(){if(collab.role!=='guest'||collab.applying)return false;
+ const t=ta.value.replace(/\r/g,''),old=text,c=collab.conn;
+ if(c&&c.open){if(t.length>old.length&&t.startsWith(old))c.send({k:'add',s:t.slice(old.length),c:window.pendInk??inkIdx});else if(t.length<old.length&&old.startsWith(t))c.send({k:'del',n:old.length-t.length})}
+ else toast(S('collabWait'));
+ ta.value=old;return true}
+function collabAfter(){if(!collab.applying)collabSend()}
+function collabSend(){const c=collab.conn;if(collab.role!=='host'||!c||!c.open||collab.tm)return;
+ collab.tm=setTimeout(()=>{collab.tm=0;if(c.open)c.send({k:'st',t:text,c:cols.slice(),p:Array.from(pageColors,v=>v===undefined?'~':v)})},100)}
+function applyState(m){if(!m||typeof m.t!=='string'||!Array.isArray(m.c)||!Array.isArray(m.p))return;
+ collab.applying=true;quiet=true;const grew=m.t.length>text.length;
+ ta.value=m.t;ta.dispatchEvent(new Event('input'));quiet=false;
+ cols.length=0;m.c.forEach(v=>cols.push(okInk(v)?v:0));
+ pageColors.length=0;m.p.forEach((v,i)=>{if(v===null||/^#[0-9a-f]{6}$/i.test(v))pageColors[i]=v});
+ render();collab.applying=false;if(grew)sKey()}
+function hostData(m){if(!m)return;
+ if(m.k==='add'&&typeof m.s==='string'&&m.s.length<=3000&&okInk(m.c)){
+  collab.applying=true;window.pendInk=m.c;ta.value=ta.value+m.s;ta.dispatchEvent(new Event('input'));window.pendInk=undefined;collab.applying=false;collabSend()}
+ else if(m.k==='del'&&Number.isInteger(m.n)&&m.n>0){
+  collab.applying=true;ta.value=ta.value.slice(0,-Math.min(m.n,3000));ta.dispatchEvent(new Event('input'));collab.applying=false;collabSend()}
+ else if(m.k==='pc'&&Number.isInteger(m.cp)&&m.cp>=0&&m.cp<200&&(m.c===null||/^#[0-9a-f]{6}$/i.test(m.c))){
+  pageColors.length=m.cp;pageColors[m.cp]=m.c;render();collabSend()}}
+function collabHost(){if(collab.id)return Promise.resolve(collab.id);
+ return loadPeer().then(()=>new Promise((res,rej)=>{
+  const id='selec'+Math.random().toString(36).slice(2,10),pr=new Peer(id);collab.peer=pr;
+  pr.on('open',()=>{collab.role='host';collab.id=id;res(id)});
+  pr.on('error',rej);
+  pr.on('disconnected',()=>{try{pr.reconnect()}catch(e){}});
+  pr.on('connection',c=>{c.on('open',()=>{
+   if(collab.conn&&collab.conn.open){c.close();return}
+   collab.conn=c;collabLive(true);
+   c.send({k:'hi',ink:(inkIdx+1)%INKS.length});c.send({k:'st',t:text,c:cols.slice(),p:Array.from(pageColors,v=>v===undefined?'~':v)});
+   toast(S('collabHostOk'),4500)});
+   c.on('data',hostData);
+   c.on('close',()=>{if(collab.conn===c){collab.conn=null;collabLive(false);toast(S('collabLeft'))}})})}))}
+async function collabJoin(id){collab.role='guest';toast(S('collabWait'),4000);
+ try{await loadPeer()}catch(e){collab.role=null;toast(S('collabErr'));return}
+ const pr=new Peer();collab.peer=pr;
+ pr.on('error',()=>{if(!collab.conn){collab.role=null;toast(S('collabErr'))}});
+ pr.on('open',()=>{const c=pr.connect(id,{reliable:true});
+  c.on('open',()=>{collab.conn=c;collabLive(true);toast(S('collabGuest'),4000)});
+  c.on('data',m=>{if(!m)return;
+   if(m.k==='hi'&&Number.isInteger(m.ink)&&m.ink>=0&&m.ink<INKS.length){inkIdx=m.ink;$('bInk').style.setProperty('--c',INKS[inkIdx])}
+   else if(m.k==='st')applyState(m)});
+  c.on('close',()=>{collab.conn=null;collab.role=null;collabLive(false);toast(S('collabLeft'))})})}
+function collabURL(id){const b=/^https?:$/.test(location.protocol)?location.origin+location.pathname:'https://easylandx.github.io/selec/';return b+'?join='+id}
+$('bCollab').onclick=async()=>{initAudio();sPop();
+ if(collab.role==='guest'){toast(S('collabIn'));return}
+ const phone=isPhone();let w=null;
+ /* on a computer the tab opens inside the click, so the browser doesn't block it */
+ if(!phone){try{w=window.open('about:blank','_blank')}catch(e){}}
+ let id;try{id=await collabHost()}catch(e){if(w)w.close();toast(S('collabErr'));return}
+ const msg=S('collabMsg')+'\n'+collabURL(id);
+ if(phone){location.href='https://wa.me/?text='+encodeURIComponent(msg)}
+ else{const u='https://web.whatsapp.com/send?text='+encodeURIComponent(msg);if(w)w.location=u;else window.open(u,'_blank')}};
+{const jn=new URLSearchParams(location.search).get('join');if(jn&&/^[a-z0-9_-]{6,40}$/i.test(jn))collabJoin(jn)}
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bEmoji:'tipEmoji',bPaper:'tipPaper',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang'};
+ const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bEmoji:'tipEmoji',bPaper:'tipPaper',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
