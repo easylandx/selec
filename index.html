@@ -283,6 +283,7 @@ body.liveEnded #liveEnd{display:flex}
 
 /* ---- demo button + caption ---- */
 #fab2 #bDemo svg path{fill:#17171c}
+#fab2 #bDemo{background:#ffd400;border-color:#d9b300;box-shadow:0 2px 8px rgba(217,179,0,.55)}
 #fab2 #bDemo.on{background:#c4161c;border-color:#c4161c;box-shadow:0 2px 10px rgba(196,22,28,.4)}
 #fab2 #bDemo.on svg{stroke:#fff}
 #fab2 #bDemo.on svg path{fill:#fff}
@@ -3278,5 +3279,34 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
  window.addEventListener('keydown',stopEv,true);
  window.addEventListener('click',e=>{if(!swallow)return;swallow=false;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopDemo()});
+
+ /* ---------- a little animated yellow sign pointing at the Demo button; any click, tap or key removes it for good ---------- */
+ (function(){
+  const hs=document.createElement('style');
+  hs.textContent=`#demoHint{position:fixed;z-index:230;pointer-events:none;display:none}
+#demoHint .in{position:relative;background:#ffd400;color:#17171c;font:800 13px/1.15 system-ui,sans-serif;padding:8px 13px;border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;animation:demoHintBob 1s ease-in-out infinite}
+#demoHint .in::after{content:"";position:absolute;left:100%;top:50%;margin-top:-8px;border:8px solid transparent;border-left:11px solid #ffd400;border-right:0}
+@keyframes demoHintBob{0%,100%{transform:translateX(0) scale(1)}50%{transform:translateX(7px) scale(1.06)}}`;
+  document.head.appendChild(hs);
+  const h=document.createElement('div');h.id='demoHint';h.setAttribute('aria-hidden','true');
+  h.innerHTML='<div class="in"></div>';document.body.appendChild(h);
+  const tx=h.querySelector('.in');
+  let shown=false,gone=false,tm=0;
+  function place(){
+   if(gone||running)return;
+   const ok=getComputedStyle($('intro')).display==='none'&&bDemo.getClientRects().length>0;
+   if(!ok){h.style.display='none';return}
+   const r=bDemo.getBoundingClientRect(),vis=r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;
+   if(!vis){h.style.display='none';return}
+   tx.textContent=T('Click for demo','Clic para ver la demo');
+   h.style.display='block';shown=true;arm();
+   h.style.top=Math.round(r.top+r.height/2-h.offsetHeight/2)+'px';
+   h.style.right=Math.round(innerWidth-r.left+16)+'px'}
+  function dismiss(){if(gone)return;gone=true;clearInterval(tm);h.remove()}
+  /* the listeners only start once the sign is on screen: the tap that opens the box must not remove it before it ever shows */
+  let armed=false;
+  function arm(){if(armed)return;armed=true;setTimeout(()=>['pointerdown','keydown','wheel','touchstart'].forEach(t=>window.addEventListener(t,dismiss,{capture:true,passive:true})),700)}
+  tm=setInterval(place,300);place();
+ })();
 })();
 </script></body></html>
