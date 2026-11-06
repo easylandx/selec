@@ -1693,6 +1693,10 @@ const emoCI=$('emoCI'),emoCGo=$('emoCGo');
 function emoCustom(){const v=emoCI.value.trim();if(!v)return;
  const art=customToAscii(v);if(!art)return;initAudio();sPop();closeEmo();autoType(art.t+'\n',true,art.c)}
 emoCGo.onclick=emoCustom;
+/* tapping an emoji in the grid types it as emoji art */
+emoGrid.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-e]');if(!b)return;
+ const art=emojiToAscii(b.dataset.e);if(!art){toast(S('imgFail'),2000);return}
+ initAudio();sPop();closeEmo();autoType(art.t+'\n',true,art.c)});
 emoCI.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();emoCustom()}});
 emoCI.addEventListener('input',()=>{emoCGo.disabled=!emoCI.value.trim()});
 /* a single emoji keeps the emoji look; anything else becomes rainbow word art */
