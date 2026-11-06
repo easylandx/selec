@@ -268,7 +268,10 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fabL #bLive.on::before{content:"LIVE";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);background:#fff;color:#c4161c;border:1.5px solid #c4161c;border-radius:8px;padding:0 5px;font:800 8px/12px system-ui,sans-serif;letter-spacing:.08em}
 body.liveView #fab2,body.liveView #fabL,body.liveView #bLang,body.liveView #fab button:not(#bView){display:none!important}
 body.liveView #fab #bView{display:grid!important}
+#app,#app *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 #app{touch-action:none}
+#app img{-webkit-user-drag:none;user-drag:none}
+#app ::selection{background:transparent}
 #app.vs #sheet{transition:none!important}
 body.liveView #keys,body.liveView #ta,body.liveView #cover,body.liveView #paper,body.liveView #sheet{pointer-events:none}
 #liveBadge{display:none;position:fixed;z-index:70;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:#c4161c;color:#fff;border-radius:14px;padding:4px 12px;font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.1em;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -2496,19 +2499,25 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   function stopInertia(){cancelAnimationFrame(raf);raf=0;vel=0}
   function inertia(){
     if(Math.abs(vel)<.02){app.classList.remove('vs');return}
-    move(vel*16);vel*=.93;raf=requestAnimationFrame(inertia)}
+    move(vel*16);vel*=.93;
+    if((viewPos===0&&vel<0)||(viewPos==null&&vel>0)){vel=0;app.classList.remove('vs');return}   /* hit the top or the end: stop gliding */
+    raf=requestAnimationFrame(inertia)}
+  /* an image drag or a text selection would cancel the swipe (and paint the blue selection): stop both */
+  app.addEventListener('dragstart',e=>e.preventDefault());
+  app.addEventListener('selectstart',e=>e.preventDefault());
+  app.querySelectorAll('img').forEach(i=>{i.draggable=false});
   app.addEventListener('pointerdown',e=>{
     if(letterMode||coverIdx||e.button>0)return;
-    if(e.target.closest('#keys'))return;
+    if(e.target.closest('.k'))return;   /* only the keys themselves type; the rest of the machine drags the paper */
     stopInertia();
     drag={id:e.pointerId,y:e.clientY,t:performance.now(),moved:false,startY:e.clientY}});
   addEventListener('pointermove',e=>{
     if(!drag||e.pointerId!==drag.id)return;
-    if(!drag.moved){if(Math.abs(e.clientY-drag.startY)<6)return;drag.moved=true;app.classList.add('vs')}
+    if(!drag.moved){if(Math.abs(e.clientY-drag.startY)<6)return;drag.moved=true;app.classList.add('vs');try{getSelection().removeAllRanges()}catch(x){}}
     const dy=e.clientY-drag.y,now=performance.now(),dt=Math.max(1,now-drag.t);
     drag.y=e.clientY;drag.t=now;
     /* the paper follows the finger: drag down to go back, up to come forward */
-    const du=-dy/u;move(du);vel=vel*.6+(du/dt)*.4;
+    const du=-dy/u;move(du);vel=Math.max(-3,Math.min(3,vel*.6+(du/dt)*.4));
     e.preventDefault()},{passive:false});
   const end=e=>{if(!drag||(e&&e.pointerId!==drag.id))return;const was=drag.moved;drag=null;
     if(was&&Math.abs(vel)>.05)raf=requestAnimationFrame(inertia);else app.classList.remove('vs')};
