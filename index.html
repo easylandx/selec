@@ -1777,7 +1777,7 @@ var coverIdx=0;
 /* ================= HANDWRITTEN SIGNATURE ================= */
 (function(){
   const modal=$('sigModal'),cv=$('sigCv'),cx=cv.getContext('2d'),btn=$('bSign'),inks=modal.querySelectorAll('#sigInks button');
-  let ink='#17171c',drawing=false,has=false,p0=null,p1=null,w=5;
+  let ink='#17171c',drawing=false,has=false,p0=null,p1=null,w=7.5;
   window.signOpen=false;
   function setInk(c){
    ink=c;inks.forEach(b=>b.classList.toggle('sel',b.dataset.c===c));
@@ -1787,12 +1787,12 @@ var coverIdx=0;
   cv.addEventListener('pointerdown',e=>{
    if(e.pointerType==='mouse'&&e.button!==0)return;
    e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}
-   drawing=true;has=true;p0=p1=pos(e);w=5;
+   drawing=true;has=true;p0=p1=pos(e);w=7.5;
    cx.fillStyle=ink;cx.beginPath();cx.arc(p1.x,p1.y,w/2,0,7);cx.fill()});
   function stroke(p){
    const d=Math.hypot(p.x-p1.x,p.y-p1.y);if(d<1.2)return;
    const sp=d/Math.max(1,p.t-p1.t);                                 /* fast strokes thin out, slow ones thicken, like a pen */
-   w=w*.7+Math.max(2.6,Math.min(6.5,6.5-sp*2.2))*.3;
+   w=w*.7+Math.max(4,Math.min(9.5,9.5-sp*2.6))*.3;
    const m0={x:(p0.x+p1.x)/2,y:(p0.y+p1.y)/2},m1={x:(p1.x+p.x)/2,y:(p1.y+p.y)/2};
    cx.strokeStyle=ink;cx.lineWidth=w;cx.lineCap=cx.lineJoin='round';
    cx.beginPath();cx.moveTo(m0.x,m0.y);cx.quadraticCurveTo(p1.x,p1.y,m1.x,m1.y);cx.stroke();
