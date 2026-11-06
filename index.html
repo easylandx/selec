@@ -280,6 +280,25 @@ body.liveView #liveBadge{display:block}
 body.liveView.liveEnded #liveBadge{background:#555}
 #liveEnd{display:none;position:fixed;inset:0;z-index:90;background:rgba(20,20,24,.78);color:#fff;align-items:center;justify-content:center;text-align:center;padding:calc(env(safe-area-inset-top,0px) + 32px) 32px calc(env(safe-area-inset-bottom,0px) + 32px);font:600 20px/1.4 Georgia,serif}
 body.liveEnded #liveEnd{display:flex}
+
+/* ---- demo button + caption ---- */
+#fab2 #bDemo svg path{fill:#17171c}
+#fab2 #bDemo.on{background:#c4161c;border-color:#c4161c;box-shadow:0 2px 10px rgba(196,22,28,.4)}
+#fab2 #bDemo.on svg{stroke:#fff}
+#fab2 #bDemo.on svg path{fill:#fff}
+#demoCap{position:fixed;z-index:250;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);transform:translate(-50%,14px);width:min(calc(100vw - 24px),580px);box-sizing:border-box;background:rgba(23,23,28,.95);color:#fff;border-radius:16px;padding:12px 16px 15px;font:15px/1.4 system-ui,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;overflow:hidden}
+#demoCap.on{opacity:1;transform:translate(-50%,0)}
+#demoCap .dh{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+#demoCap .dn{font:700 11px/1 system-ui,sans-serif;background:#ffd400;color:#17171c;border-radius:999px;padding:3px 8px;white-space:nowrap}
+#demoCap .dt{font:700 16px/1.2 system-ui,sans-serif}
+#demoCap .dx{margin-left:auto;font:500 11px/1.2 system-ui,sans-serif;color:#aaa;text-align:right}
+#demoCap .dd{color:#e9e6dd}
+#demoCap .dp{position:absolute;left:0;bottom:0;height:3px;width:0;background:#ffd400}
+.demoHi{animation:demoPulse 1s ease-in-out infinite}
+@keyframes demoPulse{0%,100%{box-shadow:0 0 0 3px #ffd400,0 0 0 6px rgba(255,212,0,.4)}50%{box-shadow:0 0 0 4px #ffd400,0 0 0 13px rgba(255,212,0,0)}}
+body.demoOn #toast{display:none}
+@media (max-height:760px){#fab2{max-height:calc(100dvh - 76px - env(safe-area-inset-top,0px));overflow-y:auto;padding:3px 4px 3px 6px;margin:-3px -4px -3px -6px;scrollbar-width:none}#fab2::-webkit-scrollbar{display:none}}
+@media (max-width:480px){#demoCap{font-size:14px;padding:10px 13px 14px}#demoCap .dt{font-size:15px}#demoCap .dx{display:none}}
 </style></head><body class="io">
 <div id="liveBadge">LIVE</div><div id="liveEnd"></div><div id="topRed"></div><div id="sideL"></div><div id="sideR"></div>
 <div id="pad"></div>
@@ -306,6 +325,7 @@ body.liveEnded #liveEnd{display:flex}
  <button id="bSign" type="button" aria-label="Signature" data-ia="tipSign"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.500 3.500a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.500 3.500z"/></svg></button>
 <button id="bHelp" type="button" aria-label="Help" data-ia="tipHelp"><b>?</b></button>
 <button id="bRestart" type="button" aria-label="Restart" data-ia="restart" title="Restart"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4161c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></button>
+<button id="bDemo" type="button" aria-label="Demo" aria-pressed="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.3l6 3.7-6 3.7z"/></svg></button>
 </div>
 <div id="fabL">
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
@@ -634,7 +654,10 @@ letterEl.addEventListener('click',e=>{if(letterMode&&e.target===letterEl){initAu
 $('bInk').onclick=()=>{initAudio();sInk();inkIdx=(inkIdx+1)%INKS.length;$('bInk').style.setProperty('--c',INKS[inkIdx]);if(!letterMode)ta.focus()};
 $('bInvert').onclick=()=>{initAudio();sInk();ribbonInverted=!ribbonInverted;$('bInvert').classList.toggle('on',ribbonInverted);$('sheet').classList.toggle('ribbon-chaos',ribbonInverted);$('letter').classList.toggle('ribbon-chaos',ribbonInverted);render();if(letterMode)buildLetter();toast(ribbonInverted?S('ribbonOn'):S('ribbonOff'),2600);if(!letterMode)ta.focus()};
 $('bMirror').onclick=()=>{initAudio();sInk();mirrorWriting=!mirrorWriting;$('bMirror').classList.toggle('on',mirrorWriting);render();if(letterMode)buildLetter();toast(LANG==='es'?(mirrorWriting?'Escritura en espejo activada':'Escritura normal restaurada'):(mirrorWriting?'Mirror writing on':'Normal writing restored'),2600);if(!letterMode)ta.focus()};
-$('intro').onclick=()=>{document.body.classList.remove('io');initAudio();sRustle();try{scrollTo(0,1)}catch(e){}ta.focus({preventScroll:true});const i=$('intro');i.style.opacity=0;setTimeout(()=>i.style.display='none',500);
+/* iPhone/Safari only lets speech start after a tap has used the speech engine once: do it silently on the first tap (opening the box),
+   so jokes that start by themselves later can be read aloud */
+function unlockSpeech(){try{const ss=window.speechSynthesis;if(!ss)return;ss.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang=LANG==='es'?'es-ES':'en-US';ss.speak(u);window.__spUnlocked=true}catch(e){}}
+$('intro').onclick=()=>{document.body.classList.remove('io');unlockSpeech();initAudio();sRustle();try{scrollTo(0,1)}catch(e){}ta.focus({preventScroll:true});const i=$('intro');i.style.opacity=0;setTimeout(()=>i.style.display='none',500);
  setTimeout(()=>{$('clip').classList.add('in');$('paper').classList.add('in');fed=true;paperH();sFeed();setTimeout(()=>$('paper').classList.remove('in'),1450)},520)};
 
 function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.k);toast.k=setTimeout(()=>t.classList.remove('on'),ms)}
@@ -2001,7 +2024,7 @@ document.addEventListener('keydown',e=>{if(window.helpOpen&&e.key==='Escape')clo
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive'};
+ const TIPS={bDemo:'tipDemo',bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
@@ -2681,7 +2704,10 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       const v=pool.find(x=>x.lang.toLowerCase().replace('_','-')===L&&x.localService)||pool.find(x=>x.localService)||pool[0];
       u.lang=lang;if(v)u.voice=v;u.onend=fin;u.onerror=fin;
       wd=setTimeout(()=>{try{ss.cancel()}catch(e){}fin()},Math.max(6000,t.length*130+4000));   /* safety net if the browser never reports the end */
-      ss.cancel();ss.speak(u)}catch(e){fin()}})}
+      window.__jokeU=u;   /* keep a reference: iOS can drop an utterance that gets garbage-collected mid-speech */
+      try{ss.resume()}catch(e){}
+      if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{if(!done){try{ss.speak(u)}catch(e){fin()}}},120)}
+      else ss.speak(u)}catch(e){fin()}})}
   async function run(my){
     let first=true;
     while(joking&&my===gen){
@@ -2760,5 +2786,240 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   document.addEventListener('pointerdown',e=>{if(!joking||!auto)return;e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
   document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false}},true);
   const _press=press;press=function(a){if(joking)return;return _press.apply(this,arguments)};   /* a held on-screen key stops repeating into the jokes */
+})();
+
+/* ================= DEMO: a guided tour of every function =================
+   The Demo button (bottom of the right-hand column) shows every function for 8 seconds each, on a clean sheet,
+   with a short caption that is also read aloud. Where it can, it really does the thing (types a letter, flips the
+   ribbon, mirrors the writing…). A click, tap or key anywhere stops it; when it ends (or is stopped) the user's own
+   sheet, ink, typeface, paper colour and effects come back exactly as they were. */
+(function(){
+ const STEP_MS=8000,OUTRO_MS=3200;
+ Object.assign(I18N.en,{tipDemo:'Demo: watch every function in action',demoStop:'Click anywhere to stop',demoBusy:'Stop the live link / “Write together” first, then start the demo'});
+ Object.assign(I18N.es,{tipDemo:'Demo: mira cada función en acción',demoStop:'Haz clic en cualquier sitio para parar',demoBusy:'Detén el enlace en vivo / «Escribir juntos» y luego inicia la demo'});
+ const bDemo=$('bDemo');
+ const _al=applyLang;applyLang=function(){_al.apply(this,arguments);bDemo.setAttribute('aria-label',S('tipDemo'))};bDemo.setAttribute('aria-label',S('tipDemo'));
+ /* the guide (?) lists it too, just before Restart */
+ HELP.splice(Math.max(0,HELP.findIndex(h=>h[0]==='bRestart')),0,['bDemo','Demo','Demo','Watch every function in action, 8 seconds each, with a voice. Click anywhere to stop it.','Mira cada función en acción, 8 segundos cada una, con voz. Haz clic en cualquier sitio para pararla.']);
+
+ /* ---------- caption ---------- */
+ const cap=document.createElement('div');cap.id='demoCap';cap.setAttribute('role','status');cap.setAttribute('aria-live','off');
+ cap.innerHTML='<div class="dh"><span class="dn"></span><b class="dt"></b><span class="dx"></span></div><div class="dd"></div><div class="dp"></div>';
+ document.body.appendChild(cap);
+ const capN=cap.querySelector('.dn'),capT=cap.querySelector('.dt'),capX=cap.querySelector('.dx'),capD=cap.querySelector('.dd'),capP=cap.querySelector('.dp');
+
+ /* ---------- helpers ---------- */
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms)),ABORT={aborted:true};
+ const rnd=a=>a[Math.floor(Math.random()*a.length)];
+ const T=(en,es)=>LANG==='es'?es:en;
+ let running=false,gen=0,snap=null,hiEl=null,swallow=false;
+
+ function hi(el){
+  document.querySelectorAll('.demoHi').forEach(x=>x.classList.remove('demoHi'));hiEl=null;
+  if(!el||!el.getClientRects().length)return;
+  hiEl=el;el.classList.add('demoHi');
+  const f=$('fab2');if(el.closest('#fab2')&&f.scrollHeight>f.clientHeight+2){try{el.scrollIntoView({block:'nearest'})}catch(e){}}}
+
+ /* read the caption aloud (best effort: no voice, no problem) */
+ const ss=window.speechSynthesis;
+ function say(t){
+  if(!ss)return;
+  try{
+   const lang=LANG==='es'?'es-ES':'en-US',L=lang.toLowerCase(),vs=ss.getVoices()||[];
+   const u=new SpeechSynthesisUtterance(t);
+   const pool=vs.filter(x=>x.lang&&x.lang.toLowerCase().replace('_','-').slice(0,2)===L.slice(0,2));
+   const v=pool.find(x=>x.lang.toLowerCase().replace('_','-')===L&&x.localService)||pool.find(x=>x.localService)||pool[0];
+   u.lang=lang;if(v)u.voice=v;u.rate=1.04;
+   if(ss.speaking||ss.pending){const my=gen;ss.cancel();setTimeout(()=>{if(running&&my===gen)ss.speak(u)},90)}
+   else ss.speak(u)}catch(e){}}
+ function silence(){try{if(ss)ss.cancel()}catch(e){}}
+
+ function showCap(i,n,s){
+  capN.textContent=i+' / '+n;capT.textContent=T(s.t[0],s.t[1]);capD.textContent=T(s.d[0],s.d[1]);capX.textContent=S('demoStop');
+  cap.classList.add('on');
+  capP.style.transition='none';capP.style.width='0';void capP.offsetWidth;capP.style.transition='width '+STEP_MS+'ms linear';capP.style.width='100%';
+  say(T(s.t[0],s.t[1])+'. '+T(s.d[0],s.d[1]))}
+ function showOutro(){
+  capN.textContent='✓';capT.textContent=T('That’s everything','Eso es todo');capD.textContent=T('Now it’s your turn. Have fun on the Selectric!','Ahora te toca a ti. ¡Diviértete con la Selectric!');capX.textContent='';
+  capP.style.transition='none';capP.style.width='0';
+  say(T('That’s everything. Now it’s your turn!','Eso es todo. ¡Ahora te toca a ti!'))}
+
+ /* type text on the machine, spread over `total` ms (a return counts as a few letters) */
+ async function dtype(str,total,w,colors){
+  const n=str.length,nl=(str.match(/\n/g)||[]).length,u=Math.max(7,total/(n+3*nl));
+  for(let i=0;i<n;i++){const c=str[i];
+   flashKey(c==='\n'?'Enter':c);
+   window.pendInk=colors?colors[i]:undefined;typeText(c,true);window.pendInk=undefined;
+   await w(c==='\n'?u*4:u)}}
+ const sep=()=>{const v=ta.value;return !v||v.endsWith('\n\n')?'':v.endsWith('\n')?'\n':'\n\n'};
+
+ /* ---------- state the demo borrows and gives back ---------- */
+ function closeAll(){
+  try{closeAI()}catch(e){}try{closeEmo()}catch(e){}try{closePal()}catch(e){}try{closeStyle()}catch(e){}try{closeFont()}catch(e){}
+  if(window.bookOpen){const c=$('bookCancel');if(c)c.click()}
+  if(letterMode)setMode(false);
+  aiSel=null;aiTypes.querySelectorAll('button.sel').forEach(x=>x.classList.remove('sel'));aiGo.disabled=true;$('aiAbout').placeholder=S('aboutPh');
+  aiGo.classList.remove('demoHi')}
+ function applyState(o){
+  closeAll();
+  if(ribbonInverted!==o.inv)$('bInvert').click();
+  if(mirrorWriting!==o.mir)$('bMirror').click();
+  const tb=$('bTypos');if(tb.classList.contains('on')!==o.typos)tb.click();
+  const cb=$('bClock');if(cb.classList.contains('on'))cb.click();
+  inkIdx=o.ink;$('bInk').style.setProperty('--c',INKS[o.ink]);
+  curStyle=o.style;styleMark();
+  if(fontKey!==o.font)setFont(o.font);
+  pageColors.length=0;o.pc.forEach((v,i)=>{pageColors[i]=v});$('bPaper').style.background=pageColor(curPageNo())||'';
+  render()}
+ const NEUTRAL=()=>({inv:false,mir:false,typos:false,ink:0,style:0,font:snap.font,pc:snap.pc});
+ const resetStep=()=>{if(snap)applyState(NEUTRAL())};
+ function restoreText(){
+  quiet=true;ta.value=snap.text;ta.dispatchEvent(new Event('input'));quiet=false;
+  cols.length=0;snap.cols.forEach(c=>cols.push(c));stl.length=0;snap.stl.forEach(c=>stl.push(c));
+  paperImages.style.display=snap.imgDisp;viewPos=null;render()}
+
+ /* ---------- the tour ---------- */
+ const BOOKS={
+  en:[['MOBY-DICK','Herman Melville','Call me Ishmael. Some years ago -- never mind how long precisely -- having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.'],
+   ['PRIDE AND PREJUDICE','Jane Austen','It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.'],
+   ['A TALE OF TWO CITIES','Charles Dickens','It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity.'],
+   ['ALICE\'S ADVENTURES IN WONDERLAND','Lewis Carroll','Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it.'],
+   ['A SCANDAL IN BOHEMIA','Arthur Conan Doyle','To Sherlock Holmes she is always the woman. I have seldom heard him mention her under any other name.']],
+  es:[['DON QUIJOTE DE LA MANCHA','Miguel de Cervantes','En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.'],
+   ['LA REGENTA','Leopoldo Alas "Clarín"','La heroica ciudad dormía la siesta. El viento Sur, caliente y perezoso, empujaba las nubes blanquecinas que se rasgaban al correr hacia el Norte.'],
+   ['LAZARILLO DE TORMES','Anónimo','Pues sepa Vuestra Merced, ante todas cosas, que a mí llaman Lázaro de Tormes, hijo de Tomé González y de Antonia Pérez, naturales de Tejares, aldea de Salamanca.']]};
+ const SHORT_LETTERS=['invite','congrats','thanks','welcome','anniversary','birthday','apology','getwell'];
+
+ /* flip a toggle button on/off a few times: [ms to wait, ...] each entry clicks once */
+ async function flips(btn,times,w){let t=0;for(const at of times){await w(at-t);t=at;btn.click()}}
+
+ function buildSteps(){return [
+  {id:null,t:['The typewriter','La máquina de escribir'],d:['A real IBM Selectric. Type on your keyboard, or tap the keys on the machine.','Una IBM Selectric de verdad. Escribe con tu teclado o toca las teclas de la máquina.'],
+   run:async w=>{await w(300);await dtype(T('Hello, typewriter!','¡Hola, máquina de escribir!'),2800,w)}},
+  {id:'bAI',t:['Write a letter for me','Escríbeme una carta'],d:['Pick a type and the Selectric types it for you. Here, a short random one.','Elige un tipo de carta y la Selectric la escribe por ti. Aquí, una corta al azar.'],
+   run:async w=>{await w(700);openAI();await w(500);
+    const id=rnd(SHORT_LETTERS),b=aiTypes.querySelector('button[data-id="'+id+'"]');
+    if(b){b.click();try{b.scrollIntoView({block:'center'})}catch(e){}}
+    await w(1800);closeAI();
+    const letter=writeLocal(id,'','','','');
+    await dtype(sep()+letter,4300,w)}},
+  {id:'bURL',t:['Paste text','Pegar texto'],d:['Paste any text and the Selectric types it out for you, line by line.','Pega cualquier texto y la Selectric lo escribe por ti, línea a línea.']},
+  {id:'bBook',t:['Type a book','Escribir un libro'],d:['A random book from archive.org, typed out for you. Here, just its first lines.','Un libro al azar de archive.org, escrito para ti. Aquí, solo sus primeras líneas.'],
+   run:async w=>{await w(500);$('bBook').click();await w(900);
+    const q=$('bookQ');for(const ch of T('sea','mar')){q.value+=ch;await w(160)}
+    await w(900);q.value='';$('bookCancel').click();
+    const b=rnd(BOOKS[LANG==='es'?'es':'en']);
+    await dtype(sep()+b[0]+'\nby '+b[1]+'\n\n'+b[2],4600,w)}},
+  {id:'bEmoji',t:['Emoji as ASCII art','Emoji en ASCII art'],d:['Choose an emoji, or type your own, and it is typed out as ASCII art.','Elige un emoji, o escribe el tuyo, y se escribe como ASCII art.'],
+   run:async w=>{await w(400);openEmo();await w(700);
+    const btns=Array.from(emoGrid.querySelectorAll('button[data-e]')).slice(0,60);
+    let b=rnd(btns),art=b&&emojiToAscii(b.dataset.e);if(!art){b=null;art=emojiToAscii('❤️')}
+    if(b){try{b.scrollIntoView({block:'nearest'})}catch(e){}b.classList.add('demoHi')}
+    await w(1300);if(b)b.classList.remove('demoHi');closeEmo();
+    if(!art)return;
+    const sp=sep();await dtype(sp+art.t,3600,w,art.c?new Array(sp.length).fill(null).concat(art.c):null)}},
+  {id:'bInk',t:['Ribbon colour','Color de la cinta'],d:['Tap to change the ink: black, red, blue, green, purple or orange.','Toca para cambiar la tinta: negro, rojo, azul, verde, morado o naranja.'],
+   run:async w=>{const words=T(['Black','Red','Blue','Green','Purple','Orange'],['Negro','Rojo','Azul','Verde','Morado','Naranja']);
+    await w(300);inkIdx=INKS.length-1;$('bInk').click();   /* lands on black */
+    await dtype(sep(),250,w);
+    for(let i=0;i<words.length;i++){if(i)$('bInk').click();await dtype(words[i]+' ',560,w);await w(420)}}},
+  {id:'bPaper',t:['Paper colour','Color del papel'],d:['Pick a pastel or neon paper for the page.','Elige un papel pastel o neón para la página.'],
+   run:async w=>{await w(300);openPal();
+    const set=c=>{const cp=curPageNo();pageColors.length=cp;pageColors[cp]=c||null;sInk();$('bPaper').style.background=c||'';render();palMark()};
+    const seq=['#ffd6e0','#cfe8ff','#d3f5e1','#ff6ec7','#19f5ff','#39ff14'];
+    await w(700);for(const c of seq){set(c);await w(1000)}
+    set(snap.pc[curPageNo()]||null);await w(300);closePal()}},
+  {id:'bFont',t:['Typeface','Tipo de letra'],d:['Swap the typeball: Courier, Prestige Elite or Orator.','Cambia la esfera de escritura: Courier, Prestige Elite u Orator.'],
+   run:async w=>{await w(300);openFont();await w(1000);
+    for(const k of ['prestige','orator','courier']){setFont(k).then(fontBuild);await w(2000)}
+    closeFont()}},
+  {id:'bStyle',t:['Bold, italic, underlined','Negrita, cursiva, subrayado'],d:['Mix bold, italic and underline as you type.','Mezcla negrita, cursiva y subrayado mientras escribes.'],
+   run:async w=>{await w(300);openStyle();await w(500);
+    const parts=[[1,T('Bold ','Negrita ')],[2,T('Italic ','Cursiva ')],[4,T('Underlined ','Subrayado ')],[7,T('All three','Las tres')]];
+    await dtype(sep(),250,w);
+    for(const [s,txt] of parts){curStyle=s;styleMark();styleBuild();await dtype(txt,700,w);await w(650)}
+    curStyle=0;styleMark();closeStyle()}},
+  {id:'bInvert',t:['Möbius ribbon','Cinta de Möbius'],d:['The ribbon twists and the letters get a coloured fringe. Tap again to go back.','La cinta se retuerce y las letras ganan un borde de color. Toca otra vez para volver.'],
+   run:async w=>{await flips($('bInvert'),[600,2800,4400,6700],w)}},
+  {id:'bMirror',t:['Mirror writing','Escritura en espejo'],d:['Flips the writing like a mirror. Tap again to put it back.','Voltea la escritura como un espejo. Toca otra vez para dejarla como estaba.'],
+   run:async w=>{await flips($('bMirror'),[600,2800,4400,6700],w)}},
+  {id:'bTypos',t:['Typos','Erratas'],d:['Every word comes out with a little typo, as if typed in a hurry.','Cada palabra sale con una pequeña errata, como escrita con prisas.'],
+   run:async w=>{await w(300);$('bTypos').click();await w(500);
+    await dtype(sep()+T('Every single word has a typo, you will see.','Cada palabra lleva una errata, ya lo verás.'),3600,w);
+    if(window.typoFlush)window.typoFlush();await w(1500);$('bTypos').click()}},
+  {id:'bClock',t:['Clock','Reloj'],d:['The Selectric types the real time every second, one line each.','La Selectric escribe la hora real cada segundo, una línea cada vez.'],
+   run:async w=>{await w(400);$('bClock').click();await w(5600);$('bClock').click()}},
+  {id:'bDictate',t:['Dictate','Dictar'],d:['Speak and the Selectric types your words. It needs microphone permission.','Habla y la Selectric escribe tus palabras. Necesita permiso para el micrófono.']},
+  {id:'bSign',t:['Signature','Firma'],d:['Draw your signature with your finger or the mouse and place it on the paper.','Dibuja tu firma con el dedo o el ratón y colócala en el papel.']},
+  {id:'bUpload',t:['Add a photo','Añadir una foto'],d:['Place a picture on the paper. It goes into the letter and the shared image.','Coloca una imagen en el papel. Va incluida en la carta y en la imagen compartida.']},
+  {id:'bView',t:['Finished letter','Carta terminada'],d:['See your letter as a page, read it aloud, change the speed, or copy the text.','Mira tu carta como una página, léela en voz alta, cambia la velocidad o copia el texto.'],
+   run:async w=>{await w(500);setMode(true);await w(1200);hi($('bSpeak'));await w(1500);hi($('bSpeed'));await w(1500);hi($('bCopy'));await w(1500);hi($('bView'));await w(900);setMode(false)}},
+  {id:'bWA',t:['Share on WhatsApp','Compartir por WhatsApp'],d:['Sends your letter as an image, or as a PDF when it is long.','Envía tu carta como imagen, o como PDF cuando es larga.']},
+  {id:'bCollab',t:['Write together','Escribir juntos'],d:['Invite up to five people with a WhatsApp link and write the letter together.','Invita hasta a cinco personas con un enlace de WhatsApp y escribid la carta juntos.']},
+  {id:'bLive',t:['Live viewer','Visor en vivo'],d:['Share a link and others watch you type in real time, read-only.','Comparte un enlace y otros te ven escribir en directo, solo lectura.']},
+  {id:'bCover',t:['Dust cover','Funda antipolvo'],d:['Protects the Selectric while you are away. Tap it to take it off.','Protege la Selectric cuando no la usas. Tócala para quitarla.']},
+  {id:'bWpm',t:['Words per minute','Palabras por minuto'],d:['A live counter of how fast you type by hand.','Un contador en directo de lo rápido que escribes a mano.']},
+  {id:'bInfo',t:['About the Selectric','Sobre la Selectric'],d:['The story of the legendary IBM typewriter you are using.','La historia de la legendaria máquina de escribir de IBM que estás usando.']},
+  {id:'bLang',t:['Language','Idioma'],d:['Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.']},
+  {id:'bKb',t:['Phone keyboard','Teclado del móvil'],d:['On touch screens, switch to your phone’s own keyboard.','En pantallas táctiles, cambia al teclado propio del móvil.'],show:()=>$('bKb').getClientRects().length>0},
+  {id:'bHelp',t:['Help','Ayuda'],d:['Everything this app can do, in one place.','Todo lo que puede hacer esta app, en un solo lugar.']},
+  {id:'bRestart',t:['Restart','Reiniciar'],d:['Clears the sheet and starts again. It always asks first.','Borra la hoja y empieza de nuevo. Siempre pregunta antes.']}
+ ]}
+
+ async function runDemo(my){
+  const steps=buildSteps().filter(s=>!s.show||s.show());
+  for(let i=0;i<steps.length;i++){
+   if(my!==gen)return;
+   const s=steps[i],ctx={dead:false};
+   const w=async ms=>{await sleep(ms);if(ctx.dead||my!==gen)throw ABORT};
+   showCap(i+1,steps.length,s);hi(s.id?$(s.id):null);
+   if(s.run)s.run(w).catch(e=>{if(e!==ABORT)console.error(e)});
+   await sleep(STEP_MS);
+   ctx.dead=true;
+   if(my!==gen)return;
+   resetStep()}
+  if(my!==gen)return;
+  hi(null);showOutro();await sleep(OUTRO_MS);
+  if(my===gen)stopDemo()}
+
+ function startDemo(){
+  if(running)return;
+  if(getComputedStyle($('intro')).display!=='none')return;      /* the box has not been opened yet */
+  if(collab.role==='guest'||$('bLive').classList.contains('on')||$('bCollab').classList.contains('on')){toast(S('demoBusy'),3600);return}
+  initAudio();sPop();
+  const pill=$('jokePill');if(pill&&pill.style.display==='block')pill.dispatchEvent(new Event('pointerdown',{bubbles:true,cancelable:true}));
+  finishAuto();
+  if(coverIdx)$('cover').click();                                /* dust cover off */
+  if(letterMode)setMode(false);
+  closeAll();
+  snap={text:ta.value,cols:cols.slice(),stl:stl.slice(),pc:pageColors.slice(),ink:inkIdx,style:curStyle,font:fontKey,inv:ribbonInverted,mir:mirrorWriting,
+   typos:$('bTypos').classList.contains('on'),imgDisp:paperImages.style.display};
+  running=true;const my=++gen;
+  document.body.classList.add('demoOn');bDemo.classList.add('on');bDemo.setAttribute('aria-pressed','true');
+  applyState(NEUTRAL());
+  paperImages.style.display='none';
+  if(ta.value){quiet=true;ta.value='';ta.dispatchEvent(new Event('input'));quiet=false}
+  runDemo(my)}
+
+ function stopDemo(){
+  if(!running)return;
+  running=false;gen++;silence();
+  hi(null);cap.classList.remove('on');capP.style.transition='none';capP.style.width='0';
+  applyState({inv:snap.inv,mir:snap.mir,typos:snap.typos,ink:snap.ink,style:snap.style,font:snap.font,pc:snap.pc});
+  restoreText();
+  document.body.classList.remove('demoOn');bDemo.classList.remove('on');bDemo.setAttribute('aria-pressed','false');
+  snap=null;try{ta.focus({preventScroll:true})}catch(e){}}
+
+ bDemo.onclick=()=>{if(!running)startDemo()};
+ /* a click, tap or key anywhere stops it, and that click does nothing else */
+ const stopEv=e=>{if(!running)return;
+  if(e.type==='keydown'&&(e.ctrlKey||e.metaKey||e.altKey||/^F\d+$/.test(e.key)))return;      /* reload, dev tools… keep working */
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  stopDemo();                                                    /* first put everything back (its own clicks must not be swallowed)… */
+  if(e.type==='pointerdown'){swallow=true;setTimeout(()=>{swallow=false},500)}};   /* …then swallow the click that stopped it */
+ window.addEventListener('pointerdown',stopEv,true);
+ window.addEventListener('keydown',stopEv,true);
+ window.addEventListener('click',e=>{if(!swallow)return;swallow=false;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()},true);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopDemo()});
 })();
 </script></body></html>
