@@ -73,6 +73,10 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fab2 button,#fabL button{width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);display:grid;place-items:center;padding:0;cursor:pointer}
 #fab2 button:active,#fabL button:active{transform:scale(.94)}
 #emoQ{margin-bottom:6px}
+#emoCus{display:flex;gap:8px;margin-bottom:10px}
+#emoCI{font:16px system-ui,sans-serif;padding:10px;border:1px solid #d9d3c6;border-radius:10px;background:#fff;color:#17171c;flex:1;min-width:0}
+#emoCGo{font:600 14px system-ui,sans-serif;padding:0 16px;border:0;border-radius:10px;background:#17171c;color:#fff;cursor:pointer}
+#emoCGo:disabled{opacity:.35;cursor:default}
 #emoGrid{min-height:180px;max-height:46vh;max-height:46dvh;overflow:auto;margin-bottom:12px;overscroll-behavior:contain}
 #emoGrid .cat{margin:12px 0 6px;font:700 11.5px/1.2 system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#7a7364}
 #emoGrid .cat:first-child{margin-top:2px}
@@ -245,7 +249,8 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 </div></div>
 <div id="emoModal"><div id="emoCard" role="dialog" aria-label="Pick an emoji" data-ia="emo">
  <h2 data-i="emo">Pick an emoji</h2>
- <p class="s" data-i="emoSub">Choose one and the Selectric will type it as ASCII art.</p>
+ <p class="s" data-i="emoSub">Type your own emoji, letter or word — or choose one below.</p>
+ <div id="emoCus"><input id="emoCI" type="text" maxlength="40" placeholder="Your own emoji, letter or text…" data-ip="emoCusPh" autocomplete="off" spellcheck="false" aria-label="Your own emoji, letter or text"><button id="emoCGo" type="button" data-i="urlGo">Type it</button></div>
  <input id="emoQ" type="search" placeholder="Search emojis…" data-ip="emoPh" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search emojis">
  <div id="emoGrid"></div><div id="emoNone" data-i="emoNone">No emoji found</div>
  <div class="aiAct"><button id="emoCancel" type="button" data-i="cancel">Cancel</button></div>
@@ -294,7 +299,7 @@ const I18N={
   imgFail:'Couldn’t create the letter image',saved:'Letter saved as an image',
   copiedPhone:'Letter copied — paste it in the chat',copiedDesk:'Letter copied — press Ctrl+V in the chat',
   written:'Letter written — tap the page icon to see it',
-  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Choose one and the Selectric will type it as ASCII art.',emoPh:'Search emojis…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',tipHelp:'Help — what everything does',helpT:'How the Selectric works',helpSub:'Everything this app can do, in one place.',tipCollab:'Write together — invite via WhatsApp',collabMsg:'Come write a letter with me on the Selectric ✍️',collabHostOk:'Someone joined — everyone has their own ribbon colour',collabGuest:'Connected — you’re typing on the same sheet',collabLeft:'Someone left the sheet',collabFull:'This shared letter is full (6 people)',collabErr:'Couldn’t start the shared letter — check your connection',collabWait:'Connecting to the shared letter…',collabIn:'You’re already writing together',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
+  urlDlg:'Paste text',urlSub:'Paste any text and the Selectric will type it out for you.',urlLbl:'Your text',urlPh:'Paste or type here…',urlGo:'Type it',urlEmpty:'Paste some text first',emo:'Pick an emoji',emoSub:'Type your own emoji, letter or word — or choose one below.',emoPh:'Search emojis…',emoCusPh:'Your own emoji, letter or text…',emoNone:'No emoji found',tipEmoji:'Emoji as ASCII art',tipPaper:'Paper colour',tipHelp:'Help — what everything does',helpT:'How the Selectric works',helpSub:'Everything this app can do, in one place.',tipCollab:'Write together — invite via WhatsApp',collabMsg:'Come write a letter with me on the Selectric ✍️',collabHostOk:'Someone joined — everyone has their own ribbon colour',collabGuest:'Connected — you’re typing on the same sheet',collabLeft:'Someone left the sheet',collabFull:'This shared letter is full (6 people)',collabErr:'Couldn’t start the shared letter — check your connection',collabWait:'Connecting to the shared letter…',collabIn:'You’re already writing together',palPastel:'Pastel',palNeon:'Neon',ribbonOn:'Ribbon Möbius strip',ribbonOff:'Ribbon restored to normal',
   install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',tipUpload:'Add a photo to the paper',tipInk:'Change ribbon colour',tipView:'Switch between typewriter and finished letter',tipWA:'Share the letter on WhatsApp',tipKb:'Use the iPhone keyboard',tipAI:'Write a letter for me',tipURL:'Paste text to type out',tipInvert:'Ribbon Möbius strip effect',tipMirror:'Mirror writing',tipRestart:'Restart everything',tipLang:'Switch language (EN / ES)',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
@@ -304,7 +309,7 @@ const I18N={
   imgFail:'No se pudo crear la imagen de la carta',saved:'Carta guardada como imagen',
   copiedPhone:'Carta copiada — pégala en el chat',copiedDesk:'Carta copiada — pulsa Ctrl+V en el chat',
   written:'Carta escrita — toca el icono de la página para verla',
-  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Elige uno y la Selectric lo escribirá como ASCII art.',emoPh:'Buscar emojis…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipHelp:'Ayuda — qué hace cada cosa',helpT:'Cómo funciona la Selectric',helpSub:'Todo lo que puede hacer esta app, en un solo lugar.',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Alguien se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Alguien ha salido de la hoja',collabFull:'Esta carta compartida está completa (6 personas)',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
+  urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Escribe tu propio emoji, letra o palabra — o elige uno abajo.',emoPh:'Buscar emojis…',emoCusPh:'Tu propio emoji, letra o texto…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipHelp:'Ayuda — qué hace cada cosa',helpT:'Cómo funciona la Selectric',helpSub:'Todo lo que puede hacer esta app, en un solo lugar.',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Alguien se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Alguien ha salido de la hoja',collabFull:'Esta carta compartida está completa (6 personas)',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
   install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar',tipUpload:'Añadir una foto al papel',tipInk:'Cambiar el color de la cinta',tipView:'Alternar máquina y carta terminada',tipWA:'Compartir la carta por WhatsApp',tipKb:'Usar el teclado del iPhone',tipAI:'Escríbeme una carta',tipURL:'Pegar texto para escribirlo',tipInvert:'Efecto cinta Möbius',tipMirror:'Escritura en espejo',tipRestart:'Reiniciar todo',tipLang:'Cambiar idioma (EN / ES)',restart:'Reiniciar',restartQ:'¿Reiniciar todo? Se borrarán tu carta, fotos y ajustes.'}
 };
 Object.assign(I18N.en,{tipSign:'Add a handwritten signature',sigDlg:'Sign your letter',sigSub:'Draw your signature with your finger or the mouse.',sigClear:'Clear',sigGo:'Place on paper',sigEmpty:'Draw your signature first',sigPlaced:'Signature added to the paper',sigInk:['Black','Blue','Red'],tipTypos:'Typos: every word gets a mistake',typosOn:'Typos on — every word will have a mistake',typosOff:'Typos off — spelling back to normal',tipCover:'Dust cover on / off',coverOn:'{n} on — the Selectric is locked',coverOff:'Cover off — ready to type',coverLocked:'Take the dust cover off first',coverNames:['Red vinyl cover','Clear plastic cover','Red bandana']});
@@ -1466,7 +1471,7 @@ const EMO=[
 ['😄','Smileys & Expressions','Caritas y expresiones','😊 Smiling Face with Smiling Eyes;😁 Beaming Face with Smiling Eyes;☺️ Smiling Face;👀 Eyes;🤭 Face with Hand Over Mouth;😎 Smiling Face with Sunglasses;🤤 Drooling Face;🤩 Star-Struck;😜 Winking Face with Tongue'],
 ['❤️','Hearts & Love','Corazones y amor','❤️ Red Heart;😘 Face Blowing a Kiss;🥰 Smiling Face with Hearts;😍 Smiling Face with Heart-Eyes;💕 Two Hearts;💖 Sparkling Heart;💗 Growing Heart;💙 Blue Heart;💚 Green Heart;💛 Yellow Heart;💜 Purple Heart;🧡 Orange Heart'],
 ['🤝','Gestures & People','Gestos y personas','👍 Thumbs Up;🙏 Folded Hands;🤷 Person Shrugging;👏 Clapping Hands;🤝 Handshake;✌️ Victory Hand;🙌 Raising Hands;👉 Backhand Index Pointing Right;🫶 Heart Hands'],
-['✨','Vibes & Accents','Ambiente y detalles','🔥 Fire;✨ Sparkles;🌟 Glowing Star;💯 Hundred Points;🎂 Birthday Cake;🎁 Wrapped Gift;👑 Crown;🎵 Musical Note;🎶 Musical Notes;💡 Light Bulb;🪄 Magic Wand'],
+['✨','Vibes & Accents','Ambiente y detalles','🔥 Fire;✨ Sparkles;🌟 Glowing Star;💯 Hundred Points;🎂 Birthday Cake;🎁 Wrapped Gift;👑 Crown;🎵 Musical Note;💡 Light Bulb;🪄 Magic Wand'],
 ['🍔','Food, Animals & Nature','Comida, animales y naturaleza','☕ Hot Beverage;🍕 Pizza;🍔 Hamburger;🍟 French Fries;🍿 Popcorn;🌸 Cherry Blossom;☀️ Sun;🌈 Rainbow;❄️ Snowflake;🍀 Four Leaf Clover;🐾 Paw Prints;🐶 Dog Face;🐱 Cat Face;🦁 Lion;🦋 Butterfly'],
 ['🚗','Places, Objects & Symbols','Lugares, objetos y símbolos','✈️ Airplane;🚗 Automobile;🏡 House with Garden;📱 Mobile Phone;💻 Laptop;💰 Money Bag;💵 Dollar Banknote;✔️ Check Mark;✅ White Heavy Check Mark;🚩 Triangular Flag']
 ].map(c=>({es:c[2],en:c[1],items:c[3].split(';').map(t=>{const i=t.indexOf(' ');return{e:t.slice(0,i),n:t.slice(i+1)}})}));
@@ -1482,25 +1487,53 @@ function buildEmo(){
   its.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.e;b.title=x.n;b.setAttribute('aria-label',x.n);b.dataset.e=x.e;r.appendChild(b);n++});
   emoGrid.appendChild(r)});
  emoNone.style.display=n?'none':'block'}
-function openEmo(){if(letterMode)return;finishAuto();initAudio();sPop();window.emoOpen=true;emoQ.value='';buildEmo();emoModal.classList.add('on');ta.blur();emoGrid.scrollTop=0;
- if(matchMedia('(hover:hover)').matches)setTimeout(()=>emoQ.focus(),60)}
+function openEmo(){if(letterMode)return;finishAuto();initAudio();sPop();window.emoOpen=true;emoQ.value='';emoCI.value='';emoCGo.disabled=true;buildEmo();emoModal.classList.add('on');ta.blur();emoGrid.scrollTop=0;
+ if(matchMedia('(hover:hover)').matches)setTimeout(()=>emoCI.focus(),60)}
 function closeEmo(){window.emoOpen=false;emoModal.classList.remove('on');emoQ.blur()}
 $('bEmoji').onclick=openEmo;$('emoCancel').onclick=closeEmo;
 emoModal.addEventListener('pointerdown',e=>{if(e.target===emoModal)closeEmo()});
 document.addEventListener('keydown',e=>{if(window.emoOpen&&e.key==='Escape')closeEmo()});
 emoQ.addEventListener('input',buildEmo);
-emoGrid.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
- const art=emojiToAscii(b.dataset.e);if(!art)return;initAudio();sPop();closeEmo();autoType(art.t+'\n',true,art.c)});
+const emoCI=$('emoCI'),emoCGo=$('emoCGo');
+function emoCustom(){const v=emoCI.value.trim();if(!v)return;
+ const art=customToAscii(v);if(!art)return;initAudio();sPop();closeEmo();autoType(art.t+'\n',true,art.c)}
+emoCGo.onclick=emoCustom;
+emoCI.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();emoCustom()}});
+emoCI.addEventListener('input',()=>{emoCGo.disabled=!emoCI.value.trim()});
+/* a single emoji keeps the emoji look; anything else becomes rainbow word art */
+function customToAscii(v){
+ const seg=window.Intl&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(v)].map(x=>x.segment):Array.from(v);
+ if(seg.length===1&&/\p{Extended_Pictographic}/u.test(v))return emojiToAscii(v);
+ return textToAscii(v,seg)}
+const WA_FONT='900 220px "Arial Black",Impact,"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+function textToAscii(v,seg){
+ const MAXW=COLS-2,CW=24,CH=60,chars=seg.map(x=>x.toLocaleUpperCase()).filter(c=>c.trim()),lines=[];
+ for(let i=0;i<chars.length;i+=4)lines.push(chars.slice(i,i+4).join(''));
+ if(!lines.length)return null;
+ const m=document.createElement('canvas').getContext('2d');m.font=WA_FONT;
+ const capH=m.measureText('H').actualBoundingBoxAscent||160,LH=Math.round(capH*1.7),PAD=30,
+  lw=lines.map(l=>m.measureText(l).width);
+ const c0=document.createElement('canvas');c0.width=Math.ceil(Math.max(...lw))+PAD*2;c0.height=Math.ceil(capH+(lines.length-1)*LH)+PAD*2;
+ const g=c0.getContext('2d');g.font=WA_FONT;g.textBaseline='alphabetic';g.textAlign='center';
+ const gr=g.createLinearGradient(PAD,0,c0.width-PAD,0);
+ ['#e8334a','#f28c1c','#e8c81a','#2fb457','#1f9bd6','#7a4fd8','#d83fa8'].forEach((c,i,a)=>gr.addColorStop(i/(a.length-1),c));
+ g.fillStyle=gr;lines.forEach((l,i)=>g.fillText(l,c0.width/2,PAD+capH+LH*i));
+ return canvasToAscii(c0,{rows:7*lines.length,maxW:MAXW,text:true})}
 
 /* renders the emoji on a canvas, then maps each character cell to a symbol by ink density */
 function emojiToAscii(e){
- const W=17,H=7,CW=24,CH=60,TW=W*CW,TH=H*CH,RAMP=' .:-=+*#%@',IND=' '.repeat(Math.floor((COLS-W)/2)),F='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+ const F='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
  const S0=600,c0=document.createElement('canvas');c0.width=c0.height=S0;
- const g0=c0.getContext('2d',{willReadFrequently:true});g0.font='400px '+F;g0.textAlign='center';g0.textBaseline='middle';g0.fillText(e,S0/2,S0/2);
- const d0=g0.getImageData(0,0,S0,S0).data;let x0=S0,y0=S0,x1=-1,y1=-1;
- for(let y=0;y<S0;y++)for(let x=0;x<S0;x++)if(d0[(y*S0+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ const g0=c0.getContext('2d');g0.font='400px '+F;g0.textAlign='center';g0.textBaseline='middle';g0.fillText(e,S0/2,S0/2);
+ return canvasToAscii(c0,{rows:7,fixedW:17})}
+function canvasToAscii(c0,o){
+ const H=o.rows,CW=24,CH=60,TH=H*CH,RAMP=' .:-=+*#%@',SW=c0.width,SH=c0.height;
+ const g0=c0.getContext('2d',{willReadFrequently:true}),d0=g0.getImageData(0,0,SW,SH).data;let x0=SW,y0=SH,x1=-1,y1=-1;
+ for(let y=0;y<SH;y++)for(let x=0;x<SW;x++)if(d0[(y*SW+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
  if(x1<0)return null;
- const bw=x1-x0+1,bh=y1-y0+1,sc=Math.min(TW/bw,TH/bh),c1=document.createElement('canvas');c1.width=TW;c1.height=TH;
+ const bw=x1-x0+1,bh=y1-y0+1,maxTW=(o.fixedW||o.maxW)*CW,sc=Math.min(maxTW/bw,TH/bh);
+ const W=o.fixedW||Math.max(1,Math.min(o.maxW,Math.ceil(bw*sc/CW))),TW=W*CW,IND=' '.repeat(Math.max(0,Math.floor((COLS-W)/2)));
+ const c1=document.createElement('canvas');c1.width=TW;c1.height=TH;
  const g1=c1.getContext('2d',{willReadFrequently:true});g1.imageSmoothingQuality='high';
  g1.drawImage(c0,x0,y0,bw,bh,(TW-bw*sc)/2,(TH-bh*sc)/2,bw*sc,bh*sc);
  const d=g1.getImageData(0,0,TW,TH).data,cells=[];let lo=1,hi=0;
@@ -1510,8 +1543,8 @@ function emojiToAscii(e){
   a/=CW*CH/2;cells[r].push({a,R,G,B,lum});if(a>.4){if(lum<lo)lo=lum;if(lum>hi)hi=lum}}}
  const span=Math.max(.12,hi-lo),rows=[],cols=[];
  cells.forEach(row=>{
-  const rc=row.map(k=>{if(k.a<.4)return[' ',null];
-   const dark=1-Math.min(1,Math.max(0,(k.lum-lo)/span)),dens=(.45+.55*dark)*(.6+.4*Math.min(1,k.a));
+  const rc=row.map(k=>{if(k.a<(o.text?.3:.4))return[' ',null];
+   const dark=1-Math.min(1,Math.max(0,(k.lum-lo)/span)),dens=o.text?(.62+.38*Math.min(1,k.a)):(.45+.55*dark)*(.6+.4*Math.min(1,k.a));
    const L=k.lum*255,f=L>150?150/L:1,h=v=>Math.round(Math.min(255,v*f)).toString(16).padStart(2,'0');
    return[RAMP[Math.round(dens*(RAMP.length-1))],'#'+h(k.R)+h(k.G)+h(k.B)]});
   while(rc.length&&rc[rc.length-1][0]===' ')rc.pop();
@@ -1608,7 +1641,7 @@ const HELP=[
 ['⌨️','Typewriter','Máquina de escribir','Type on your keyboard or tap the keys on the machine. Shift, Caps Lock, Tab and Return work like a real Selectric, with its sounds. A bell rings near the end of each line.','Escribe con tu teclado o toca las teclas de la máquina. Shift, Bloq Mayús, Tab y Retorno funcionan como en una Selectric real, con sus sonidos. Suena una campanilla cerca del final de cada línea.'],
 ['bAI','Write a letter for me','Escríbeme una carta','Pick a letter type, add To / From / details if you like, and the Selectric types the whole letter for you.','Elige un tipo de carta, añade Para / De / detalles si quieres, y la Selectric escribe toda la carta por ti.'],
 ['bURL','Paste text','Pegar texto','Paste any text and the Selectric types it out line by line.','Pega cualquier texto y la Selectric lo escribe línea a línea.'],
-['bEmoji','Emoji as ASCII art','Emoji en ASCII art','Choose an emoji (or search for it) and it is typed as ASCII art, in the colours of that emoji.','Elige un emoji (o búscalo) y se escribe como ASCII art, con los colores de ese emoji.'],
+['bEmoji','Emoji as ASCII art','Emoji en ASCII art','Choose an emoji (or search for it), or type your own emoji, letter or text, and it is typed as ASCII art — words become colourful word art.','Elige un emoji (o búscalo), o escribe tu propio emoji, letra o texto, y se escribe como ASCII art — las palabras se convierten en word art de colores.'],
 ['⏩','Skip the typing','Saltar la escritura','While the Selectric is typing by itself, tap “Tap to finish typing” (or press any key) to get the rest instantly.','Mientras la Selectric escribe sola, toca «Toca para terminar de escribir» (o pulsa cualquier tecla) para obtener el resto al instante.'],
 ['bInk','Ribbon colour','Color de la cinta','Changes the ink for what you type next: black, red, blue, green, purple or orange. Text already typed keeps its colour.','Cambia la tinta de lo que escribas a partir de ahora: negro, rojo, azul, verde, morado o naranja. Lo ya escrito mantiene su color.'],
 ['bPaper','Paper colour','Color del papel','Pick a pastel or neon paper. It applies to the page you are on and every new page; earlier pages keep their colour.','Elige un papel pastel o neón. Se aplica a la página actual y a las nuevas; las anteriores conservan su color.'],
