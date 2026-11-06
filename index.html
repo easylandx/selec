@@ -1862,7 +1862,7 @@ const HELP=[
 ['bCollab','Write together','Escribir juntos','Invite up to 5 people through WhatsApp.','Invita hasta a 5 personas por WhatsApp.'],
 ['bInvert','Möbius ribbon','Cinta de Möbius','A fun effect: the ribbon twists, mixing the inks and giving the letters a coloured fringe.','Un efecto divertido: la cinta se retuerce, mezcla las tintas y da a las letras un borde de color.'],
 ['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
-['bDictate','Dictate','Dictar','Speak and the Selectric types your words with a realistic typing lag and the full key sound, as if the machine were keeping up with your speech. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras con un retraso realista y todo el sonido de las teclas, como si la máquina intentara seguir tu voz. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
+['bDictate','Dictate','Dictar','Speak and the Selectric types your words instantly, with no lag. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras con un retraso realista y todo el sonido de las teclas, como si la máquina intentara seguir tu voz. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
 ['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
 ['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away.','Protege la Selectric cuando no la usas.'],
 ['bFont','Typeface','Tipo de letra','Choose the typeball: Courier, Prestige Elite or Orator.','Elige la esfera de escritura: Courier, Prestige Elite u Orator.'],
@@ -2284,44 +2284,50 @@ var coverIdx=0;
 })();
 
 /* ================= DICTATE (voice-to-type with typewriter lag) ================= */
-Object.assign(I18N.en,{tipDictate:'Dictate: speak and the Selectric types it with a typing lag',dictOn:'Listening… speak and the Selectric will keep up',dictOff:'Dictation off',dictNo:'Voice dictation isn’t supported in this browser',dictDenied:'Microphone access was blocked',dictErr:'Dictation stopped'});
-Object.assign(I18N.es,{tipDictate:'Dictar: habla y la Selectric lo escribe con retraso de máquina',dictOn:'Escuchando… habla y la Selectric te seguirá',dictOff:'Dictado desactivado',dictNo:'El dictado por voz no funciona en este navegador',dictDenied:'Se bloqueó el acceso al micrófono',dictErr:'El dictado se ha detenido'});
+Object.assign(I18N.en,{tipDictate:'Dictate: speak and the Selectric types it instantly',dictOn:'Listening… speak and it types instantly',dictOff:'Dictation off',dictNo:'Voice dictation isn’t supported in this browser',dictDenied:'Microphone access was blocked',dictErr:'Dictation stopped'});
+Object.assign(I18N.es,{tipDictate:'Dictar: habla y la Selectric lo escribe al instante',dictOn:'Escuchando… habla y se escribe al instante',dictOff:'Dictado desactivado',dictNo:'El dictado por voz no funciona en este navegador',dictDenied:'Se bloqueó el acceso al micrófono',dictErr:'El dictado se ha detenido'});
 (function(){
   const btn=$('bDictate'),SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   let rec=null,on=false,q='',tm=0,watch=0,restartT=0;
   const cmd={en:[[/\b(new|next) paragraph\b/gi,'\n\n'],[/\b(new line|next line)\b/gi,'\n']],es:[[/\bnuevo párrafo\b/gi,'\n\n'],[/\b(nueva línea|siguiente línea)\b/gi,'\n']]};
   function stopAll(msg){
-    on=false;clearTimeout(restartT);clearInterval(watch);
+    on=false;q='';sent={};clearTimeout(restartT);clearInterval(watch);
     if(rec){const r=rec;rec=null;r.onend=r.onerror=r.onresult=null;try{r.abort()}catch(e){}}
     btn.classList.remove('on');btn.setAttribute('aria-pressed','false');
     if(msg)toast(msg,2200)}
-  /* the machine types slower than people talk: about 11 strikes a second, with a pause at spaces and punctuation, and a little catching up when the backlog grows */
-  function pump(){
-    clearTimeout(tm);tm=0;
+  /* zero lag: words go straight onto the page the instant the recogniser hears them (interim results), in one batched write */
+  let sent={};
+  function pump(){}
+  function flush(){
     if(!q)return;
     if(letterMode||coverIdx||ta.disabled){q='';return}
-    const c=q[0];q=q.slice(1);
-    typeText(c,true);
-    let d=70+Math.random()*50;
-    if(c===' ')d+=35;else if(/[.,;:!?]/.test(c))d+=120;else if(c==='\n')d+=380;
-    if(q.length>80)d*=.55;else if(q.length>40)d*=.78;
-    tm=setTimeout(pump,d)}
+    const c=q;q='';typeText(c,true)}
   function feed(raw){
-    let s=raw.trim();if(!s)return;
+    let s=raw;if(!s||!s.trim())return;
     (cmd[LANG]||cmd.en).forEach(([re,v])=>{s=s.replace(re,v)});
     s=s.replace(/ *\n */g,'\n');
-    const tail=q.length?q[q.length-1]:(ta.value.length?ta.value[ta.value.length-1]:'');
+    const cur=ta.value+q;
+    const tail=cur.length?cur[cur.length-1]:'';
+    s=s.replace(/^ +/,'');
     if(tail&&tail!==' '&&tail!=='\n'&&s[0]!=='\n')s=' '+s;
-    const before=(q+ta.value).replace(/\s+$/,'');
-    if(!before||/[.!?¿¡]$/.test(before)||/\n$/.test(q+ta.value))s=s.replace(/^(\s*)(\S)/,(m,a,b)=>a+b.toUpperCase());
-    q+=s;if(!tm)pump()}
+    const before=cur.replace(/\s+$/,'');
+    if(!before||/[.!?¿¡]$/.test(before)||/\n$/.test(cur))s=s.replace(/^(\s*)(\S)/,(m,a,b)=>a+b.toUpperCase());
+    q+=s;flush()}
+  function onRes(e){
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const r=e.results[i],t=r[0].transcript,done=sent[i]||0;
+      let upto;
+      if(r.isFinal)upto=t.length;
+      else{const k=t.lastIndexOf(' ');upto=k>0?k:0}   /* interim: only whole words, so nothing needs undoing */
+      if(upto>done){feed(t.slice(done,upto));sent[i]=upto}
+      if(r.isFinal)delete sent[i]}}
   function start(){
     try{rec=new SR()}catch(e){stopAll(S('dictNo'));return}
-    rec.lang=LANG==='es'?'es-ES':'en-US';rec.continuous=true;rec.interimResults=false;rec.maxAlternatives=1;
-    rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)feed(e.results[i][0].transcript)};
+    rec.lang=LANG==='es'?'es-ES':'en-US';rec.continuous=true;rec.interimResults=true;sent={};rec.maxAlternatives=1;
+    rec.onresult=onRes;
     rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed')stopAll(S('dictDenied'));else if(e.error==='audio-capture')stopAll(S('dictErr'))};
     /* browsers end a session after a pause: pick it up again while dictation is on */
-    rec.onend=()=>{if(!on)return;restartT=setTimeout(()=>{if(on){try{rec.lang=LANG==='es'?'es-ES':'en-US';rec.start()}catch(e){}}},250)};
+    rec.onend=()=>{if(!on)return;sent={};restartT=setTimeout(()=>{if(on){try{rec.lang=LANG==='es'?'es-ES':'en-US';rec.start()}catch(e){}}},0)};
     try{rec.start()}catch(e){stopAll(S('dictErr'));return}}
   btn.onclick=()=>{
     if(letterMode||coverIdx)return;
