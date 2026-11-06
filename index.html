@@ -626,11 +626,11 @@ imageUpload.addEventListener('change',async()=>{
 });
 const isPhone=()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform));
 
-async function renderPNG(pi,fmt){const one=pi!=null;
+async function renderPNG(pi,fmt,cap){const one=pi!=null;
  try{await document.fonts.load('32px "'+FONTS[fontKey].g+'"')}catch(e){}
  const BW=794,BH=Math.round(BW*RATIO),pad=40,ls=wrap(text),np=Math.max(1,Math.ceil(ls.length/LPP));
  const HS=[];for(let p=0;p<np;p++)HS.push(pageHeight(p,np,BW,ls.length,BW*0.72/COLS/0.6*1.5));const TH=HS.reduce((a,b)=>a+b,0);
- const TH2=one?HS[pi]+2*pad:TH+pad*(np+1),S=Math.min(2,Math.sqrt(15e6/((BW+2*pad)*TH2)));
+ const TH2=one?HS[pi]+2*pad:TH+pad*(np+1),S=Math.min(cap||2,Math.sqrt(15e6/((BW+2*pad)*TH2)));
  const c=document.createElement('canvas');c.width=Math.round((BW+2*pad)*S);c.height=Math.round(TH2*S);
  const x=c.getContext('2d');x.scale(S,S);x.fillStyle='#d8d4cb';x.fillRect(0,0,c.width,c.height);
  const fs=BW*0.72/COLS/0.6,lh=fs*1.5,cw=fs*0.6;
@@ -664,7 +664,7 @@ async function renderPNG(pi,fmt){const one=pi!=null;
     x.fillText(text[k],tx,y);
    }});
   x.globalAlpha=1}
- return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('png')),fmt==='jpeg'?'image/jpeg':'image/png',fmt==='jpeg'?.92:undefined))}
+ return new Promise((res,rej)=>c.toBlob(b=>{c.width=c.height=0;b?res(b):rej(new Error('png'))},fmt==='jpeg'?'image/jpeg':'image/png',fmt==='jpeg'?.92:undefined))}   /* the canvas is freed straight away: phones run out of canvas memory after a few big pages */
 
 async function legacyCopy(blob){try{const url=URL.createObjectURL(blob),im=new Image();im.src=url;await im.decode();
  const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';d.appendChild(im);document.body.appendChild(d);
@@ -677,7 +677,7 @@ function getPNG(){const k=waKey();if(waC.k!==k||!waC.p){waC.k=k;waC.p=renderPNG(
 /* letters of more than two pages are not sent as one very long picture (WhatsApp shrinks it until it is unreadable) */
 const pageCount=()=>Math.max(1,Math.ceil(wrap(text).length/LPP));
 const waP={k:'',p:null,f:null,fk:''};
-function getPages(){const k=waKey();if(waP.k!==k||!waP.p){waP.k=k;const n=pageCount();waP.p=(async()=>{const o=[];for(let i=0;i<n;i++)o.push(new File([await renderPNG(i)],'letter-'+(i+1)+'.png',{type:'image/png'}));return o})();waP.p.catch(()=>{waP.k=''})}return waP.p}
+function getPages(){const k=waKey();if(waP.k!==k||!waP.p){waP.k=k;const n=pageCount();waP.p=(async()=>{const o=[];for(let i=0;i<n;i++)o.push(new File([await renderPNG(i,'png',1.6)],'letter-'+(i+1)+'.png',{type:'image/png'}));return o})();waP.p.catch(()=>{waP.k=''})}return waP.p}
 /* a tiny PDF writer: one JPEG per page, nothing to download */
 function buildPDF(im){
  const enc=new TextEncoder(),parts=[],xr=[];let off=0;
@@ -706,7 +706,7 @@ $('bWA').onclick=async()=>{
   /* phone, 3+ pages: every page is its own sharp image, sent together as an album */
   toast(S('pagesMaking'),2500);
   try{const fs=await getPages();
-   if(navigator.canShare({files:fs})){try{await navigator.share({files:fs,text:waMsg()});return}catch(e){if(e&&e.name==='AbortError')return}}}catch(e){toast(S('imgFail'));return}}
+   if(navigator.canShare({files:fs})){try{await navigator.share({files:fs});return}   /* files only: with a text too, WhatsApp can drop the first image */catch(e){if(e&&e.name==='AbortError')return}}}catch(e){toast(S('imgFail'));return}}
  if(many&&!phone){
   /* computer, 3+ pages: a PDF to attach in WhatsApp */
   let w=null;try{w=window.open('about:blank','_blank')}catch(e){}
