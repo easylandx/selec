@@ -2789,10 +2789,12 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
 })();
 
 /* ================= DEMO: a guided tour of every function =================
-   The Demo button (bottom of the right-hand column) shows every function for 8 seconds each, on a clean sheet,
-   with a short caption that is also read aloud. Where it can, it really does the thing (types a letter, flips the
-   ribbon, mirrors the writing…). A click, tap or key anywhere stops it; when it ends (or is stopped) the user's own
-   sheet, ink, typeface, paper colour and effects come back exactly as they were. */
+   The Demo button (bottom of the right-hand column) walks through every function in a short live mini demo, on a
+   clean sheet, with a caption that is also read aloud. Where it can, it really does the thing (types a letter, draws a
+   signature on the real pad, flips the ribbon, puts the dust covers on…). Where the real thing needs a microphone, a
+   network or another person (dictate, write together, live viewer, WhatsApp, joke mode, restart) it is simulated on screen.
+   A click, tap or key anywhere stops it; when it ends (or is stopped) the user's own sheet, photos, ink, typeface,
+   paper colour, language and effects come back exactly as they were. */
 (function(){
  const STEP_MS=8000,OUTRO_MS=3200;
  Object.assign(I18N.en,{tipDemo:'Demo: watch every function in action',demoStop:'Click anywhere to stop',demoBusy:'Stop the live link / “Write together” first, then start the demo'});
@@ -2800,9 +2802,67 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
  const bDemo=$('bDemo');
  const _al=applyLang;applyLang=function(){_al.apply(this,arguments);bDemo.setAttribute('aria-label',S('tipDemo'))};bDemo.setAttribute('aria-label',S('tipDemo'));
  /* the guide (?) lists it too, just before Restart */
- HELP.splice(Math.max(0,HELP.findIndex(h=>h[0]==='bRestart')),0,['bDemo','Demo','Demo','Watch every function in action, 8 seconds each, with a voice. Click anywhere to stop it.','Mira cada función en acción, 8 segundos cada una, con voz. Haz clic en cualquier sitio para pararla.']);
+ HELP.splice(Math.max(0,HELP.findIndex(h=>h[0]==='bRestart')),0,['bDemo','Demo','Demo','Watch every function in a short live mini demo, with a voice. Click anywhere to stop it.','Mira cada función en una pequeña demo en vivo, con voz. Haz clic en cualquier sitio para pararla.']);
 
- /* ---------- caption ---------- */
+ /* ---------- caption + on-screen extras ---------- */
+ const st=document.createElement('style');
+ st.textContent=`
+#demoFx{position:fixed;inset:0;z-index:240;pointer-events:none;font-family:system-ui,sans-serif}
+#demoFx .dfx{position:absolute;box-sizing:border-box}
+@keyframes dfxIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes dfxFade{from{opacity:0}to{opacity:1}}
+@keyframes dfxPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes dfxBar{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes dfxBlink{50%{opacity:.25}}
+#demoFx .dfxMic{top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);background:#c4161c;color:#fff;border-radius:999px;padding:9px 18px 9px 14px;display:flex;align-items:center;gap:10px;font:600 15px system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.35);animation:dfxFade .3s both;white-space:nowrap}
+#demoFx .dfxMic .bars{display:flex;gap:3px;align-items:center;height:20px}
+#demoFx .dfxMic .bars i{display:block;width:4px;height:20px;border-radius:2px;background:#fff;animation:dfxBar .7s ease-in-out infinite}
+#demoFx .dfxMic .bars i:nth-child(2){animation-delay:.12s}#demoFx .dfxMic .bars i:nth-child(3){animation-delay:.25s}#demoFx .dfxMic .bars i:nth-child(4){animation-delay:.37s}
+#demoFx .dfxMic em{font-style:normal;font-weight:500;opacity:.92;min-width:90px}
+#demoFx .dfxPeers{top:calc(env(safe-area-inset-top,0px) + 12px);left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:rgba(23,23,28,.92);color:#fff;border-radius:999px;padding:7px 14px;font:600 13px system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.35);animation:dfxFade .3s both;white-space:nowrap;max-width:94vw}
+#demoFx .dfxPeers .pc{display:flex;align-items:center;gap:5px;opacity:.55;transition:opacity .2s}
+#demoFx .dfxPeers .pc.on{opacity:1}
+#demoFx .dfxPeers .pc b{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px system-ui,sans-serif;color:#fff}
+#demoFx .dfxPeers .pc.on b{box-shadow:0 0 0 2px #fff,0 0 0 5px rgba(255,255,255,.3)}
+#demoFx .dfxLive{top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;width:min(230px,56vw);background:#fff;color:#17171c;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.4);overflow:hidden;animation:dfxIn .3s both}
+#demoFx .dfxLive .h{display:flex;align-items:center;gap:6px;background:#17171c;color:#fff;padding:6px 10px;font:700 11px system-ui,sans-serif;letter-spacing:.06em}
+#demoFx .dfxLive .rec{width:8px;height:8px;border-radius:50%;background:#e53935;animation:dfxBlink 1s infinite}
+#demoFx .dfxLive .eye{margin-left:auto;font-weight:600;letter-spacing:0}
+#demoFx .dfxLive pre{margin:0;padding:9px 10px;font:10px/1.35 "Courier New",monospace;white-space:pre-wrap;word-break:break-word;height:calc(10px*1.35*8 + 18px);overflow:hidden;background:#fbf9f3}
+#demoFx .dfxLive .f{padding:5px 10px;font:500 10px system-ui,sans-serif;color:#777;background:#f1efe8}
+#demoFx .dfxWA{top:50%;left:50%;transform:translate(-50%,-56%);width:min(300px,86vw);border-radius:14px;overflow:hidden;box-shadow:0 10px 36px rgba(0,0,0,.5);background:#ece5dd;animation:dfxFade .35s both}
+#demoFx .dfxWA .h{display:flex;align-items:center;gap:9px;background:#075e54;color:#fff;padding:10px 12px}
+#demoFx .dfxWA .av{width:32px;height:32px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font:700 15px system-ui,sans-serif}
+#demoFx .dfxWA .h b{display:block;font:600 15px system-ui,sans-serif}#demoFx .dfxWA .h small{font:400 11px system-ui,sans-serif;opacity:.8}
+#demoFx .dfxWA .body{padding:14px 12px 16px;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end}
+#demoFx .dfxWA .bub{align-self:flex-end;max-width:92%;background:#dcf8c6;border-radius:10px 10px 2px 10px;padding:5px 5px 4px;box-shadow:0 1px 1px rgba(0,0,0,.18);animation:dfxPop .35s both;transform-origin:100% 100%}
+#demoFx .dfxWA .pp{background:#fbf9f3;border-radius:6px;padding:8px 9px;max-height:150px;overflow:hidden;color:#222}
+#demoFx .dfxWA .pp pre{margin:0;font:6.5px/1.45 "Courier New",monospace;white-space:pre-wrap}
+#demoFx .dfxWA .pp img{display:block;width:62%;margin:5px 0 2px;border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transform:rotate(-1.5deg)}
+#demoFx .dfxWA .meta{text-align:right;font:400 10px system-ui,sans-serif;color:#667781;padding:3px 4px 0}
+#demoFx .dfxWA .tk{color:#9aa;letter-spacing:-2px;transition:color .4s}#demoFx .dfxWA .tk.b{color:#34b7f1}
+#demoFx .dfxScrim{inset:0;background:rgba(0,0,0,.38);animation:dfxIn .25s both}
+#demoFx .dfxDlg{top:50%;left:50%;transform:translate(-50%,-50%);width:min(320px,86vw);background:#f2f2f2;color:#17171c;border-radius:14px;padding:18px 18px 14px;box-shadow:0 10px 36px rgba(0,0,0,.5);animation:dfxFade .3s both;font:15px/1.4 system-ui,sans-serif}
+#demoFx .dfxDlg p{margin:0 0 14px}
+#demoFx .dfxDlg .bt{display:flex;gap:10px;justify-content:flex-end}
+#demoFx .dfxDlg button{font:600 15px system-ui,sans-serif;border:0;border-radius:9px;padding:9px 18px;background:#ddd;color:#17171c}
+#demoFx .dfxDlg button.o{background:#c4161c;color:#fff}
+#demoFx .dfxDlg button.c.go{animation:demoPulse 1s ease-in-out infinite}
+#demoFx .dfxDlg button.c.press{transform:scale(.92);background:#bbb}
+#demoFx.dfxOut{opacity:0;transition:opacity .35s}`;
+ document.head.appendChild(st);
+ const fxBox=document.createElement('div');fxBox.id='demoFx';document.body.appendChild(fxBox);
+ let fxT=[],dictFake=false,jokeFake=false;
+ function fx(cls,html){const d=document.createElement('div');d.className='dfx '+cls;d.innerHTML=html;fxBox.appendChild(d);return d}
+ function clearFx(){
+  fxT.forEach(clearInterval);fxT=[];fxBox.innerHTML='';
+  if(dictFake){const b=$('bDictate');b.classList.remove('on');b.setAttribute('aria-pressed','false');dictFake=false}
+  if(jokeFake){const p=$('jokePill');if(p)p.style.display='none';jokeFake=false}
+  if(snap&&wpmOn!==snap.wpm)$('bWpm').click();
+  wpmEv.length=0;
+  if(coverIdx)$('cover').click();                                /* dust cover off */
+  if(snap&&LANG!==snap.lang)$('bLang').click()}                   /* language back */
+
  const cap=document.createElement('div');cap.id='demoCap';cap.setAttribute('role','status');cap.setAttribute('aria-live','off');
  cap.innerHTML='<div class="dh"><span class="dn"></span><b class="dt"></b><span class="dx"></span></div><div class="dd"></div><div class="dp"></div>';
  document.body.appendChild(cap);
@@ -2834,10 +2894,10 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
    else ss.speak(u)}catch(e){}}
  function silence(){try{if(ss)ss.cancel()}catch(e){}}
 
- function showCap(i,n,s){
+ function showCap(i,n,s,ms){
   capN.textContent=i+' / '+n;capT.textContent=T(s.t[0],s.t[1]);capD.textContent=T(s.d[0],s.d[1]);capX.textContent=S('demoStop');
   cap.classList.add('on');
-  capP.style.transition='none';capP.style.width='0';void capP.offsetWidth;capP.style.transition='width '+STEP_MS+'ms linear';capP.style.width='100%';
+  capP.style.transition='none';capP.style.width='0';void capP.offsetWidth;capP.style.transition='width '+ms+'ms linear';capP.style.width='100%';
   say(T(s.t[0],s.t[1])+'. '+T(s.d[0],s.d[1]))}
  function showOutro(){
   capN.textContent='✓';capT.textContent=T('That’s everything','Eso es todo');capD.textContent=T('Now it’s your turn. Have fun on the Selectric!','Ahora te toca a ti. ¡Diviértete con la Selectric!');capX.textContent='';
@@ -2852,14 +2912,19 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
    window.pendInk=colors?colors[i]:undefined;typeText(c,true);window.pendInk=undefined;
    await w(c==='\n'?u*4:u)}}
  const sep=()=>{const v=ta.value;return !v||v.endsWith('\n\n')?'':v.endsWith('\n')?'\n':'\n\n'};
+ /* a clean sheet for the steps that need one (text and every photo/signature on it) */
+ function clearSheet(){quiet=true;ta.value='';ta.dispatchEvent(new Event('input'));quiet=false;Array.from(paperImages.children).forEach(x=>x.remove());render()}
 
  /* ---------- state the demo borrows and gives back ---------- */
  function closeAll(){
   try{closeAI()}catch(e){}try{closeEmo()}catch(e){}try{closePal()}catch(e){}try{closeStyle()}catch(e){}try{closeFont()}catch(e){}
+  try{if(urlModal.classList.contains('on')){closeURL();urlIn.value=''}}catch(e){}
+  try{closeInfo()}catch(e){}try{closeHelp()}catch(e){}
+  try{if($('sigModal').classList.contains('on'))$('sigCancel').click()}catch(e){}
   if(window.bookOpen){const c=$('bookCancel');if(c)c.click()}
   if(letterMode)setMode(false);
   aiSel=null;aiTypes.querySelectorAll('button.sel').forEach(x=>x.classList.remove('sel'));aiGo.disabled=true;$('aiAbout').placeholder=S('aboutPh');
-  aiGo.classList.remove('demoHi')}
+  aiGo.classList.remove('demoHi');urlGo.classList.remove('demoHi')}
  function applyState(o){
   closeAll();
   if(ribbonInverted!==o.inv)$('bInvert').click();
@@ -2872,13 +2937,14 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   pageColors.length=0;o.pc.forEach((v,i)=>{pageColors[i]=v});$('bPaper').style.background=pageColor(curPageNo())||'';
   render()}
  const NEUTRAL=()=>({inv:false,mir:false,typos:false,ink:0,style:0,font:snap.font,pc:snap.pc});
- const resetStep=()=>{if(snap)applyState(NEUTRAL())};
+ const resetStep=()=>{if(snap){clearFx();applyState(NEUTRAL())}};
  function restoreText(){
+  Array.from(paperImages.children).forEach(x=>x.remove());snap.imgs.forEach(x=>paperImages.appendChild(x));   /* the demo's own photos go, the user's come back */
   quiet=true;ta.value=snap.text;ta.dispatchEvent(new Event('input'));quiet=false;
   cols.length=0;snap.cols.forEach(c=>cols.push(c));stl.length=0;snap.stl.forEach(c=>stl.push(c));
   paperImages.style.display=snap.imgDisp;viewPos=null;render()}
 
- /* ---------- the tour ---------- */
+ /* ---------- bits of content for the mini demos ---------- */
  const BOOKS={
   en:[['MOBY-DICK','Herman Melville','Call me Ishmael. Some years ago -- never mind how long precisely -- having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.'],
    ['PRIDE AND PREJUDICE','Jane Austen','It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.'],
@@ -2889,10 +2955,48 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
    ['LA REGENTA','Leopoldo Alas "Clarín"','La heroica ciudad dormía la siesta. El viento Sur, caliente y perezoso, empujaba las nubes blanquecinas que se rasgaban al correr hacia el Norte.'],
    ['LAZARILLO DE TORMES','Anónimo','Pues sepa Vuestra Merced, ante todas cosas, que a mí llaman Lázaro de Tormes, hijo de Tomé González y de Antonia Pérez, naturales de Tejares, aldea de Salamanca.']]};
  const SHORT_LETTERS=['invite','congrats','thanks','welcome','anniversary','birthday','apology','getwell'];
+ /* joke mode normally fetches live jokes from the internet; the demo uses a few classics so it works offline */
+ const JOKES={
+  en:['Why don\'t scientists trust atoms?\nBecause they make up everything.','I told my wife she was drawing her eyebrows too high.\nShe looked surprised.','What do you call cheese that isn\'t yours?\nNacho cheese.'],
+  es:['¿Qué le dice un jaguar a otro?\nJaguar you?','¿Por qué los pájaros vuelan hacia el sur?\nPorque caminando tardarían mucho.','¿Cuál es el colmo de un electricista?\nQue su mujer se llame Luz y sus hijos le sigan la corriente.']};
+
+ /* a little seaside photo, drawn on the fly, standing in for a picture from the user's gallery */
+ function makePhoto(){
+  const c=document.createElement('canvas');c.width=640;c.height=470;const x=c.getContext('2d');
+  let g=x.createLinearGradient(0,0,0,300);g.addColorStop(0,'#4f9fe0');g.addColorStop(.65,'#ffd6a5');g.addColorStop(1,'#ffab7a');x.fillStyle=g;x.fillRect(0,0,640,470);
+  x.fillStyle='#fff3b0';x.beginPath();x.arc(470,215,62,0,7);x.fill();
+  x.fillStyle='rgba(255,255,255,.88)';[[110,85,44],[150,72,34],[78,98,30],[420,70,26],[452,62,34],[490,74,24]].forEach(a=>{x.beginPath();x.arc(a[0],a[1],a[2],0,7);x.fill()});
+  g=x.createLinearGradient(0,290,0,470);g.addColorStop(0,'#2f86c0');g.addColorStop(1,'#12507a');x.fillStyle=g;x.fillRect(0,290,640,180);
+  x.fillStyle='rgba(255,243,176,.5)';for(let i=0;i<7;i++)x.fillRect(470-48+i*6,296+i*22,96-i*12,7);
+  x.fillStyle='#2e6b4f';x.beginPath();x.moveTo(0,300);x.quadraticCurveTo(120,205,270,300);x.closePath();x.fill();
+  x.fillStyle='#24543e';x.beginPath();x.moveTo(0,300);x.quadraticCurveTo(60,250,150,300);x.closePath();x.fill();
+  x.fillStyle='#fff';x.beginPath();x.moveTo(318,372);x.lineTo(318,300);x.lineTo(372,362);x.closePath();x.fill();
+  x.fillStyle='#fde2e4';x.beginPath();x.moveTo(312,372);x.lineTo(312,318);x.lineTo(280,368);x.closePath();x.fill();
+  x.fillStyle='#c4161c';x.beginPath();x.moveTo(266,376);x.lineTo(392,376);x.lineTo(372,398);x.lineTo(288,398);x.closePath();x.fill();
+  return c.toDataURL('image/jpeg',.86)}
+
+ /* a handwritten-looking signature (two strokes), in 0..1 coordinates of the pad */
+ function sigStrokes(){
+  const TAU=Math.PI*2,a=[],b=[];
+  for(let i=0;i<=80;i++){const t=i/80;
+   a.push([.10+.70*t+.075*Math.sin(t*TAU*3.5+.4),.50-.24*Math.sin(t*TAU*3.5+.4-Math.PI/2)*(.35+.65*Math.sin(Math.PI*t))])}
+  for(let i=0;i<=30;i++){const u=i/30;b.push([.16+.74*u,.80-.13*u+.04*Math.sin(u*Math.PI*2)])}
+  return [a,b]}
+ /* drives the REAL signature pad with synthetic pen events */
+ async function drawSig(cv,w,total){
+  const r=cv.getBoundingClientRect(),strokes=sigStrokes(),all=strokes.reduce((n,s)=>n+s.length,0),dt=Math.max(8,(total-250)/all);
+  const ev=(type,p)=>cv.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:91,pointerType:'pen',isPrimary:true,button:0,buttons:type==='pointerup'?0:1,clientX:r.left+p[0]*r.width,clientY:r.top+p[1]*r.height}));
+  for(const s of strokes){ev('pointerdown',s[0]);for(let i=1;i<s.length;i++){await w(dt);ev('pointermove',s[i])}ev('pointerup',s[s.length-1]);await w(120)}}
+
+ /* scroll a dialog slowly from top to bottom */
+ async function scrollSlow(card,w,ms){
+  const max=card.scrollHeight-card.clientHeight;if(max<=4){await w(ms);return}
+  const n=Math.max(10,Math.round(ms/70));for(let i=1;i<=n;i++){card.scrollTop=max*i/n;await w(ms/n)}}
 
  /* flip a toggle button on/off a few times: [ms to wait, ...] each entry clicks once */
  async function flips(btn,times,w){let t=0;for(const at of times){await w(at-t);t=at;btn.click()}}
 
+ /* ---------- the tour ---------- */
  function buildSteps(){return [
   {id:null,t:['The typewriter','La máquina de escribir'],d:['A real IBM Selectric. Type on your keyboard, or tap the keys on the machine.','Una IBM Selectric de verdad. Escribe con tu teclado o toca las teclas de la máquina.'],
    run:async w=>{await w(300);await dtype(T('Hello, typewriter!','¡Hola, máquina de escribir!'),2800,w)}},
@@ -2903,7 +3007,13 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     await w(1800);closeAI();
     const letter=writeLocal(id,'','','','');
     await dtype(sep()+letter,4300,w)}},
-  {id:'bURL',t:['Paste text','Pegar texto'],d:['Paste any text and the Selectric types it out for you, line by line.','Pega cualquier texto y la Selectric lo escribe por ti, línea a línea.']},
+  {id:'bURL',ms:9000,t:['Paste text','Pegar texto'],d:['Paste any text and the Selectric types it out for you, line by line.','Pega cualquier texto y la Selectric lo escribe por ti, línea a línea.'],
+   run:async w=>{await w(400);$('bURL').click();await w(700);
+    const txt=T('Dear reader,\nthis text was pasted in one go\nand the Selectric types it\nout line by line.','Querido lector,\neste texto se pegó de golpe\ny la Selectric lo escribe\nlínea a línea.');
+    urlIn.value=txt;                                           /* the "paste" */
+    await w(1200);urlGo.classList.add('demoHi');await w(900);urlGo.classList.remove('demoHi');
+    closeURL();urlIn.value='';
+    await dtype(sep()+txt,3800,w)}},
   {id:'bBook',t:['Type a book','Escribir un libro'],d:['A random book from archive.org, typed out for you. Here, just its first lines.','Un libro al azar de archive.org, escrito para ti. Aquí, solo sus primeras líneas.'],
    run:async w=>{await w(500);$('bBook').click();await w(900);
     const q=$('bookQ');for(const ch of T('sea','mar')){q.value+=ch;await w(160)}
@@ -2949,32 +3059,148 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     if(window.typoFlush)window.typoFlush();await w(1500);$('bTypos').click()}},
   {id:'bClock',t:['Clock','Reloj'],d:['The Selectric types the real time every second, one line each.','La Selectric escribe la hora real cada segundo, una línea cada vez.'],
    run:async w=>{await w(400);$('bClock').click();await w(5600);$('bClock').click()}},
-  {id:'bDictate',t:['Dictate','Dictar'],d:['Speak and the Selectric types your words. It needs microphone permission.','Habla y la Selectric escribe tus palabras. Necesita permiso para el micrófono.']},
-  {id:'bSign',t:['Signature','Firma'],d:['Draw your signature with your finger or the mouse and place it on the paper.','Dibuja tu firma con el dedo o el ratón y colócala en el papel.']},
-  {id:'bUpload',t:['Add a photo','Añadir una foto'],d:['Place a picture on the paper. It goes into the letter and the shared image.','Coloca una imagen en el papel. Va incluida en la carta y en la imagen compartida.']},
-  {id:'bView',t:['Finished letter','Carta terminada'],d:['See your letter as a page, read it aloud, change the speed, or copy the text.','Mira tu carta como una página, léela en voz alta, cambia la velocidad o copia el texto.'],
-   run:async w=>{await w(500);setMode(true);await w(1200);hi($('bSpeak'));await w(1500);hi($('bSpeed'));await w(1500);hi($('bCopy'));await w(1500);hi($('bView'));await w(900);setMode(false)}},
-  {id:'bWA',t:['Share on WhatsApp','Compartir por WhatsApp'],d:['Sends your letter as an image, or as a PDF when it is long.','Envía tu carta como imagen, o como PDF cuando es larga.']},
-  {id:'bCollab',t:['Write together','Escribir juntos'],d:['Invite up to five people with a WhatsApp link and write the letter together.','Invita hasta a cinco personas con un enlace de WhatsApp y escribid la carta juntos.']},
-  {id:'bLive',t:['Live viewer','Visor en vivo'],d:['Share a link and others watch you type in real time, read-only.','Comparte un enlace y otros te ven escribir en directo, solo lectura.']},
-  {id:'bCover',t:['Dust cover','Funda antipolvo'],d:['Protects the Selectric while you are away. Tap it to take it off.','Protege la Selectric cuando no la usas. Tócala para quitarla.']},
-  {id:'bWpm',t:['Words per minute','Palabras por minuto'],d:['A live counter of how fast you type by hand.','Un contador en directo de lo rápido que escribes a mano.']},
-  {id:'bInfo',t:['About the Selectric','Sobre la Selectric'],d:['The story of the legendary IBM typewriter you are using.','La historia de la legendaria máquina de escribir de IBM que estás usando.']},
-  {id:'bLang',t:['Language','Idioma'],d:['Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.']},
+
+  /* ---- the secret joke mode (simulated, so it also works offline) ---- */
+  {id:null,fresh:true,ms:16000,t:['Secret joke mode','Modo chistes secreto'],
+   d:['Fill a whole line with 1s and the Selectric starts telling jokes non-stop. Press 1 or tap to stop. It also starts by itself if you leave the machine alone for 8 seconds.','Llena una línea entera de unos y la Selectric empieza a contar chistes sin parar. Pulsa 1 o toca para parar. También arranca sola si la dejas quieta 8 segundos.'],
+   run:async w=>{
+    await w(400);
+    for(let i=0;i<35;i++){flashKey('1');typeText('1',true);await w(30)}
+    flashKey('1');quiet=true;typeText('1',true);quiet=false;     /* the 36th: filled line (the real trigger is skipped on purpose) */
+    await w(600);
+    quiet=true;ta.value=ta.value.replace(/1+$/,'');ta.dispatchEvent(new Event('input'));quiet=false;   /* the secret 1s vanish, like the real thing */
+    const pill=$('jokePill');if(pill){pill.textContent=S('jokePill');pill.style.display='block';jokeFake=true}
+    for(const j of JOKES[LANG==='es'?'es':'en']){await w(500);await dtype(sep()+j,2300,w);await w(1200)}
+    await w(300);flashKey('1');if(pill){pill.style.display='none';jokeFake=false}}},
+
+  /* ---- dictate (simulated: the real one needs the microphone) ---- */
+  {id:'bDictate',t:['Dictate','Dictar'],d:['Speak and the Selectric types your words. (Simulated here: the real one asks for your microphone.)','Habla y la Selectric escribe tus palabras. (Simulado aquí: la real pide permiso para el micrófono.)'],
+   run:async w=>{
+    await w(300);const b=$('bDictate');b.classList.add('on');b.setAttribute('aria-pressed','true');dictFake=true;
+    const m=fx('dfxMic','<span class="bars"><i></i><i></i><i></i><i></i></span><em></em>'),em=m.querySelector('em');
+    em.textContent=T('Listening…','Escuchando…');
+    const words=T(['Dear','Sam,','I','am','writing','this','letter','just','by','speaking.'],['Querido','Sam,','estoy','escribiendo','esta','carta','solo','hablando.']);
+    await w(900);
+    for(let i=0;i<words.length;i++){const x=words[i];em.textContent='“'+x+'”';await w(300);await dtype((i?' ':'')+x,x.length*50+40,w)}
+    em.textContent=T('Listening…','Escuchando…')}},
+
+  /* ---- signature: drives the real pad ---- */
+  {id:'bSign',fresh:true,ms:11000,t:['Signature','Firma'],d:['Draw your signature with your finger or the mouse and place it on the paper.','Dibuja tu firma con el dedo o el ratón y colócala en el papel.'],
+   run:async w=>{
+    await w(200);await dtype(T('Yours sincerely,','Atentamente,'),1100,w);
+    await w(500);$('bSign').click();await w(1000);
+    const inks=$('sigInks').querySelectorAll('button');inks[1].click();await w(600);      /* blue ink */
+    await drawSig($('sigCv'),w,3000);
+    await w(800);$('sigGo').click();await w(1800)}},
+
+  /* ---- photo: a drawn picture stands in for a gallery photo ---- */
+  {id:'bUpload',fresh:true,ms:10000,t:['Add a photo','Añadir una foto'],d:['Place a picture on the paper. It goes into the letter and the shared image.','Coloca una imagen en el papel. Va incluida en la carta y en la imagen compartida.'],
+   run:async w=>{
+    await w(300);await dtype(T('Greetings from the seaside!','¡Saludos desde la playa!')+'\n',2200,w);
+    await w(600);
+    const img=new Image();img.alt=T('Seaside photo','Foto de la playa');img.title=img.alt;img.decoding='async';img.src=makePhoto();
+    try{await img.decode()}catch(e){}
+    if(!running)return;
+    img.dataset.line=String(lines.length-1);img.dataset.col='0';img.style.transform='rotate(-1.5deg)';
+    paperImages.appendChild(img);
+    quiet=true;ta.value=ta.value+'\n\n\n\n\n\n';ta.dispatchEvent(new Event('input'));quiet=false;   /* room for the picture, the cursor moves below it */
+    render();try{sRustle()}catch(e){}
+    await w(1200);
+    await dtype(T('Wish you were here.','Ojalá estuvieras aquí.'),1800,w)}},
+
+  {id:'bView',ms:9000,t:['Finished letter','Carta terminada'],d:['See your letter as a page, with its photos and signature. Read it aloud, change the speed, or copy the text.','Mira tu carta como una página, con sus fotos y su firma. Léela en voz alta, cambia la velocidad o copia el texto.'],
+   run:async w=>{await w(500);setMode(true);await w(1700);hi($('bSpeak'));await w(1600);hi($('bSpeed'));await w(1600);hi($('bCopy'));await w(1600);hi($('bView'));await w(900);setMode(false)}},
+
+  /* ---- WhatsApp (simulated chat) ---- */
+  {id:'bWA',ms:9000,t:['Share on WhatsApp','Compartir por WhatsApp'],d:['Sends your letter as an image, or as a PDF when it is long. (Simulated here.)','Envía tu carta como imagen, o como PDF cuando es larga. (Simulado aquí.)'],
+   run:async w=>{
+    await w(500);
+    const nm=T('Anna','Ana'),txt=ta.value.replace(/\n{3,}/g,'\n\n').split('\n').slice(0,7).join('\n'),im=paperImages.children[0];
+    const card=fx('dfxWA','<div class="h"><span class="av"></span><div><b></b><small></small></div></div><div class="body"></div>');
+    card.querySelector('.av').textContent=nm[0];card.querySelector('b').textContent=nm;card.querySelector('small').textContent=T('online','en línea');
+    await w(1300);
+    const bub=document.createElement('div');bub.className='bub';
+    bub.innerHTML='<div class="pp"><pre></pre></div><div class="meta"><span class="hm"></span> <span class="tk">✓✓</span></div>';
+    bub.querySelector('pre').textContent=txt;
+    if(im&&im.src){const x=document.createElement('img');x.src=im.src;x.alt='';bub.querySelector('.pp').appendChild(x)}
+    bub.querySelector('.hm').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const tk=bub.querySelector('.tk');tk.textContent='✓';
+    card.querySelector('.body').appendChild(bub);try{sRustle()}catch(e){}
+    await w(1500);tk.textContent='✓✓';
+    await w(1800);tk.classList.add('b')}},
+
+  /* ---- write together (simulated: three friends, three ink colours) ---- */
+  {id:'bCollab',fresh:true,ms:11000,t:['Write together','Escribir juntos'],d:['Invite up to five people with a WhatsApp link and write the letter together, each in their own ink. (Simulated here.)','Invita hasta a cinco personas con un enlace de WhatsApp y escribid la carta juntos, cada uno con su tinta. (Simulado aquí.)'],
+   run:async w=>{
+    const P=[[T('You','Tú'),0],['Ana',1],['Leo',2],['Mar',3]];
+    const bar=fx('dfxPeers',P.map(p=>'<span class="pc"><b style="background:'+INKS[p[1]]+'">'+p[0][0]+'</b>'+p[0]+'</span>').join(''));
+    const chips=bar.querySelectorAll('.pc');
+    const lines2=[[0,T('Dear all,\n','Queridos todos,\n')],[1,T('Happy birthday, Leo!\n','¡Feliz cumpleaños, Leo!\n')],[2,T('Thanks, friends!\n','¡Gracias, amigos!\n')],[3,T('See you at the party.','Nos vemos en la fiesta.')]];
+    await w(700);
+    for(const [who,s] of lines2){
+     chips.forEach((c,i)=>c.classList.toggle('on',i===who));
+     await w(350);await dtype(s,1500,w,new Array(s.length).fill(who));await w(350)}
+    chips.forEach(c=>c.classList.add('on'))}},
+
+  /* ---- live viewer (simulated: a read-only mirror of the sheet) ---- */
+  {id:'bLive',fresh:true,ms:10000,t:['Live viewer','Visor en vivo'],d:['Share a link and others watch you type in real time, read-only. (Simulated here.)','Comparte un enlace y otros te ven escribir en directo, solo lectura. (Simulado aquí.)'],
+   run:async w=>{
+    await w(300);
+    const card=fx('dfxLive','<div class="h"><i class="rec"></i>LIVE<span class="eye">👁 1</span></div><pre></pre><div class="f"></div>');
+    const pre=card.querySelector('pre'),eye=card.querySelector('.eye');card.querySelector('.f').textContent=T('Read-only view','Vista de solo lectura');
+    fxT.push(setInterval(()=>{pre.textContent=ta.value.split('\n').slice(-8).join('\n')},120));
+    await w(700);
+    const txt=T('Live from the Selectric!\nEveryone with the link\nsees these words appear\nas they are typed.','¡En directo desde la Selectric!\nTodos los que tienen el enlace\nven aparecer estas palabras\nmientras se escriben.');
+    const tt=dtype(txt,6200,w);
+    setTimeout(()=>{eye.textContent='👁 2'},2200);setTimeout(()=>{eye.textContent='👁 3'},4200);
+    await tt}},
+
+  /* ---- dust cover: the real covers, one after another ---- */
+  {id:'bCover',fresh:true,ms:10000,t:['Dust cover','Funda antipolvo'],d:['Protects the Selectric while you are away. Three covers; tap one to take it off. Nothing works until it is off.','Protege la Selectric cuando no la usas. Tres fundas; toca una para quitarla. Nada funciona hasta que se quita.'],
+   run:async w=>{
+    await w(300);await dtype(T('Dust-free!','¡Sin polvo!'),800,w);
+    await flips($('bCover'),[1000,3000,5000,7000],w)}},          /* vinyl, plastic, bandana, off */
+
+  /* ---- words per minute: real counter fed by a fast typist ---- */
+  {id:'bWpm',fresh:true,t:['Words per minute','Palabras por minuto'],d:['A live counter of how fast you type by hand. Tap it to switch it off.','Un contador en directo de lo rápido que escribes a mano. Tócalo para apagarlo.'],
+   run:async w=>{
+    if(!wpmOn)$('bWpm').click();wpmEv.length=0;
+    await w(400);
+    const s=T('The quick brown fox jumps over the lazy dog.','El veloz murciélago hindú comía feliz cardillo y kiwi.');
+    for(const c of s){wpmTick();flashKey(c);typeText(c,true);await w(115)}}},
+
+  {id:'bInfo',ms:9000,t:['About the Selectric','Sobre la Selectric'],d:['The story of the legendary IBM typewriter you are using.','La historia de la legendaria máquina de escribir de IBM que estás usando.'],
+   run:async w=>{await w(500);openInfo();await w(900);await scrollSlow($('infoCard'),w,5800);await w(600);closeInfo()}},
+  {id:'bLang',ms:7000,t:['Language','Idioma'],d:['Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
+   run:async w=>{await w(900);$('bLang').click();await w(3000);$('bLang').click()}},
   {id:'bKb',t:['Phone keyboard','Teclado del móvil'],d:['On touch screens, switch to your phone’s own keyboard.','En pantallas táctiles, cambia al teclado propio del móvil.'],show:()=>$('bKb').getClientRects().length>0},
-  {id:'bHelp',t:['Help','Ayuda'],d:['Everything this app can do, in one place.','Todo lo que puede hacer esta app, en un solo lugar.']},
-  {id:'bRestart',t:['Restart','Reiniciar'],d:['Clears the sheet and starts again. It always asks first.','Borra la hoja y empieza de nuevo. Siempre pregunta antes.']}
+  {id:'bHelp',ms:9000,t:['Help','Ayuda'],d:['Everything this app can do, in one place.','Todo lo que puede hacer esta app, en un solo lugar.'],
+   run:async w=>{await w(500);openHelp();await w(900);await scrollSlow($('helpCard'),w,5800);await w(600);closeHelp()}},
+
+  /* ---- restart: the real one is a browser confirm(), so it is drawn on screen ---- */
+  {id:'bRestart',ms:8000,t:['Restart','Reiniciar'],d:['Clears the sheet and starts again. It always asks first, so nothing is lost by accident.','Borra la hoja y empieza de nuevo. Siempre pregunta antes, así no pierdes nada por accidente.'],
+   run:async w=>{
+    await w(800);
+    fx('dfxScrim','');
+    const dlg=fx('dfxDlg','<p></p><div class="bt"><button class="c" type="button"></button><button class="o" type="button"></button></div>');
+    dlg.querySelector('p').textContent=S('restartQ');
+    const c=dlg.querySelector('.c');c.textContent=T('Cancel','Cancelar');dlg.querySelector('.o').textContent=T('OK','Aceptar');
+    await w(1400);c.classList.add('go');
+    await w(3000);c.classList.remove('go');c.classList.add('press');
+    await w(500);fxBox.classList.add('dfxOut')}}
  ]}
 
  async function runDemo(my){
   const steps=buildSteps().filter(s=>!s.show||s.show());
   for(let i=0;i<steps.length;i++){
    if(my!==gen)return;
-   const s=steps[i],ctx={dead:false};
-   const w=async ms=>{await sleep(ms);if(ctx.dead||my!==gen)throw ABORT};
-   showCap(i+1,steps.length,s);hi(s.id?$(s.id):null);
+   const s=steps[i],ctx={dead:false},ms=s.ms||STEP_MS;
+   const w=async t=>{await sleep(t);if(ctx.dead||my!==gen)throw ABORT};
+   fxBox.classList.remove('dfxOut');
+   if(s.fresh)clearSheet();
+   showCap(i+1,steps.length,s,ms);hi(s.id?$(s.id):null);
    if(s.run)s.run(w).catch(e=>{if(e!==ABORT)console.error(e)});
-   await sleep(STEP_MS);
+   await sleep(ms);
    ctx.dead=true;
    if(my!==gen)return;
    resetStep()}
@@ -2993,11 +3219,11 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   if(letterMode)setMode(false);
   closeAll();
   snap={text:ta.value,cols:cols.slice(),stl:stl.slice(),pc:pageColors.slice(),ink:inkIdx,style:curStyle,font:fontKey,inv:ribbonInverted,mir:mirrorWriting,
-   typos:$('bTypos').classList.contains('on'),imgDisp:paperImages.style.display};
+   typos:$('bTypos').classList.contains('on'),imgDisp:paperImages.style.display,wpm:wpmOn,lang:LANG,imgs:Array.from(paperImages.children)};
+  snap.imgs.forEach(x=>x.remove());                              /* the user's photos wait aside while the demo uses the sheet */
   running=true;const my=++gen;
   document.body.classList.add('demoOn');bDemo.classList.add('on');bDemo.setAttribute('aria-pressed','true');
   applyState(NEUTRAL());
-  paperImages.style.display='none';
   if(ta.value){quiet=true;ta.value='';ta.dispatchEvent(new Event('input'));quiet=false}
   runDemo(my)}
 
@@ -3005,14 +3231,15 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   if(!running)return;
   running=false;gen++;silence();
   hi(null);cap.classList.remove('on');capP.style.transition='none';capP.style.width='0';
+  clearFx();fxBox.classList.remove('dfxOut');
   applyState({inv:snap.inv,mir:snap.mir,typos:snap.typos,ink:snap.ink,style:snap.style,font:snap.font,pc:snap.pc});
   restoreText();
   document.body.classList.remove('demoOn');bDemo.classList.remove('on');bDemo.setAttribute('aria-pressed','false');
   snap=null;try{ta.focus({preventScroll:true})}catch(e){}}
 
  bDemo.onclick=()=>{if(!running)startDemo()};
- /* a click, tap or key anywhere stops it, and that click does nothing else */
- const stopEv=e=>{if(!running)return;
+ /* a click, tap or key anywhere stops it, and that click does nothing else (the demo's own simulated pen events don't count) */
+ const stopEv=e=>{if(!running||!e.isTrusted)return;
   if(e.type==='keydown'&&(e.ctrlKey||e.metaKey||e.altKey||/^F\d+$/.test(e.key)))return;      /* reload, dev tools… keep working */
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
   stopDemo();                                                    /* first put everything back (its own clicks must not be swallowed)… */
