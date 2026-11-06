@@ -3298,7 +3298,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
    if(!ok){h.style.display='none';return}
    const r=bDemo.getBoundingClientRect(),vis=r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;
    if(!vis){h.style.display='none';return}
-   tx.textContent=T('Click for demo','Clic para ver la demo');
+   tx.textContent='DEMO';
    h.style.display='block';shown=true;arm();
    h.style.top=Math.round(r.top+r.height/2-h.offsetHeight/2)+'px';
    h.style.right=Math.round(innerWidth-r.left+16)+'px'}
