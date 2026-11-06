@@ -698,12 +698,12 @@ async function makePDF(){
  const n=pageCount(),im=[];
  for(let i=0;i<n;i++){const b=await renderPNG(i,'jpeg'),bm=await createImageBitmap(b);im.push({w:bm.width,h:bm.height,d:new Uint8Array(await b.arrayBuffer())});if(bm.close)bm.close()}
  return buildPDF(im)}
-let waT=0;ta.addEventListener('input',()=>{clearTimeout(waT);waT=setTimeout(()=>{if(text&&!letterMode){if(isPhone()&&pageCount()>2)getPages();else if(pageCount()<=2)getPNG()}},700)});
+let waT=0;ta.addEventListener('input',()=>{clearTimeout(waT);waT=setTimeout(()=>{if(text&&!letterMode){if(isPhone()&&pageCount()>1)getPages();else if(!isPhone()&&pageCount()<=2||pageCount()<2)getPNG()}},700)});
 $('bWA').onclick=async()=>{
  initAudio();sPop();
- const phone=isPhone(),many=pageCount()>2;
- if(many&&phone&&navigator.canShare&&navigator.share){
-  /* phone, 3+ pages: every page is its own sharp image, sent together as an album */
+ const phone=isPhone(),np=pageCount(),many=np>2;
+ if(phone&&np>1&&navigator.canShare&&navigator.share){
+  /* phone, 2+ pages: every page is its own sharp image, sent together as an album */
   toast(S('pagesMaking'),2500);
   try{const fs=await getPages();
    if(navigator.canShare({files:fs})){try{await navigator.share({files:fs});return}   /* files only: with a text too, WhatsApp can drop the first image */catch(e){if(e&&e.name==='AbortError')return}}}catch(e){toast(S('imgFail'));return}}
