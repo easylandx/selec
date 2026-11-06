@@ -1915,7 +1915,7 @@ const HELP=[
 ['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
 ['bDictate','Dictate','Dictar','Speak and the Selectric types your words. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
 ['bClock','Clock','Reloj','Tap and the Selectric types the actual time every second, each on a new line. Tap again to stop.','Toca y la Selectric escribe la hora real cada segundo, cada una en una línea nueva. Toca de nuevo para parar.'],
-['bLive','Live viewer','Visor en vivo','Tap to share a live link: anyone who opens it watches your typing in real time, read-only. Viewers can also tap Read aloud (with speed) in the preview. The link is copied and WhatsApp opens with the invite ready to send; the number shows how many are watching. Tap again to stop and end the link.','Toca para compartir un enlace en vivo: quien lo abra ve tu escritura en tiempo real, solo lectura. Los espectadores también pueden usar Leer en voz alta (con velocidad) en la vista previa. El enlace se copia y WhatsApp se abre con la invitación lista para enviar; el número indica cuánta gente mira. Toca de nuevo para parar y cerrar el enlace.'],
+['bLive','Live viewer','Visor en vivo','Tap to share a live link: anyone who opens it watches your typing in real time, read-only. The link is copied and WhatsApp opens with the invite ready to send; the number shows how many are watching. Tap again to stop and end the link.','Toca para compartir un enlace en vivo: quien lo abra ve tu escritura en tiempo real, solo lectura. El enlace se copia y WhatsApp se abre con la invitación lista para enviar; el número indica cuánta gente mira. Toca de nuevo para parar y cerrar el enlace.'],
 ['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
 ['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away.','Protege la Selectric cuando no la usas.'],
 ['bFont','Typeface','Tipo de letra','Choose the typeball: Courier, Prestige Elite or Orator.','Elige la esfera de escritura: Courier, Prestige Elite u Orator.'],
@@ -2579,13 +2579,13 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
 /* Two full lines of 1s start it. It keeps going after you let go and stops when you press 1 again (key, on-screen key or the pill).
    Jokes are never stored here: they are fetched live from public joke APIs (JokeAPI in both languages, icanhazdadjoke as an extra source in English). */
 (function(){
-  Object.assign(I18N.en,{jokeOn:'Joke mode on',jokePill:'Telling jokes… press 1 or tap to stop',jokeOff:'Joke mode off',jokeFail:'Could not reach a joke source',jokeFull:'The paper is full — joke mode off'});
-  Object.assign(I18N.es,{jokeOn:'Modo chistes activado',jokePill:'Contando chistes… pulsa 1 o toca para parar',jokeOff:'Modo chistes desactivado',jokeFail:'No se pudo conectar con una fuente de chistes',jokeFull:'El papel está lleno — modo chistes desactivado'});
+  Object.assign(I18N.en,{jokeOn:'Joke mode on',jokePill:'Telling jokes… press 1 or tap to stop',jokeOff:'Joke mode off',jokeFail:'Could not reach a joke source',jokePillAuto:'Telling jokes… click anywhere to stop',jokeFull:'The paper is full — joke mode off'});
+  Object.assign(I18N.es,{jokeOn:'Modo chistes activado',jokePill:'Contando chistes… pulsa 1 o toca para parar',jokeOff:'Modo chistes desactivado',jokeFail:'No se pudo conectar con una fuente de chistes',jokePillAuto:'Contando chistes… haz clic en cualquier sitio para parar',jokeFull:'El papel está lleno — modo chistes desactivado'});
   const pill=document.createElement('button');pill.type='button';pill.id='jokePill';
   pill.style.cssText='position:fixed;z-index:85;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);display:none;background:#c4161c;color:#fff;border:0;border-radius:999px;padding:11px 18px;font:600 14px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;max-width:92vw';
   document.body.appendChild(pill);
   const MAX_PAGES=60;            /* safety net: every keystroke redraws the whole paper, so stop before it gets sluggish */
-  let joking=false,gen=0,startT=0,ctl=null,fetching=null,fails=0;
+  let joking=false,gen=0,startT=0,ctl=null,fetching=null,fails=0,auto=false;
   const strict=[],loose=[],seen=new Set();
   let dadPages=0;const played=[];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -2670,13 +2670,25 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       flashKey(c==='\n'?'Enter':c);typeText(c,true);
       await sleep(c==='\n'?70:c===' '?7:/[.,;:!?]/.test(c)?16:3+Math.random()*4)}
     return true}
+  /* read a joke aloud (idle-start mode only); resolves when the voice finishes, fails or is stopped */
+  function say(t,my){return new Promise(res=>{
+    const ss=window.speechSynthesis;if(!ss||!auto||my!==gen){res();return}
+    let done=false,wd=0;const fin=()=>{if(done)return;done=true;clearTimeout(wd);res()};
+    try{
+      const lang=LANG==='es'?'es-ES':'en-US',L=lang.toLowerCase(),vs=ss.getVoices()||[];
+      const u=new SpeechSynthesisUtterance(t.replace(/([^.!?…])[ \t]*\n[ \t]*/g,'$1. ').replace(/\s*\n\s*/g,' '));
+      const pool=vs.filter(x=>x.lang&&x.lang.toLowerCase().replace('_','-').slice(0,2)===L.slice(0,2));
+      const v=pool.find(x=>x.lang.toLowerCase().replace('_','-')===L&&x.localService)||pool.find(x=>x.localService)||pool[0];
+      u.lang=lang;if(v)u.voice=v;u.onend=fin;u.onerror=fin;
+      wd=setTimeout(()=>{try{ss.cancel()}catch(e){}fin()},Math.max(6000,t.length*130+4000));   /* safety net if the browser never reports the end */
+      ss.cancel();ss.speak(u)}catch(e){fin()}})}
   async function run(my){
     let first=true;
     while(joking&&my===gen){
       const j=await nextJoke();
       if(!joking||my!==gen)return;
       if(!j){if(!fails++)toast(S('jokeFail'),2600);await sleep(3000);continue}      /* never gives up: keeps retrying */
-      fails=0;pill.textContent=S('jokePill');
+      fails=0;pill.textContent=S(auto?'jokePillAuto':'jokePill');
       if(Math.floor((lines.length-1)/LPP)>=MAX_PAGES){toast(S('jokeFull'),3500);stop(true);return}
       let pre='';
       if(first){pre=!text.length||text.endsWith('\n\n')?'':text.endsWith('\n')?'\n':'\n\n'}
@@ -2684,19 +2696,22 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       if(first)await sleep(250);      /* a beat of suspense before the first joke */
       first=false;
       if(!await typeChars(pre+j.text,my))return;
-      if(played.length<300&&!played.some(x=>x.k===j.k))played.push(j)}}
+      if(played.length<300&&!played.some(x=>x.k===j.k))played.push(j);
+      if(auto&&joking&&my===gen){await say(j.text,my);if(joking&&my===gen)await sleep(600)}}}      /* idle-start mode: read it out loud, then the next one */
 
   /* ---------- start / stop ---------- */
-  function start(){
+  function start(isAuto){
     if(joking)return;
+    auto=isAuto===true;
     joking=true;gen++;startT=Date.now();ctl=new AbortController();fails=0;
-    quiet=true;ta.value=ta.value.replace(/1+$/,'');ta.dispatchEvent(new Event('input'));quiet=false;   /* the secret 1s disappear */
-    pill.textContent=S('jokePill');pill.style.display='block';
+    if(!auto){quiet=true;ta.value=ta.value.replace(/1+$/,'');ta.dispatchEvent(new Event('input'));quiet=false}   /* the secret 1s disappear */
+    pill.textContent=S(auto?'jokePillAuto':'jokePill');pill.style.display='block';
     toast(S('jokeOn'),2200);
     refill();run(gen)}
   function stop(silent){
     if(!joking)return;
     joking=false;gen++;try{ctl.abort()}catch(e){}ctl=null;fetching=null;
+    if(auto){try{window.speechSynthesis.cancel()}catch(e){}}auto=false;
     pill.style.display='none';
     if(!silent)toast(S('jokeOff'),2200)}
   pill.addEventListener('pointerdown',e=>{e.preventDefault();stop()});
@@ -2711,6 +2726,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   const isOne=e=>e.key==='1'||e.code==='Digit1'||e.code==='Numpad1';
   document.addEventListener('keydown',e=>{
     if(!joking)return;
+    if(auto){e.preventDefault();e.stopImmediatePropagation();stop();return}      /* idle-start mode: any key stops it */
     const t=e.target;if(t!==ta&&t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;      /* dialogs keep working */
     if(e.ctrlKey||e.metaKey||e.altKey)return;
     if(e.key==='Escape'){stop();return}
@@ -2723,6 +2739,26 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     if(!joking)return;const k=e.target.closest('.k');if(!k)return;
     e.preventDefault();e.stopPropagation();
     if(k.dataset.a==='1'&&Date.now()-startT>300){flashG('1');stop()}},true);
+  /* ---------- idle start: only at the very beginning ----------
+     If nobody touches the machine for 15 s after the page opens, joke mode starts by itself and reads each joke aloud
+     once it is typed. Any click, tap, key or scroll before that cancels it for good; a click anywhere stops it once running. */
+  const IDLE_MS=15000;
+  let lastMove=Date.now(),idleTimer=0,swallow=false;
+  /* "busy" = box not opened yet, paper still loading, or dust cover on: the 15 s only start once the machine is ready */
+  const busy=()=>coverIdx||!fed||$('intro').style.display!=='none'||$('paper').classList.contains('in');
+  const disarm=()=>{if(busy()){lastMove=Date.now();return}   /* opening the dust cover is not "using" the machine: just restart the 15 s */
+    clearInterval(idleTimer);idleTimer=0;['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.removeEventListener(t,disarm,true));window.removeEventListener('mousemove',bump,true)};
+  const bump=()=>{lastMove=Date.now()};
+  ['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.addEventListener(t,disarm,{capture:true,passive:true}));
+  window.addEventListener('mousemove',bump,{capture:true,passive:true});
+  idleTimer=setInterval(()=>{
+    if(busy())lastMove=Date.now();      /* the 15 s are counted from the moment the paper has loaded / the cover is off */
+    if(Date.now()-lastMove<IDLE_MS)return;
+    if(document.visibilityState!=='visible'||coverIdx||letterMode||typing||ta.disabled||window.helpOpen)return;   /* wait until the machine is really free */
+    disarm();start(true)},500);
+  /* click anywhere stops idle-start mode (and that click does nothing else) */
+  document.addEventListener('pointerdown',e=>{if(!joking||!auto)return;e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
+  document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false}},true);
   const _press=press;press=function(a){if(joking)return;return _press.apply(this,arguments)};   /* a held on-screen key stops repeating into the jokes */
 })();
 </script></body></html>
