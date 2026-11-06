@@ -807,6 +807,25 @@ function press(a){
  if(shiftOn){shiftOn=false;updMods()}}
 keysEl.addEventListener('pointerdown',e=>{const k=e.target.closest('.k');if(!k)return;e.preventDefault();initAudio();press(k.dataset.a);ta.focus({preventScroll:true})});
 
+/* hold a key down on the machine and it keeps striking until you let go (like a real Selectric's repeat) */
+(function(){
+  const NOREP=new Set(['shl','shr','lock']);
+  let id=null,t0=0,t1=0,act=null;
+  function stop(){clearTimeout(t0);clearInterval(t1);t0=t1=0;id=null;act=null}
+  keysEl.addEventListener('pointerdown',e=>{
+    const k=e.target.closest('.k');if(!k||e.button>0)return;
+    const a=k.dataset.a;if(NOREP.has(a))return;
+    stop();id=e.pointerId;act=a;
+    t0=setTimeout(()=>{
+      t1=setInterval(()=>{
+        if(letterMode||coverIdx){stop();return}
+        press(act);
+        if(act==='bs'&&!ta.value.length)stop()},65)},380)});
+  const up=e=>{if(id!==null&&(!e||e.pointerId===id))stop()};
+  addEventListener('pointerup',up);addEventListener('pointercancel',up);addEventListener('blur',()=>stop());
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
+})();
+
 let osKb=false;
 $('bKb').onclick=()=>{initAudio();osKb=!osKb;ta.setAttribute('inputmode',osKb?'text':'none');$('bKb').classList.toggle('on',osKb);ta.blur();if(osKb)ta.focus()};
 
@@ -2491,17 +2510,20 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
 
 /* ================= SCROLL THROUGH THE PAGES ON THE TYPEWRITER (swipe, drag or wheel) ================= */
 (function(){
-  const app=$('app');let drag=null,raf=0,vel=0;
+  const app=$('app');let drag=null,raf=0,vel=0,carry=0,lastT=0,streak=0,lastW=0;
+  const VMAX=16;                                   /* paper units per ms: a very fast flick */
   const cur=()=>viewPos==null?caretY():viewPos;
   function move(du){
     if(letterMode||coverIdx||!lines||lines.length<2&&viewPos==null)return;
     viewPos=cur()+du;applyView()}
-  function stopInertia(){cancelAnimationFrame(raf);raf=0;vel=0}
-  function inertia(){
-    if(Math.abs(vel)<.02){app.classList.remove('vs');return}
-    move(vel*16);vel*=.93;
-    if((viewPos===0&&vel<0)||(viewPos==null&&vel>0)){vel=0;app.classList.remove('vs');return}   /* hit the top or the end: stop gliding */
+  function stopInertia(){cancelAnimationFrame(raf);raf=0;carry=vel;vel=0}
+  function inertia(t){
+    const dt=Math.min(40,lastT?t-lastT:16);lastT=t;
+    if(Math.abs(vel)<.02){lastT=0;app.classList.remove('vs');return}
+    move(vel*dt);vel*=Math.pow(.955,dt/16);          /* long, smooth glide */
+    if((viewPos===0&&vel<0)||(viewPos==null&&vel>0)){vel=0;lastT=0;app.classList.remove('vs');return}   /* top or end reached */
     raf=requestAnimationFrame(inertia)}
+  function glide(){lastT=0;cancelAnimationFrame(raf);raf=requestAnimationFrame(inertia)}
   /* an image drag or a text selection would cancel the swipe (and paint the blue selection): stop both */
   app.addEventListener('dragstart',e=>e.preventDefault());
   app.addEventListener('selectstart',e=>e.preventDefault());
@@ -2514,18 +2536,30 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   addEventListener('pointermove',e=>{
     if(!drag||e.pointerId!==drag.id)return;
     if(!drag.moved){if(Math.abs(e.clientY-drag.startY)<6)return;drag.moved=true;app.classList.add('vs');try{getSelection().removeAllRanges()}catch(x){}}
-    const dy=e.clientY-drag.y,now=performance.now(),dt=Math.max(1,now-drag.t);
+    const dy=e.clientY-drag.y,now=performance.now(),dt=Math.max(6,now-drag.t);
     drag.y=e.clientY;drag.t=now;
     /* the paper follows the finger: drag down to go back, up to come forward */
-    const du=-dy/u;move(du);vel=Math.max(-3,Math.min(3,vel*.6+(du/dt)*.4));
+    const du=-dy/u;move(du);
+    vel=Math.max(-VMAX,Math.min(VMAX,vel*.5+(du/dt)*.5));
     e.preventDefault()},{passive:false});
   const end=e=>{if(!drag||(e&&e.pointerId!==drag.id))return;const was=drag.moved;drag=null;
-    if(was&&Math.abs(vel)>.05)raf=requestAnimationFrame(inertia);else app.classList.remove('vs')};
+    if(!was){carry=0;app.classList.remove('vs');return}
+    if(performance.now()-lastMoveT()>90)vel=0;                       /* finger rested before lifting: no glide */
+    /* flick harder: faster swipes are boosted, and flicking again in the same direction adds to the speed still running */
+    let v=vel*(Math.abs(vel)>1.2?1.5:1.15);
+    if(carry&&Math.sign(carry)===Math.sign(v)&&Math.abs(carry)>.3)v+=carry*.85;
+    carry=0;vel=Math.max(-VMAX,Math.min(VMAX,v));
+    if(Math.abs(vel)>.05)glide();else app.classList.remove('vs')};
+  const lastMoveT=()=>drag?drag.t:mt;let mt=0;
+  addEventListener('pointermove',()=>{mt=performance.now()},true);
   addEventListener('pointerup',end);addEventListener('pointercancel',end);
+  /* mouse wheel: the longer you keep spinning, the faster it goes */
   app.addEventListener('wheel',e=>{
     if(letterMode||coverIdx||e.ctrlKey)return;
-    e.preventDefault();stopInertia();
-    app.classList.add('vs');move((e.deltaMode===1?e.deltaY*18:e.deltaY)/u);
+    e.preventDefault();stopInertia();carry=0;
+    const now=performance.now();streak=now-lastW<140?Math.min(streak+1,40):0;lastW=now;
+    const mult=1+Math.min(6,streak*.35);
+    app.classList.add('vs');move((e.deltaMode===1?e.deltaY*18:e.deltaY)/u*mult);
     clearTimeout(app._wt);app._wt=setTimeout(()=>app.classList.remove('vs'),160)},{passive:false});
 })();
 </script></body></html>
