@@ -182,6 +182,12 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #imageUpload{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
 #ta{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;font-size:16px;border:0;padding:0;resize:none}
 #fab{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;display:flex;gap:10px}
+#fab #bSpeak,#fab #bCopy,#fab #bSpeed{display:none}
+#fab.lm #bSpeak,#fab.lm #bCopy,#fab.lm #bSpeed{display:grid}
+#fab #bSpeed b{font:800 16px/1 system-ui,sans-serif;color:#17171c}
+#fab #bSpeed.on{background:#ffd400;border-color:#e0b800}
+#fab #bSpeak.on{background:#c4161c;border-color:#c4161c}
+#fab #bSpeak.on svg{stroke:#fff}
 #fab button{width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);display:grid;place-items:center;padding:0;cursor:pointer}
 #fab button:active{transform:scale(.94)}
 #fab #bWA{background:#25D366;border-color:#1fb956}
@@ -344,6 +350,9 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 <button id="bLang" type="button" data-ia="lang" aria-label="Language"><span class="lg on" data-l="en"><svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="3"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="13"/><path d="M30 0V40M0 20H60" stroke="#C8102E" stroke-width="8"/></svg>EN</span><span class="lg" data-l="es"><svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#AA151B"/><rect y="10" width="60" height="20" fill="#F1BF00"/></svg>ES</span></button>
 <div id="fab">
  <button id="bInk" aria-label="Ribbon colour" data-ia="ink"><i></i></button>
+ <button id="bSpeak" type="button" aria-label="Read the letter aloud" data-ia="tipSpeak"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.500a5 5 0 0 1 0 7"/><path d="M18.500 5.500a9 9 0 0 1 0 13"/></svg></button>
+ <button id="bSpeed" type="button" aria-label="Double the reading speed" data-ia="tipSpeed" aria-pressed="false"><b>x2</b></button>
+ <button id="bCopy" type="button" aria-label="Copy the text" data-ia="tipCopy"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>
  <button id="bView" aria-label="Finished letter view" data-ia="view"></button>
  <button id="bWA" aria-label="Share on WhatsApp" data-ia="wa"><svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></button>
 </div>
@@ -389,7 +398,7 @@ const I18N={
   urlDlg:'Pegar texto',urlSub:'Pega cualquier texto y la Selectric lo escribirá por ti.',urlLbl:'Tu texto',urlPh:'Pega o escribe aquí…',urlGo:'Escribir',urlEmpty:'Primero pega algún texto',emo:'Elige un emoji',emoSub:'Escribe tu propio emoji, letra o palabra — o elige uno abajo.',emoPh:'Buscar emojis…',emoCusPh:'Tu propio emoji, letra o texto…',emoNone:'No se encontró ningún emoji',tipEmoji:'Emoji en ASCII art',tipPaper:'Color del papel',tipHelp:'Ayuda — qué hace cada cosa',helpT:'Cómo funciona la Selectric',helpSub:'Todo lo que puede hacer esta app, en un solo lugar.',tipCollab:'Escribir juntos — invitar por WhatsApp',collabMsg:'Ven a escribir una carta conmigo en la Selectric ✍️',collabHostOk:'Alguien se ha unido — cada uno tiene su propio color de cinta',collabGuest:'Conectado — estáis escribiendo en la misma hoja',collabLeft:'Alguien ha salido de la hoja',collabFull:'Esta carta compartida está completa (6 personas)',collabErr:'No se pudo iniciar la carta compartida — revisa tu conexión',collabWait:'Conectando con la carta compartida…',collabIn:'Ya estáis escribiendo juntos',palPastel:'Pastel',palNeon:'Neón',ribbonOn:'Cinta banda Möbius',ribbonOff:'Cinta restablecida',
   install:'Instalar app',iosHint:'Instalar: toca Compartir → Añadir a pantalla de inicio',close:'Cerrar',tipUpload:'Añadir una foto al papel',tipInk:'Cambiar el color de la cinta',tipView:'Alternar máquina y carta terminada',tipWA:'Compartir la carta por WhatsApp',tipKb:'Usar el teclado del iPhone',tipAI:'Escríbeme una carta',tipURL:'Pegar texto para escribirlo',tipInvert:'Efecto cinta Möbius',tipMirror:'Escritura en espejo',tipRestart:'Reiniciar todo',tipLang:'Cambiar idioma (EN / ES)',restart:'Reiniciar',restartQ:'¿Reiniciar todo? Se borrarán tu carta, fotos y ajustes.'}
 };
-Object.assign(I18N.en,{tipBook:'Type a book from archive.org',bookDlg:'Type a book',bookSub:'A random book from archive.org, typed out for you. Pick a category and/or a word — both are optional.',bookQL:'Search word (optional)',bookQPh:'e.g. sea, Dickens, chemistry…',bookBusy:'Searching…',bookFail:'Could not fetch a book right now. Check your connection and try again.',bookNone:'No books found for that search. Try another word or category.',stopT:'Stop typing',stopped:'Typing stopped',bookFound:'Typing: ',bookCats:['Classic Literature','Rare and Old Books','Specialized Libraries','School Textbooks','Research Material','Folkscanomy (Manuals & Technical Books)','Popular Modern Fiction','Biographies & Memoirs',"Children's Literature",'Books in Non-English Languages'],tipSign:'Add a handwritten signature',sigDlg:'Sign your letter',sigSub:'Draw your signature with your finger or the mouse.',sigClear:'Clear',sigGo:'Place on paper',sigEmpty:'Draw your signature first',sigPlaced:'Signature added to the paper',sigInk:['Black','Blue','Red'],tipTypos:'Typos: every word gets a mistake',typosOn:'Typos on — every word will have a mistake',typosOff:'Typos off — spelling back to normal',tipCover:'Dust cover on / off',coverOn:'{n} on — the Selectric is locked',coverOff:'Cover off — ready to type',coverLocked:'Take the dust cover off first',coverNames:['Red vinyl cover','Clear plastic cover','Red bandana']});
+Object.assign(I18N.en,{tipSpeed:'Read faster: x2, x3, then back to normal',speedOn:'Reading speed',speedOff:'Reading speed normal',tipSpeak:'Read the whole text aloud',tipCopy:'Copy all the text',speakStop:'Stop reading',copied:'Text copied to the clipboard',copyFail:'Could not copy the text',speakNA:'Reading aloud is not supported on this device',noText:'There is no text yet',tipBook:'Type a book from archive.org',bookDlg:'Type a book',bookSub:'A random book from archive.org, typed out for you. Pick a category and/or a word — both are optional.',bookQL:'Search word (optional)',bookQPh:'e.g. sea, Dickens, chemistry…',bookBusy:'Searching…',bookFail:'Could not fetch a book right now. Check your connection and try again.',bookNone:'No books found for that search. Try another word or category.',stopT:'Stop typing',stopped:'Typing stopped',bookFound:'Typing: ',bookCats:['Classic Literature','Rare and Old Books','Specialized Libraries','School Textbooks','Research Material','Folkscanomy (Manuals & Technical Books)','Popular Modern Fiction','Biographies & Memoirs',"Children's Literature",'Books in Non-English Languages'],tipSign:'Add a handwritten signature',sigDlg:'Sign your letter',sigSub:'Draw your signature with your finger or the mouse.',sigClear:'Clear',sigGo:'Place on paper',sigEmpty:'Draw your signature first',sigPlaced:'Signature added to the paper',sigInk:['Black','Blue','Red'],tipTypos:'Typos: every word gets a mistake',typosOn:'Typos on — every word will have a mistake',typosOff:'Typos off — spelling back to normal',tipCover:'Dust cover on / off',coverOn:'{n} on — the Selectric is locked',coverOff:'Cover off — ready to type',coverLocked:'Take the dust cover off first',coverNames:['Red vinyl cover','Clear plastic cover','Red bandana']});
 Object.assign(I18N.en,{tipInfo:'About the IBM Selectric',infoT:'The IBM Selectric',infoSub:'A short history of the typewriter you are using.'});
 Object.assign(I18N.en,{tipFont:'Typeface: Courier, Prestige Elite or Orator'});
 Object.assign(I18N.es,{tipFont:'Tipo de letra: Courier, Prestige Elite u Orator'});
@@ -398,7 +407,7 @@ Object.assign(I18N.es,{tipWpm:'Palabras por minuto en directo — toca para acti
 Object.assign(I18N.en,{tipStyle:'Text style: bold, italic or underlined'});
 Object.assign(I18N.es,{tipStyle:'Estilo del texto: negrita, cursiva o subrayado'});
 Object.assign(I18N.es,{tipInfo:'Sobre la IBM Selectric',infoT:'La IBM Selectric',infoSub:'Una breve historia de la máquina de escribir que estás usando.'});
-Object.assign(I18N.es,{tipBook:'Escribir un libro de archive.org',bookDlg:'Escribir un libro',bookSub:'Un libro al azar de archive.org, escrito para ti. Elige una categoría y/o una palabra — ambas son opcionales.',bookQL:'Palabra de búsqueda (opcional)',bookQPh:'p. ej. mar, Dickens, química…',bookBusy:'Buscando…',bookFail:'No se pudo obtener un libro ahora. Revisa tu conexión e inténtalo de nuevo.',bookNone:'No hay libros para esa búsqueda. Prueba otra palabra o categoría.',stopT:'Detener escritura',stopped:'Escritura detenida',bookFound:'Escribiendo: ',bookCats:['Literatura clásica','Libros raros y antiguos','Bibliotecas especializadas','Libros de texto escolares','Material de investigación','Folkscanomy (manuales y libros técnicos)','Ficción moderna popular','Biografías y memorias','Literatura infantil','Libros en otros idiomas'],tipSign:'Añadir una firma manuscrita',sigDlg:'Firma tu carta',sigSub:'Dibuja tu firma con el dedo o con el ratón.',sigClear:'Borrar',sigGo:'Poner en el papel',sigEmpty:'Dibuja primero tu firma',sigPlaced:'Firma añadida al papel',sigInk:['Negro','Azul','Rojo'],tipTypos:'Erratas: cada palabra lleva un error',typosOn:'Erratas activadas — cada palabra tendrá un error',typosOff:'Erratas desactivadas — ortografía normal',tipCover:'Poner / quitar la funda antipolvo',coverOn:'{n} puesta — la Selectric está bloqueada',coverOff:'Funda quitada — lista para escribir',coverLocked:'Quita primero la funda antipolvo',coverNames:['Funda de vinilo rojo','Funda de plástico transparente','Bandana roja']});
+Object.assign(I18N.es,{tipSpeed:'Leer más rápido: x2, x3 y de nuevo normal',speedOn:'Velocidad de lectura',speedOff:'Velocidad de lectura normal',tipSpeak:'Leer todo el texto en voz alta',tipCopy:'Copiar todo el texto',speakStop:'Dejar de leer',copied:'Texto copiado al portapapeles',copyFail:'No se pudo copiar el texto',speakNA:'La lectura en voz alta no está disponible en este dispositivo',noText:'Aún no hay texto',tipBook:'Escribir un libro de archive.org',bookDlg:'Escribir un libro',bookSub:'Un libro al azar de archive.org, escrito para ti. Elige una categoría y/o una palabra — ambas son opcionales.',bookQL:'Palabra de búsqueda (opcional)',bookQPh:'p. ej. mar, Dickens, química…',bookBusy:'Buscando…',bookFail:'No se pudo obtener un libro ahora. Revisa tu conexión e inténtalo de nuevo.',bookNone:'No hay libros para esa búsqueda. Prueba otra palabra o categoría.',stopT:'Detener escritura',stopped:'Escritura detenida',bookFound:'Escribiendo: ',bookCats:['Literatura clásica','Libros raros y antiguos','Bibliotecas especializadas','Libros de texto escolares','Material de investigación','Folkscanomy (manuales y libros técnicos)','Ficción moderna popular','Biografías y memorias','Literatura infantil','Libros en otros idiomas'],tipSign:'Añadir una firma manuscrita',sigDlg:'Firma tu carta',sigSub:'Dibuja tu firma con el dedo o con el ratón.',sigClear:'Borrar',sigGo:'Poner en el papel',sigEmpty:'Dibuja primero tu firma',sigPlaced:'Firma añadida al papel',sigInk:['Negro','Azul','Rojo'],tipTypos:'Erratas: cada palabra lleva un error',typosOn:'Erratas activadas — cada palabra tendrá un error',typosOff:'Erratas desactivadas — ortografía normal',tipCover:'Poner / quitar la funda antipolvo',coverOn:'{n} puesta — la Selectric está bloqueada',coverOff:'Funda quitada — lista para escribir',coverLocked:'Quita primero la funda antipolvo',coverNames:['Funda de vinilo rojo','Funda de plástico transparente','Bandana roja']});
 let LANG='en';
 try{const sv=localStorage.getItem('sel-lang');LANG=(sv==='es'||sv==='en')?sv:((navigator.language||'en').toLowerCase().startsWith('es')?'es':'en')}catch(e){LANG=(navigator.language||'en').toLowerCase().startsWith('es')?'es':'en'}
 const S=k=>(I18N[LANG]||I18N.en)[k];
@@ -547,7 +556,7 @@ function buildLetter(){
   h+='</div>'}
  letterEl.innerHTML=h}
 
-function setMode(m){if(typeof finishAuto==='function')finishAuto();letterMode=m;letterEl.style.display=m?'block':'none';
+function setMode(m){if(typeof finishAuto==='function')finishAuto();letterMode=m;letterEl.style.display=m?'block':'none';$('fab').classList.toggle('lm',!!m);if(!m&&window.speakStop)window.speakStop();
  $('bInk').style.display=m?'none':'';$('bLang').style.display=m?'none':'';$('fab2').style.display=m?'none':'';$('fabL').style.display=m?'none':'';$('bUpload').style.display=m?'none':'';$('bView').innerHTML=m?ICON_TW:ICON_DOC;
  if(m){ta.blur();lines=wrap(text);buildLetter();letterEl.scrollTop=0}else{ta.focus();}}
 
@@ -1842,7 +1851,7 @@ document.addEventListener('keydown',e=>{if(window.helpOpen&&e.key==='Escape')clo
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign'};
+ const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
@@ -2110,5 +2119,37 @@ var coverIdx=0;
    if(my.signal.aborted)return;ctl=null;
    if(!res){err.textContent=msg;return}
    close();if(res.title)toast(S('bookFound')+res.title,3200);autoType(res.txt)};
+})();
+
+/* ================= PREVIEW: READ ALOUD + COPY ================= */
+(function(){
+  const sb=$('bSpeak'),cb=$('bCopy'),ss=window.speechSynthesis;let reading=false,gen=0,rate=1;
+  const plain=()=>text.replace(/[ \t]+/g,' ').replace(/\n{2,}/g,'\n\n').trim();
+  function chunks(t){const out=[];t.split(/\n+/).forEach(par=>{(par.match(/[^.!?;:]+[.!?;:]*\s*/g)||[]).forEach(x=>{
+    while(x.length>180){let k=x.lastIndexOf(' ',180);if(k<60)k=180;out.push(x.slice(0,k));x=x.slice(k)}
+    if(x.trim())out.push(x)})});return out}
+  const SVG_SPK=sb.innerHTML,SVG_STOP=SVG_SPK.replace(/<path[\s\S]*<\/svg>/,'<rect x="6" y="6" width="12" height="12" rx="1.5" fill="#fff"/></svg>');
+  function setUI(on){reading=on;sb.classList.toggle('on',on);sb.innerHTML=on?SVG_STOP:SVG_SPK;sb.setAttribute('aria-label',S(on?'speakStop':'tipSpeak'))}
+  function stop(){gen++;if(ss)ss.cancel();setUI(false)}
+  window.speakStop=stop;
+  sb.onclick=()=>{try{sInk()}catch(_){}
+   if(!ss){toast(S('speakNA'),2600);return}
+   if(reading){stop();return}
+   const t=plain();if(!t){toast(S('noText'),1800);return}
+   const parts=chunks(t),my=++gen,lang=LANG==='es'?'es-ES':'en-US';let i=0;
+   ss.cancel();setUI(true);
+   const voices=ss.getVoices(),v=voices.find(x=>x.lang===lang)||voices.find(x=>x.lang&&x.lang.slice(0,2)===lang.slice(0,2));
+   const next=()=>{if(my!==gen)return;if(i>=parts.length){setUI(false);return}
+    const u=new SpeechSynthesisUtterance(parts[i++]);u.lang=lang;u.rate=rate;if(v)u.voice=v;u.onend=next;u.onerror=()=>{if(my===gen)setUI(false)};ss.speak(u)};
+   next()};
+  cb.onclick=async()=>{try{sInk()}catch(_){}
+   const t=text.replace(/[ \t]+$/gm,'').trim();if(!t){toast(S('noText'),1800);return}
+   let ok=false;
+   try{await navigator.clipboard.writeText(t);ok=true}catch(_){
+    try{const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();ok=document.execCommand('copy');a.remove()}catch(_){}}
+   toast(S(ok?'copied':'copyFail'),2200)};
+  const xb=$('bSpeed');
+  xb.onclick=()=>{try{sInk()}catch(_){}rate=rate===1?2:rate===2?3:1;xb.classList.toggle('on',rate>1);xb.setAttribute('aria-pressed',rate>1);xb.firstChild.textContent='x'+(rate>1?rate:2);toast(rate>1?S('speedOn')+' x'+rate:S('speedOff'),1600)};   /* applies from the next sentence while reading */
+  window.addEventListener('pagehide',stop);
 })();
 </script></body></html>
