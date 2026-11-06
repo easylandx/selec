@@ -266,7 +266,10 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fabL #bLive.on svg{stroke:#fff}
 #fabL #bLive.on .lvN{display:block}
 #fabL #bLive.on::before{content:"LIVE";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);background:#fff;color:#c4161c;border:1.5px solid #c4161c;border-radius:8px;padding:0 5px;font:800 8px/12px system-ui,sans-serif;letter-spacing:.08em}
-body.liveView #fab,body.liveView #fab2,body.liveView #fabL,body.liveView #bLang{display:none!important}
+body.liveView #fab2,body.liveView #fabL,body.liveView #bLang,body.liveView #fab button:not(#bView){display:none!important}
+body.liveView #fab #bView{display:grid!important}
+#app{touch-action:none}
+#app.vs #sheet{transition:none!important}
 body.liveView #keys,body.liveView #ta,body.liveView #cover,body.liveView #paper,body.liveView #sheet{pointer-events:none}
 #liveBadge{display:none;position:fixed;z-index:70;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);background:#c4161c;color:#fff;border-radius:14px;padding:4px 12px;font:800 12px/1.2 system-ui,sans-serif;letter-spacing:.1em;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 #liveBadge::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#fff;margin-right:7px;animation:dictPulse 1.3s ease-in-out infinite}
@@ -552,11 +555,18 @@ function paperLook(){const P=$('paper'),cp=Math.floor((lines.length-1)/LPP),def=
    if(k<cp)d.style.height=`calc(var(--u)*${2*tm+LPP*lhU})`;else d.style.bottom='0';P.appendChild(d)}
   P._cp=cp}
  P.querySelectorAll('.pgpage').forEach((d,k)=>{d.style.background=pageColor(k)||def})}
+/* scrolling back through the sheets: viewPos is the height (in paper units) that sits at the carriage; null follows the typing */
+let viewPos=null;
+function caretY(){const n=lines.length-1;return n*lhU+Math.floor(n/LPP)*PGAP}
+function applyView(){const cy=caretY();let v=viewPos;
+ if(v!=null){v=Math.max(0,Math.min(cy,v));if(v>=cy){v=null;viewPos=null}else viewPos=v}
+ sheet.style.transform=`translateY(${-(v==null?cy:v)*u}px)`;
+ const off=v==null?0:(cy-v)*u;$('paper').style.transform=off?`translateY(${off}px)`:''}
 function render(){lines=wrap(text);const n=lines.length-1;
  let h=lines.map(([s,e],i)=>`<div class="ln" style="height:${lhU*u}px${i&&i%LPP===0?`;margin-top:${PGAP*u}px`:''}">${runs(s,e)}</div>`).join('');
  const last=lines[n],cl=last[1]-last[0];
  h+=`<i class="caret" style="left:${cl*cwU*u}px;top:${(n*lhU+Math.floor(n/LPP)*PGAP)*u+lhU*u*.16}px;height:${lhU*u*.68}px"></i>`;
- sheet.innerHTML=h;sheet.appendChild(paperImages);Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0);img.style.top=((line*lhU+Math.floor(line/LPP)*PGAP)*u+lhU*u*.12)+'px';img.style.left=(col*cwU*u)+'px';if(img.classList.contains('sig')){img.style.width=(9*lhU*u)+'px';img.style.height=(3*lhU*u)+'px'}});sheet.classList.toggle('mirror-writing',mirrorWriting);pageBreakFx(n);sheet.style.transform=`translateY(${-(n*lhU+Math.floor(n/LPP)*PGAP)*u}px)`;paperLook();paperH()}
+ sheet.innerHTML=h;sheet.appendChild(paperImages);Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0);img.style.top=((line*lhU+Math.floor(line/LPP)*PGAP)*u+lhU*u*.12)+'px';img.style.left=(col*cwU*u)+'px';if(img.classList.contains('sig')){img.style.width=(9*lhU*u)+'px';img.style.height=(3*lhU*u)+'px'}});sheet.classList.toggle('mirror-writing',mirrorWriting);pageBreakFx(n);if(!window.__liveViewer)viewPos=null;applyView();paperLook();paperH()}
 function paperH(){if(!fed)return;const textHeight=PEEK+(lines.length-1)*lhU+Math.floor((lines.length-1)/LPP)*PGAP;$('paper').style.height=(textHeight*u)+'px'}
 
 /* last page is cropped to its content so short letters don't leave a big empty sheet */
@@ -2469,10 +2479,44 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
         const t0=setTimeout(()=>{if(!got&&!over){over=true;end()}},12000);
         c.on('open',()=>{clearTimeout(t0)});
         c.on('data',m=>{if(!m)return;
-          if(m.k==='st'){got=true;applyState(m)}
+          if(m.k==='st'){got=true;applyState(m);if(letterMode){const st=letterEl.scrollTop;lines=wrap(text);buildLetter();letterEl.scrollTop=st}}
           else if(m.k==='end'){over=true;end()}});
         c.on('close',()=>{if(!over){over=true;end()}});
         c.on('error',()=>{if(!over){over=true;end()}})})
     }).catch(()=>end())}
+})();
+
+/* ================= SCROLL THROUGH THE PAGES ON THE TYPEWRITER (swipe, drag or wheel) ================= */
+(function(){
+  const app=$('app');let drag=null,raf=0,vel=0;
+  const cur=()=>viewPos==null?caretY():viewPos;
+  function move(du){
+    if(letterMode||coverIdx||!lines||lines.length<2&&viewPos==null)return;
+    viewPos=cur()+du;applyView()}
+  function stopInertia(){cancelAnimationFrame(raf);raf=0;vel=0}
+  function inertia(){
+    if(Math.abs(vel)<.02){app.classList.remove('vs');return}
+    move(vel*16);vel*=.93;raf=requestAnimationFrame(inertia)}
+  app.addEventListener('pointerdown',e=>{
+    if(letterMode||coverIdx||e.button>0)return;
+    if(e.target.closest('#keys'))return;
+    stopInertia();
+    drag={id:e.pointerId,y:e.clientY,t:performance.now(),moved:false,startY:e.clientY}});
+  addEventListener('pointermove',e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    if(!drag.moved){if(Math.abs(e.clientY-drag.startY)<6)return;drag.moved=true;app.classList.add('vs')}
+    const dy=e.clientY-drag.y,now=performance.now(),dt=Math.max(1,now-drag.t);
+    drag.y=e.clientY;drag.t=now;
+    /* the paper follows the finger: drag down to go back, up to come forward */
+    const du=-dy/u;move(du);vel=vel*.6+(du/dt)*.4;
+    e.preventDefault()},{passive:false});
+  const end=e=>{if(!drag||(e&&e.pointerId!==drag.id))return;const was=drag.moved;drag=null;
+    if(was&&Math.abs(vel)>.05)raf=requestAnimationFrame(inertia);else app.classList.remove('vs')};
+  addEventListener('pointerup',end);addEventListener('pointercancel',end);
+  app.addEventListener('wheel',e=>{
+    if(letterMode||coverIdx||e.ctrlKey)return;
+    e.preventDefault();stopInertia();
+    app.classList.add('vs');move((e.deltaMode===1?e.deltaY*18:e.deltaY)/u);
+    clearTimeout(app._wt);app._wt=setTimeout(()=>app.classList.remove('vs'),160)},{passive:false});
 })();
 </script></body></html>
