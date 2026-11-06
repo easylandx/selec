@@ -232,7 +232,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #bRestart:active svg{transform:rotate(-120deg);transition:transform .25s}
 /* ===== dust cover ===== */
 #cover{position:absolute;inset:0;z-index:8;pointer-events:none;user-select:none;-webkit-user-select:none}
-#cover.on{pointer-events:auto;cursor:not-allowed}
+#cover.on{pointer-events:auto;cursor:pointer}
 #cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block;background:#fefefe;opacity:0;transform:translateY(-3.5%) scale(1.015);transform-origin:50% 0;transition:opacity .42s ease,transform .55s cubic-bezier(.2,.8,.25,1);pointer-events:none;-webkit-user-drag:none}
 #cover img.show{opacity:1;transform:none}
 #clip{transition:opacity .4s}
@@ -254,6 +254,9 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #sigInks button.sel{border-color:#17171c;box-shadow:inset 0 0 0 3px #fff,0 0 0 1px #17171c}
 #sigClear{margin-right:auto}
 #paperImages img.sig{background:none;padding:0;border:0;box-shadow:none;max-width:none;transform:none}
+#fabL #bDictate.on{background:#c4161c;border-color:#a90f15;animation:dictPulse 1.3s ease-in-out infinite}
+#fabL #bDictate.on svg{stroke:#fff}
+@keyframes dictPulse{0%,100%{box-shadow:0 2px 10px rgba(196,22,28,.35)}50%{box-shadow:0 0 0 7px rgba(196,22,28,.18),0 2px 10px rgba(196,22,28,.5)}}
 </style></head><body class="io">
 <div id="topRed"></div><div id="sideL"></div><div id="sideR"></div>
 <div id="pad"></div>
@@ -285,6 +288,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
  <button id="bMirror" type="button" aria-label="Mirror writing" title="Mirror writing"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h5M5 7l2-2M5 7l2 2M19 17h-5M19 17l-2-2M19 17l-2 2"/><path d="M3 4v16M21 4v16" opacity=".45"/></svg></button>
  <button id="bTypos" type="button" aria-label="Typos" aria-pressed="false" data-ia="tipTypos"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.500 15.500 9.500 4l5 11.500M6.300 11.500h6.400"/><path d="M3 20q1.500-2 3 0t3 0 3 0 3 0 3 0 3 0"/><path d="m16.500 5.500 4 4m0-4-4 4"/></svg></button>
+ <button id="bDictate" type="button" aria-label="Dictate" aria-pressed="false" data-ia="tipDictate"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg></button>
  <button id="bCover" type="button" aria-label="Dust cover" aria-pressed="false" data-ia="tipCover"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19.5 5.200 11.700C5.500 10.200 6.500 9.500 8 9.500h8c1.500 0 2.500.7 2.800 2.200L21 19.500"/><path d="M3 19.500q1.500 1.800 3 0t3 0 3 0 3 0 3 0 3 0"/><path d="M9.500 10.500 8.800 17M14.500 10.500l.7 6.500"/><path d="M7 5.500h.01M12 4h.01M17 5.500h.01" stroke-width="2.4"/></svg></button>
  <button id="bFont" type="button" aria-label="Choose the typeface" data-ia="tipFont"><b>Aa</b></button>
  <button id="bStyle" type="button" aria-label="Text style" data-ia="tipStyle"><b><span style="font-weight:800">B</span><i>I</i><u>U</u></b></button>
@@ -1858,6 +1862,7 @@ const HELP=[
 ['bCollab','Write together','Escribir juntos','Invite up to 5 people through WhatsApp.','Invita hasta a 5 personas por WhatsApp.'],
 ['bInvert','Möbius ribbon','Cinta de Möbius','A fun effect: the ribbon twists, mixing the inks and giving the letters a coloured fringe.','Un efecto divertido: la cinta se retuerce, mezcla las tintas y da a las letras un borde de color.'],
 ['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
+['bDictate','Dictate','Dictar','Speak and the Selectric types your words with a realistic typing lag and the full key sound, as if the machine were keeping up with your speech. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras con un retraso realista y todo el sonido de las teclas, como si la máquina intentara seguir tu voz. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
 ['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
 ['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away.','Protege la Selectric cuando no la usas.'],
 ['bFont','Typeface','Tipo de letra','Choose the typeball: Courier, Prestige Elite or Orator.','Elige la esfera de escritura: Courier, Prestige Elite u Orator.'],
@@ -1940,7 +1945,7 @@ document.addEventListener('keydown',e=>{if(window.helpOpen&&e.key==='Escape')clo
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign'};
+ const TIPS={bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
@@ -1989,7 +1994,7 @@ if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceW
 var coverIdx=0;
 (function(){
   const coverEl=$('cover'),imgs=Array.from(coverEl.querySelectorAll('img')),btn=$('bCover');
-  const LOCK=['bSign','bTypos','bKb','bAI','bURL','bBook','bEmoji','bPaper','bCollab','bInvert','bMirror','bRestart','bUpload','bInk','bView','bWA','bFont','bStyle'];
+  const LOCK=['bDictate','bSign','bTypos','bKb','bAI','bURL','bBook','bEmoji','bPaper','bCollab','bInvert','bMirror','bRestart','bUpload','bInk','bView','bWA','bFont','bStyle'];
   let z=1,t=0;
   function setCover(n){
    coverIdx=n;const on=n>0;
@@ -2019,7 +2024,7 @@ var coverIdx=0;
    const b=e.target.closest&&e.target.closest('button.locked');
    if(!b)return;
    e.preventDefault();e.stopImmediatePropagation();toast(S('coverLocked'),1800)},true);
-  coverEl.addEventListener('click',()=>{if(coverIdx)toast(S('coverLocked'),1800)});
+  coverEl.addEventListener('click',()=>{if(!coverIdx)return;initAudio();try{sRustle()}catch(e){}setCover(0);toast(S('coverOff'),2400);ta.focus({preventScroll:true})});
   /* typing on the physical keyboard while covered: say why nothing happens */
   document.addEventListener('keydown',e=>{
    if(!coverIdx||window.helpOpen||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;
@@ -2276,5 +2281,60 @@ var coverIdx=0;
   xb.onclick=()=>{try{sInk()}catch(_){}lvl=(lvl+1)%SPD().length;xbUI();toast(lvl>0?S('speedOn')+' '+fmtX(SPD()[lvl]):S('speedOff'),1600)};   /* applies from the next sentence while reading */
   xbUI();
   window.addEventListener('pagehide',stop);
+})();
+
+/* ================= DICTATE (voice-to-type with typewriter lag) ================= */
+Object.assign(I18N.en,{tipDictate:'Dictate: speak and the Selectric types it with a typing lag',dictOn:'Listening… speak and the Selectric will keep up',dictOff:'Dictation off',dictNo:'Voice dictation isn’t supported in this browser',dictDenied:'Microphone access was blocked',dictErr:'Dictation stopped'});
+Object.assign(I18N.es,{tipDictate:'Dictar: habla y la Selectric lo escribe con retraso de máquina',dictOn:'Escuchando… habla y la Selectric te seguirá',dictOff:'Dictado desactivado',dictNo:'El dictado por voz no funciona en este navegador',dictDenied:'Se bloqueó el acceso al micrófono',dictErr:'El dictado se ha detenido'});
+(function(){
+  const btn=$('bDictate'),SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let rec=null,on=false,q='',tm=0,watch=0,restartT=0;
+  const cmd={en:[[/\b(new|next) paragraph\b/gi,'\n\n'],[/\b(new line|next line)\b/gi,'\n']],es:[[/\bnuevo párrafo\b/gi,'\n\n'],[/\b(nueva línea|siguiente línea)\b/gi,'\n']]};
+  function stopAll(msg){
+    on=false;clearTimeout(restartT);clearInterval(watch);
+    if(rec){const r=rec;rec=null;r.onend=r.onerror=r.onresult=null;try{r.abort()}catch(e){}}
+    btn.classList.remove('on');btn.setAttribute('aria-pressed','false');
+    if(msg)toast(msg,2200)}
+  /* the machine types slower than people talk: about 11 strikes a second, with a pause at spaces and punctuation, and a little catching up when the backlog grows */
+  function pump(){
+    clearTimeout(tm);tm=0;
+    if(!q)return;
+    if(letterMode||coverIdx||ta.disabled){q='';return}
+    const c=q[0];q=q.slice(1);
+    typeText(c,true);
+    let d=70+Math.random()*50;
+    if(c===' ')d+=35;else if(/[.,;:!?]/.test(c))d+=120;else if(c==='\n')d+=380;
+    if(q.length>80)d*=.55;else if(q.length>40)d*=.78;
+    tm=setTimeout(pump,d)}
+  function feed(raw){
+    let s=raw.trim();if(!s)return;
+    (cmd[LANG]||cmd.en).forEach(([re,v])=>{s=s.replace(re,v)});
+    s=s.replace(/ *\n */g,'\n');
+    const tail=q.length?q[q.length-1]:(ta.value.length?ta.value[ta.value.length-1]:'');
+    if(tail&&tail!==' '&&tail!=='\n'&&s[0]!=='\n')s=' '+s;
+    const before=(q+ta.value).replace(/\s+$/,'');
+    if(!before||/[.!?¿¡]$/.test(before)||/\n$/.test(q+ta.value))s=s.replace(/^(\s*)(\S)/,(m,a,b)=>a+b.toUpperCase());
+    q+=s;if(!tm)pump()}
+  function start(){
+    try{rec=new SR()}catch(e){stopAll(S('dictNo'));return}
+    rec.lang=LANG==='es'?'es-ES':'en-US';rec.continuous=true;rec.interimResults=false;rec.maxAlternatives=1;
+    rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)feed(e.results[i][0].transcript)};
+    rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed')stopAll(S('dictDenied'));else if(e.error==='audio-capture')stopAll(S('dictErr'))};
+    /* browsers end a session after a pause: pick it up again while dictation is on */
+    rec.onend=()=>{if(!on)return;restartT=setTimeout(()=>{if(on){try{rec.lang=LANG==='es'?'es-ES':'en-US';rec.start()}catch(e){}}},250)};
+    try{rec.start()}catch(e){stopAll(S('dictErr'));return}}
+  btn.onclick=()=>{
+    if(letterMode||coverIdx)return;
+    initAudio();
+    if(!SR){toast(S('dictNo'),2600);return}
+    if(on){stopAll(S('dictOff'));try{sInk()}catch(e){}return}
+    try{sInk()}catch(e){}
+    on=true;btn.classList.add('on');btn.setAttribute('aria-pressed','true');
+    toast(S('dictOn'),2400);
+    start();
+    /* dictation stops by itself if the dust cover goes on or the finished-letter view opens */
+    watch=setInterval(()=>{if(on&&(coverIdx||letterMode))stopAll(S('dictOff'))},400);
+    ta.focus({preventScroll:true})};
+  if(!SR)btn.classList.add('locked');
 })();
 </script></body></html>
