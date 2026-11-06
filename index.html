@@ -227,9 +227,9 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fabL #bTypos.on svg{stroke:#fff}
 @media (max-width:480px){#fabL{left:12px;gap:6px}#fabL button{width:40px;height:40px}#fabL button svg{width:22px;height:22px}}
 @media (max-width:360px){#fabL{left:10px;gap:4px}#fabL button{width:36px;height:36px}#fabL button svg{width:20px;height:20px}}
-#sigPad{position:relative;width:100%;aspect-ratio:3/1;border:1px solid #d9d3c6;border-radius:10px;background:#fff;margin:0 0 12px;overflow:hidden}
-#sigPad::before{content:"";position:absolute;left:4%;right:4%;bottom:24%;border-bottom:1.5px dashed #d6cfbf;pointer-events:none}
-#sigPad::after{content:"×";position:absolute;left:1.6%;bottom:21%;font:600 17px/1 system-ui,sans-serif;color:#b5ad9c;pointer-events:none}
+#sigPad{position:relative;width:100%;aspect-ratio:900/540;border:1px solid #d9d3c6;border-radius:10px;background:#fff;margin:0 0 12px;overflow:hidden}
+#sigPad::before{content:"";position:absolute;left:4%;right:4%;bottom:26%;border-bottom:1.5px dashed #d6cfbf;pointer-events:none}
+#sigPad::after{content:"×";position:absolute;left:1.6%;bottom:23%;font:600 17px/1 system-ui,sans-serif;color:#b5ad9c;pointer-events:none}
 #sigCv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;-webkit-user-select:none;user-select:none}
 #sigInks{display:flex;gap:14px;align-items:center;margin:0 0 14px}
 #sigInks button{width:36px;height:36px;border-radius:50%;border:2px solid rgba(0,0,0,.2);padding:0;cursor:pointer}
@@ -305,7 +305,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 <div id="sigModal"><div id="sigCard" role="dialog" aria-label="Signature" data-ia="tipSign">
  <h2 data-i="sigDlg">Sign your letter</h2>
  <p class="s" data-i="sigSub">Draw your signature with your finger or the mouse.</p>
- <div id="sigPad"><canvas id="sigCv" width="900" height="300"></canvas></div>
+ <div id="sigPad"><canvas id="sigCv" width="900" height="540"></canvas></div>
  <div id="sigInks" role="group"><button type="button" data-c="#17171c" style="background:#17171c"></button><button type="button" data-c="#1c3f9e" style="background:#1c3f9e"></button><button type="button" data-c="#c4161c" style="background:#c4161c"></button></div>
  <div class="aiAct"><button id="sigClear" type="button" data-i="sigClear">Clear</button><button id="sigCancel" type="button" data-i="cancel">Cancel</button><button id="sigGo" type="button" data-i="sigGo">Place on paper</button></div>
 </div></div>
@@ -2003,9 +2003,19 @@ var coverIdx=0;
    render();if(letterMode)buildLetter();
    try{sReturn()}catch(_){}
    toast(S('sigPlaced'),2400)}
+  /* the pad is taller than the placed signature (3:1): crop to the ink and fit it into a 900x300 image so it is never distorted */
+  function sigExport(){
+   const W=cv.width,H=cv.height,d=cx.getImageData(0,0,W,H).data;
+   let x0=W,y0=H,x1=-1,y1=-1;
+   for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+   if(x1<0)return cv.toDataURL('image/png');
+   const bw=x1-x0+1,bh=y1-y0+1,o=document.createElement('canvas');o.width=900;o.height=300;
+   const k=Math.min(868/bw,268/bh,1.6),dw=bw*k,dh=bh*k;
+   o.getContext('2d').drawImage(cv,x0,y0,bw,bh,16,(300-dh)/2,dw,dh);
+   return o.toDataURL('image/png')}
   $('sigGo').onclick=async()=>{
    if(!has){toast(S('sigEmpty'),1800);return}
-   const url=cv.toDataURL('image/png');closeSign();
+   const url=sigExport();closeSign();
    const im=new Image();im.src=url;try{await im.decode()}catch(_){}
    place(url);if(!coverIdx)ta.focus({preventScroll:true})};
 })();
