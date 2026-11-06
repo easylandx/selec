@@ -73,6 +73,10 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #fab2 button,#fabL button{width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);display:grid;place-items:center;padding:0;cursor:pointer}
 #fab2 button:active,#fabL button:active{transform:scale(.94)}
 #emoQ{margin-bottom:6px}
+#helpList .hb b{font:800 15px/1 system-ui,sans-serif;color:#17171c;display:block}
+#helpList .hb small{display:block;margin-top:1px;font:700 6px/1 system-ui,sans-serif;color:#7a7364}
+#helpList .hb u{text-decoration:underline}
+#helpList .hb{flex-direction:column}
 #stylePop{position:fixed;z-index:65;display:none;background:#fbf9f3;border:1px solid #d9d3c6;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.3);padding:8px;flex-direction:column;gap:6px}
 #stylePop.on{display:flex}
 #stylePop button{display:flex;align-items:center;gap:12px;width:180px;padding:9px 12px;border-radius:10px;border:2px solid transparent;background:#fff;color:#17171c;font:17px Georgia,serif;cursor:pointer;text-align:left}
@@ -1718,31 +1722,34 @@ $('bCollab').onclick=async()=>{initAudio();sPop();
 
 /* ================= HELP ================= */
 const HELP=[
-['⌨️','Typewriter','Máquina de escribir','Type on your keyboard or tap the keys on the machine. Shift, Caps Lock, Tab and Return work like a real Selectric, with its sounds. A bell rings near the end of each line.','Escribe con tu teclado o toca las teclas de la máquina. Shift, Bloq Mayús, Tab y Retorno funcionan como en una Selectric real, con sus sonidos. Suena una campanilla cerca del final de cada línea.'],
+['⌨️','Typewriter','Máquina de escribir','Type on your keyboard or tap the keys on the machine.','Escribe con tu teclado o toca las teclas de la máquina.'],
 ['bAI','Write a letter for me','Escríbeme una carta','Pick a letter type, add To / From / details if you like, and the Selectric types the whole letter for you.','Elige un tipo de carta, añade Para / De / detalles si quieres, y la Selectric escribe toda la carta por ti.'],
 ['bURL','Paste text','Pegar texto','Paste any text and the Selectric types it out line by line.','Pega cualquier texto y la Selectric lo escribe línea a línea.'],
-['bEmoji','Emoji as ASCII art','Emoji en ASCII art','Choose an emoji (or search for it), or type your own emoji, letter or text, and it is typed as ASCII art — words become colourful word art.','Elige un emoji (o búscalo), o escribe tu propio emoji, letra o texto, y se escribe como ASCII art — las palabras se convierten en word art de colores.'],
+['bEmoji','Emoji as ASCII art','Emoji en ASCII art','Choose an emoji (or search for it), or type your own emoji, letter or text, and it is typed as ASCII art.','Elige un emoji (o búscalo), o escribe tu propio emoji, letra o texto, y se escribe como ASCII art.'],
 ['⏩','Skip the typing','Saltar la escritura','While the Selectric is typing by itself, tap “Tap to finish typing” (or press any key) to get the rest instantly.','Mientras la Selectric escribe sola, toca «Toca para terminar de escribir» (o pulsa cualquier tecla) para obtener el resto al instante.'],
 ['bInk','Ribbon colour','Color de la cinta','Changes the ink for what you type next: black, red, blue, green, purple or orange. Text already typed keeps its colour.','Cambia la tinta de lo que escribas a partir de ahora: negro, rojo, azul, verde, morado o naranja. Lo ya escrito mantiene su color.'],
 ['bPaper','Paper colour','Color del papel','Pick a pastel or neon paper. It applies to the page you are on and every new page; earlier pages keep their colour.','Elige un papel pastel o neón. Se aplica a la página actual y a las nuevas; las anteriores conservan su color.'],
-['bSign','Signature','Firma','Draw your signature with your finger on a phone or with the mouse on a computer, pick black, blue or red ink, and it is placed on the paper at the cursor with room left for it. It also appears in the finished letter and the shared image.','Dibuja tu firma con el dedo en el móvil o con el ratón en el ordenador, elige tinta negra, azul o roja, y se coloca en el papel donde está el cursor, dejando espacio para ella. También aparece en la carta terminada y en la imagen compartida.'],
-['📄','Pages','Páginas','After 38 lines the paper scrolls on and a new sheet starts, with an empty gap between the pages.','Tras 38 líneas el papel avanza y empieza una hoja nueva, con un espacio vacío entre las páginas.'],
+['bSign','Signature','Firma','Draw your signature with your finger on a phone or with the mouse on a computer, and pick black, blue or red ink.','Dibuja tu firma con el dedo en el móvil o con el ratón en el ordenador, y elige tinta negra, azul o roja.'],
 ['bUpload','Add a photo','Añadir una foto','Place a picture on the paper; it is included in the letter and in the shared image.','Coloca una imagen en el papel; se incluye en la carta y en la imagen compartida.'],
-['bView','Finished letter view','Vista de carta terminada','Switch between the typewriter and a preview of the finished letter. Short letters get a sheet cut to their size.','Alterna entre la máquina y una vista previa de la carta terminada. Las cartas cortas tienen una hoja ajustada a su tamaño.'],
-['bWA','Share on WhatsApp','Compartir por WhatsApp','Sends your letter as an image, with “Created with Selectric” and the app link. On a phone it opens WhatsApp; on a computer, WhatsApp Web.','Envía tu carta como imagen, con «Creado con Selectric» y el enlace de la app. En el móvil abre WhatsApp; en el ordenador, WhatsApp Web.'],
-['bCollab','Write together','Escribir juntos','Invite up to 5 people through WhatsApp. Everyone types on the same sheet from their own phone or computer, each in their own ribbon colour. Keep your page open while they write.','Invita hasta a 5 personas por WhatsApp. Todos escriben en la misma hoja desde su móvil u ordenador, cada uno con su color de cinta. Mantén tu página abierta mientras escriben.'],
-['bInvert','Möbius ribbon','Cinta de Möbius','A fun effect: the ribbon twists, mixing the inks and giving the letters a coloured fringe. Tap again to restore it.','Un efecto divertido: la cinta se retuerce, mezcla las tintas y da a las letras un borde de color. Toca otra vez para restaurarla.'],
-['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror. Tap again to go back to normal.','Voltea la escritura como en un espejo. Toca otra vez para volver a la normalidad.'],
-['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike. Words you have already typed stay as they are. Tap again to go back to clean spelling.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe. Lo ya escrito no cambia. Toca otra vez para volver a escribir sin errores.'],
-['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away. Each tap puts on the next cover — red vinyl, clear plastic, red bandana — and the tap after that takes it off. While a cover is on, typing and every button except Help and Language are locked.','Protege la Selectric cuando no la usas. Cada toque pone la siguiente funda — vinilo rojo, plástico transparente, bandana roja — y el siguiente la quita. Con una funda puesta, escribir y todos los botones salvo Ayuda e Idioma quedan bloqueados.'],
+['bView','Finished letter view','Vista de carta terminada','Switch between the typewriter and a preview of the finished letter.','Alterna entre la máquina y una vista previa de la carta terminada.'],
+['bWA','Share on WhatsApp','Compartir por WhatsApp','Sends your letter as an image.','Envía tu carta como imagen.'],
+['bCollab','Write together','Escribir juntos','Invite up to 5 people through WhatsApp.','Invita hasta a 5 personas por WhatsApp.'],
+['bInvert','Möbius ribbon','Cinta de Möbius','A fun effect: the ribbon twists, mixing the inks and giving the letters a coloured fringe.','Un efecto divertido: la cinta se retuerce, mezcla las tintas y da a las letras un borde de color.'],
+['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
+['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
+['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away.','Protege la Selectric cuando no la usas.'],
+['bFont','Typeface','Tipo de letra','Choose the typeball: Courier, Prestige Elite or Orator.','Elige la esfera de escritura: Courier, Prestige Elite u Orator.'],
+['bStyle','Bold, italic, underlined','Negrita, cursiva, subrayado','Switch on any mix of bold, italic and underlined.','Activa la mezcla que quieras de negrita, cursiva y subrayado.'],
+['bWpm','Words per minute','Palabras por minuto','A live typing-speed counter.','Un contador de velocidad en directo.'],
+['bInfo','About the Selectric','Sobre la Selectric','The story of the IBM Selectric.','La historia de la IBM Selectric.'],
 ['bKb','Phone keyboard','Teclado del móvil','On touch devices, a button lets you switch to your phone’s own keyboard.','En dispositivos táctiles, un botón te permite cambiar al teclado propio del móvil.'],
-['🌐','Language','Idioma','Switch the whole app between English and Spanish with the flag button.','Cambia toda la app entre inglés y español con el botón de la bandera.'],
+['🌐','Language','Idioma','Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
 ['bRestart','Restart','Reiniciar','Clears the sheet and starts again (it asks first).','Borra la hoja y empieza de nuevo (te pregunta antes).'],
 ['📲','Install the app','Instalar la app','Add the Selectric to your home screen or desktop so it opens like a normal app.','Añade la Selectric a tu pantalla de inicio o escritorio para abrirla como una app normal.']
 ];
 /* each guide entry shows a small copy of the real button, so the symbols always match */
 function helpIcon(k){if(!/^b[A-Z]\w+$/.test(k))return `<i>${k}</i>`;const b=$(k);
- return `<i class="hb${k==='bWA'?' wa':''}">${k==='bInk'?'<span class="ink"></span>':(b?b.innerHTML:'')}</i>`}
+ return `<i class="hb${k==='bWA'?' wa':''}">${k==='bInk'?'<span class="ink"></span>':(b?b.innerHTML.replace(/ id="[^"]*"/g,''):'')}</i>`}
 function buildHelp(){const es=LANG==='es';$('helpList').innerHTML=HELP.map(h=>`<div class="hi">${helpIcon(h[0])}<div><b>${esc(es?h[2]:h[1])}</b>${esc(es?h[4]:h[3])}</div></div>`).join('')}
 /* live words per minute: characters typed by hand in the last 10 s, 5 characters = 1 word */
 const wpmEv=[],wpmN=$('wpmN'),wpmB=$('bWpm');
@@ -1860,7 +1867,7 @@ if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceW
 var coverIdx=0;
 (function(){
   const coverEl=$('cover'),imgs=Array.from(coverEl.querySelectorAll('img')),btn=$('bCover');
-  const LOCK=['bSign','bTypos','bKb','bAI','bURL','bEmoji','bPaper','bCollab','bInvert','bMirror','bRestart','bUpload','bInk','bView','bWA'];
+  const LOCK=['bSign','bTypos','bKb','bAI','bURL','bEmoji','bPaper','bCollab','bInvert','bMirror','bRestart','bUpload','bInk','bView','bWA','bFont','bStyle'];
   let z=1,t=0;
   function setCover(n){
    coverIdx=n;const on=n>0;
