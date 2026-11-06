@@ -2208,24 +2208,53 @@ var coverIdx=0;
 
 /* ================= PREVIEW: READ ALOUD + COPY ================= */
 (function(){
-  const sb=$('bSpeak'),cb=$('bCopy'),ss=window.speechSynthesis;let reading=false,gen=0,rate=1;
+  const sb=$('bSpeak'),cb=$('bCopy'),ss=window.speechSynthesis;let reading=false,gen=0,lvl=0,wl=null;
+  /* speed steps: gentler on phones, where the system voice already runs fast */
+  const SPD=()=>isPhone()?[1,1.25,1.5]:[1,1.5,2];
+  const fmtX=n=>'x'+n;
   const plain=()=>text.replace(/[ \t]+/g,' ').replace(/\n{2,}/g,'\n\n').trim();
   function chunks(t){const out=[];t.split(/\n+/).forEach(par=>{(par.match(/[^.!?;:]+[.!?;:]*\s*/g)||[]).forEach(x=>{
     while(x.length>180){let k=x.lastIndexOf(' ',180);if(k<60)k=180;out.push(x.slice(0,k));x=x.slice(k)}
     if(x.trim())out.push(x)})});return out}
+  /* a local (on-device) voice honours the speed; online "Google" voices on a computer ignore it */
+  function pickVoice(lang){const vs=ss.getVoices();if(!vs.length)return null;const L=lang.toLowerCase(),sh=L.slice(0,2);
+   const ex=vs.filter(x=>x.lang&&x.lang.toLowerCase().replace('_','-')===L),pool=ex.length?ex:vs.filter(x=>x.lang&&x.lang.toLowerCase().slice(0,2)===sh);
+   return pool.find(x=>x.localService&&!/google/i.test(x.name))||pool.find(x=>x.localService)||pool[0]||null}
+  /* keep the screen awake while reading: a phone that dims its screen silences the voice */
+  async function lock(){try{if(navigator.wakeLock&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null})}}catch(_){wl=null}}
+  function unlock(){try{if(wl)wl.release()}catch(_){}wl=null}
+  document.addEventListener('visibilitychange',()=>{if(reading&&document.visibilityState==='visible')lock()});
+  /* scroll the letter so the line being read stays in view */
+  const ALN=/[\p{L}\p{N}]/u;
+  function follow(c){try{
+   const pos=[];for(let i=0;i<text.length;i++)if(ALN.test(text[i]))pos.push(i);
+   if(!pos.length)return;const idx=pos[Math.min(c,pos.length-1)];
+   let ln=lines.findIndex(r=>idx<r[1]);if(ln<0)ln=lines.length-1;
+   const el=letterEl.querySelectorAll('.ln')[ln];if(!el)return;
+   const lr=letterEl.getBoundingClientRect(),er=el.getBoundingClientRect(),h=letterEl.clientHeight,rel=er.top-lr.top;
+   if(rel<h*.12||rel>h*.6)letterEl.scrollTo({top:Math.max(0,letterEl.scrollTop+rel-h*.3),behavior:'smooth'})}catch(_){}}
   const SVG_SPK=sb.innerHTML,SVG_STOP=SVG_SPK.replace(/<path[\s\S]*<\/svg>/,'<rect x="6" y="6" width="12" height="12" rx="1.5" fill="#fff"/></svg>');
-  function setUI(on){reading=on;sb.classList.toggle('on',on);sb.innerHTML=on?SVG_STOP:SVG_SPK;sb.setAttribute('aria-label',S(on?'speakStop':'tipSpeak'))}
+  function setUI(on){reading=on;sb.classList.toggle('on',on);sb.innerHTML=on?SVG_STOP:SVG_SPK;sb.setAttribute('aria-label',S(on?'speakStop':'tipSpeak'));if(!on)unlock()}
   function stop(){gen++;if(ss)ss.cancel();setUI(false)}
   window.speakStop=stop;
   sb.onclick=()=>{try{sInk()}catch(_){}
    if(!ss){toast(S('speakNA'),2600);return}
    if(reading){stop();return}
    const t=plain();if(!t){toast(S('noText'),1800);return}
-   const parts=chunks(t),my=++gen,lang=LANG==='es'?'es-ES':'en-US';let i=0;
-   ss.cancel();setUI(true);
-   const voices=ss.getVoices(),v=voices.find(x=>x.lang===lang)||voices.find(x=>x.lang&&x.lang.slice(0,2)===lang.slice(0,2));
+   const parts=chunks(t),my=++gen,lang=LANG==='es'?'es-ES':'en-US';let i=0,fails=0;
+   const cnt=[];let c=0;parts.forEach(x=>{cnt.push(c);c+=(x.match(/[\p{L}\p{N}]/gu)||[]).length});
+   ss.cancel();setUI(true);lock();
    const next=()=>{if(my!==gen)return;if(i>=parts.length){setUI(false);return}
-    const u=new SpeechSynthesisUtterance(parts[i++]);u.lang=lang;u.rate=rate;if(v)u.voice=v;u.onend=next;u.onerror=()=>{if(my===gen)setUI(false)};ss.speak(u)};
+    const k=i++,r=SPD()[lvl],u=new SpeechSynthesisUtterance(parts[k]),v=pickVoice(lang);
+    u.lang=lang;u.rate=r;if(v)u.voice=v;
+    let done=false,wd=0;
+    const adv=ok=>{if(done)return;done=true;clearTimeout(wd);if(my!==gen)return;if(ok)fails=0;else if(++fails>=4){stop();return}next()};
+    u.onstart=()=>{if(my===gen)follow(cnt[k])};
+    u.onend=()=>adv(true);
+    u.onerror=e=>{if(my!==gen)return;adv(false)};
+    /* safety net: if the phone never reports the end of a sentence, move on instead of going quiet */
+    wd=setTimeout(()=>{if(my===gen&&!done){try{ss.cancel()}catch(_){}adv(true)}},Math.max(5000,parts[k].length/(10*r)*1000+4000));
+    ss.speak(u)};
    next()};
   cb.onclick=async()=>{try{sInk()}catch(_){}
    const t=text.replace(/[ \t]+$/gm,'').trim();if(!t){toast(S('noText'),1800);return}
@@ -2234,7 +2263,9 @@ var coverIdx=0;
     try{const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(a);a.select();ok=document.execCommand('copy');a.remove()}catch(_){}}
    toast(S(ok?'copied':'copyFail'),2200)};
   const xb=$('bSpeed');
-  xb.onclick=()=>{try{sInk()}catch(_){}rate=rate===1?2:rate===2?3:1;xb.classList.toggle('on',rate>1);xb.setAttribute('aria-pressed',rate>1);xb.firstChild.textContent='x'+(rate>1?rate:2);toast(rate>1?S('speedOn')+' x'+rate:S('speedOff'),1600)};   /* applies from the next sentence while reading */
+  const xbUI=()=>{const L=SPD();xb.classList.toggle('on',lvl>0);xb.setAttribute('aria-pressed',lvl>0);xb.firstChild.textContent=fmtX(lvl>0?L[lvl]:L[1])};
+  xb.onclick=()=>{try{sInk()}catch(_){}lvl=(lvl+1)%3;xbUI();toast(lvl>0?S('speedOn')+' '+fmtX(SPD()[lvl]):S('speedOff'),1600)};   /* applies from the next sentence while reading */
+  xbUI();
   window.addEventListener('pagehide',stop);
 })();
 </script></body></html>
