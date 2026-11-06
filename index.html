@@ -738,7 +738,8 @@ $('bKb').onclick=()=>{initAudio();osKb=!osKb;ta.setAttribute('inputmode',osKb?'t
 /* ================= LETTER WRITER ================= */
 const AI_ENDPOINT='';   /* optional: URL of your own AI proxy that answers {letter:"..."} — leave empty to use the built-in writer */
 const LT=[
- ['freud','Freudian Typo Letter',0,'Optional: what is it about?'],
+ ['freud','Freudian Typo Letter (short)',0,'Optional: what is it about?'],
+ ['freudx','Freudian Typo Letter (extended)',0,'Optional: what is it about?'],
  ['love','Love Letter',0,'Something special about them (optional)'],
  ['thanks','Thank-You Letter',0,'What are you thankful for? e.g. your help with the move'],
  ['condolence','Condolence / Sympathy Letter',0,'The loss, e.g. the passing of your father'],
@@ -791,10 +792,23 @@ const LT_CAT=[
  ['Existential, Historical & Speculative','Existencial, histórico y especulativo',['contingency','gratitude','stranger']],
  ['Strategic, Guerilla & Business Unconventional','Estratégico, de guerrilla y empresarial no convencional',['momentum','reversepitch','legacyannounce']],
  ['Psychological & Creative Writing Exercises','Ejercicios psicológicos y de escritura creativa',['object','peer','epiphany']],
- ['Freudian','Freudiano',['freud']]];
+ ['Freudian','Freudiano',['freud','freudx']]];
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const sentence=s=>{s=(s||'').trim();if(!s)return '';s=cap(s);return /[.!?]$/.test(s)?s:s+'.'};
 const noTo=s=>(s||'').trim().replace(LANG==='es'?/^(de|para)\s+/i:/^to\s+/i,'');
+/* Freudian typo letter: the long run of extra slips at the end of the letter */
+const FREUD_W={en:["retards", "pubic", "shit", "sex", "cunt", "ass", "fucking", "defiantly", "mangler", "kitten", "die", "united", "thanks", "fun", "home", "cock", "cereal", "focus", "hell", "message", "clinic", "statue", "sin", "fart", "find", "from", "trail", "whore", "fuck", "board", "angel", "causal", "dairy", "attack", "coast", "boarder", "contract", "mutant", "customer", "pride", "badger", "test", "asses", "bitch", "bastard", "damn", "dick", "pricking", "pussy", "boobs", "tit", "tits", "suck", "sucker", "crap", "pissed", "bastardly", "dammit", "motherfucker", "bullshit", "assholes", "dumbass", "jackass", "screw", "screwed", "freaking", "frigging", "bugger", "bollocks", "wanker", "twat", "arse", "arsehole", "pillock", "plonker", "berk", "tosser", "prat", "scumbag", "douche", "douchebag", "dipshit", "numbskull", "airhead", "bonehead", "blockhead", "knucklehead", "bozo", "dork", "nerd", "geek", "moron", "idiot", "imbecile", "cretin", "nitwit", "halfwit", "dimwit", "nincompoop", "dunce", "simpleton", "dingbat", "klutz", "duffer", "chump", "loser", "loner", "weirdo", "freak", "psycho", "nutjob", "crackpot", "wacko", "oddball", "creep", "sleazeball", "scum", "trash", "dirtbag", "sleaze", "perv", "pervert", "whorehouse", "slut", "slutty", "skank", "tramp", "hussy", "floozy", "bimbo", "golddigger", "tart", "hooker", "prostituted", "pimp", "bastardize", "pigheaded", "bullheaded", "assholery", "bullshitters", "crapola", "craptastic", "crapping", "crapped", "shitting", "shitted", "shat", "pissing", "pissed off", "pisser", "fuckingup", "fuckup", "fucker", "fuckers", "fucking hell", "motherfucking", "cockup", "cocksucker", "cocky", "dickhead", "dickish", "pussies", "titty", "titties", "boobies", "boob", "suckerpunch", "scumbags", "douches", "dipshits", "dumbasses", "jackasses", "wankers", "twats", "arseholes", "tossers", "prats", "morons", "idiots", "imbeciles", "cretins", "nitwits", "dimwits", "dunces", "simpletons", "dingbats", "klutzes", "chumps", "losers", "weirdos", "freaks", "psychos", "nutjobs", "crackpots", "wackos", "oddballs", "creeps", "sleazeballs", "sluts", "skanks", "tramps", "bimbos", "tarts", "hookers", "pimps", "jerk", "jerks", "jerked", "jerking"],es:["cacho", "moco", "meada", "peo", "mozo", "choca", "folleto", "paja", "carajo", "picha", "polbo", "pija", "mada", "poto", "cipotón", "chula", "follar", "mear", "cagar", "potar", "joder", "chocho", "baboso", "tarado", "mamón", "chulo", "penco", "putón", "guarra", "pendejo", "furcia", "zorra", "bollo", "bollera", "pajillero", "capullo", "gilipollas", "mamada", "mazo", "perra", "zorrón", "zurullo", "mojón", "zurullazo", "cipotazo", "pollez", "pelotas", "cojones", "huevos", "rabas", "mamadas", "chorradas", "majaderías", "paridas", "memeces", "bobadas", "chorrera", "pajas", "folladas", "guarradas", "marradas", "marranadas", "cerdadas", "puercas", "mierdas", "carajadas", "chorrada", "idiotez", "gilipollez", "pendejada", "pendejadas", "mamarracho", "mamarrachada", "fantasmada", "colado", "cagada", "cagadas", "follón", "follones", "quilombo", "movida", "pifia", "pifias", "cantada", "cagado", "cagon", "cagona", "perrazo", "perraza", "maricón", "mariconada", "mariconeo", "farsa", "trucho", "trucha", "chufla", "chanchullo", "trapicheo", "tongo", "tongazo", "chanfaina", "pifostio", "folloncete", "cristocristo", "pitingo", "pitoste", "cipote", "choto", "potada", "potra", "purria", "morralla", "basofia", "basura", "truño", "truños", "zurullos", "mierder", "cagarro", "cagarros", "cagarruta", "cagarrutas", "pajarro", "pajarrazo", "pajarraco", "perraco", "perraca", "zorrito", "zorrita", "putilla", "putillo", "maricada", "maricadita", "putaño", "putero", "puterio", "puterío", "folladero", "follarín", "follonero", "follonera", "cabronada", "cabronadas", "cabroncete", "cabroncillo", "perrería", "perrerías", "guarrería", "guarroras", "guarrilla", "guarrillo", "guarrada", "marranada", "cerdada", "cojonada", "cojonudo", "cojonuda", "acojonado", "acojonada", "descojone", "descojonar", "encajonado", "empanado", "empanada", "empano", "empanamiento", "cagalera", "cagaleras", "cagurria", "cagurrias", "meados", "cagados", "pedorreta", "pedorretas", "pedorro", "pedorra", "pedorros", "pedorras", "mocos", "mocoso", "mocosa", "babas", "babada", "babero", "potadera", "potadero", "potación", "cagalito", "cagachín", "churro", "churros", "chufa", "chufas", "churra", "churras", "picharra", "picharrica", "pichaza", "pichón", "pichona", "pichoncito", "polli", "pollita", "pollito", "pollicida", "pollón", "pollazos", "pollazo", "chochito", "chochón", "chochera", "chochitis", "tetazas", "tetona", "tetonaza", "tetorra", "tetorras", "tetilla", "tetillas", "culazo", "culón", "culona", "culito", "culis", "anito", "anazo", "maricones", "maricuela", "mariposón", "mariposona", "mariquita", "mariquitas", "mariquitar", "zorrería", "zorrerías", "zorrupia", "zorrupias", "putillas", "putazas", "putaza", "putería", "puteríos", "putamen", "putañero", "putañeros", "putañear", "follada", "follaruco", "follador", "folladora", "folladores", "folladoras", "follarines", "cagoncete", "cagoncillo", "cagarruto", "cagalucio", "cagatorio", "cagadero", "meadero", "meaderos", "meadilla", "meadillo", "meadas", "pedis", "pedo", "pedos", "pedazo", "pedazos", "pedorrera", "pedorrería", "pedorrerías", "cacas", "cacota", "cacotas", "cacatripona", "cacadura", "cacalote", "cacaruca", "cacareo", "cacareos", "caca"]};
+const FREUD_F={
+ en:['Between {L}, nobody saw it coming.','I wrote {L}, and I blame the keyboard.','The minutes now read: {L}.','Somebody typed {L}, and the intern typed the rest.','Please add {L} to the agenda.','On the whiteboard: {L}.','The auto-correct offered {L}.'],
+ es:['Entre {L}, nadie vio venir nada.','Escribí {L}, y le echo la culpa al teclado.','En el acta quedó escrito: {L}.','Alguien tecleó {L}, y el becario tecleó el resto.','Añade {L} al orden del día, por favor.','En la pizarra: {L}.','El corrector me ofreció {L}.']};
+function freudMore(lang){
+ const W=FREUD_W[lang],F=FREUD_F[lang],and=lang==='es'?' y ':' and ',out=[lang==='es'?'Además, mi teclado ha producido también lo siguiente, que comunico con enorme pesar.':'Further to the above, my keyboard has also produced the following, which I report with great regret.'];
+ let par=[],k=0;
+ for(let i=0;i<W.length;i+=5){const g=W.slice(i,i+5),L=g.length>1?g.slice(0,-1).join(', ')+and+g[g.length-1]:g[0];
+  par.push(F[k++%F.length].replace('{L}',L));
+  if(par.length===6){out.push(par.join(' '));par=[]}}
+ if(par.length)out.push(par.join(' '));
+ return out}
 function writeLocal(id,to,from,about,g){
  if(LANG==='es')return writeES(id,to,from,about,g);
  g=g||'';
@@ -805,6 +819,7 @@ function writeLocal(id,to,from,about,g){
  const sm=g==='m'?'Sir':g==='f'?'Madam':'Sir or Madam';
  const PR=g==='m'?{s:'he',S:'He',o:'him',p:'his',be:'is',v:'s'}:g==='f'?{s:'she',S:'She',o:'her',p:'her',be:'is',v:'s'}:{s:'they',S:'They',o:'them',p:'their',be:'are',v:''};
  const P={
+ freudx:()=>{const a=P.freud();return a.slice(0,-2).concat(freudMore('en'),a.slice(-2))},
  freud:()=>[`Hell ${to||'everyone'},`,
   `I hope this letter finds you well. I am writing about the pubic announcement planned for next week, and I want to be ass clear as possible. The shit change begins on Monday, so please give me a sex before you start asking questions. The cunt of attendees is still growing, and I have been fucking through the files all night to keep up.${about?' '+sentence(about):''}`,
   `Our new mangler will introduce herself in the office kitten, where the new die plan will be shown. I promise that this time we will be united, and I definitely will not forget the cake. Many thanks to everyone who has offered to have some fun at the party, and please take the leftovers home.`,
@@ -1028,7 +1043,8 @@ function writeLocal(id,to,from,about,g){
  return P[id]().join('\n\n')}
 
 const LT_ES={
- freud:['Carta con errata freudiana','Opcional: ¿de qué trata?'],
+ freud:['Carta con errata freudiana (corta)','Opcional: ¿de qué trata?'],
+ freudx:['Carta con errata freudiana (extendida)','Opcional: ¿de qué trata?'],
  love:['Carta de amor','Algo especial sobre esa persona (opcional)'],
  thanks:['Carta de agradecimiento','¿Por qué das las gracias? p. ej. tu ayuda con la mudanza'],
  condolence:['Carta de pésame / condolencia','La pérdida, p. ej. el fallecimiento de tu padre'],
@@ -1086,6 +1102,7 @@ function writeES(id,to,from,about,g){
  const vos=fem?'vosotras':'vosotros';
  const cand=g==='m'?'este candidato':g==='f'?'esta candidata':g==='t'?'estos candidatos':g==='tf'?'estas candidatas':'esta persona';
  const P={
+ freudx:()=>{const a=P.freud();return a.slice(0,-2).concat(freudMore('es'),a.slice(-2))},
  freud:()=>[`Hola ${to||'equipo'},`,
   `Te escribo para contarte cómo va todo este ano. El infarto de gestión está casi listo, aunque llevo la semana con un moño en la oficina y sin tiempo ni para tomar una taza de caca caliente.${about?' '+sentence(about):''}`,
   `Perdona, se me escapó un pez en la reunión. Revisé todas las pajas del documento y, para comer, preparé polla con arroz. Mi jefe es un hombre muy culo, de los que llevan siempre una teta de buena calidad en el cuello, y reconoce que es una puta casualidad que todo saliera bien.`,
