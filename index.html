@@ -594,6 +594,7 @@ ta.addEventListener('input',e=>{if(!matchMedia('(pointer:coarse)').matches||e.in
 app.addEventListener('click',()=>{if(!letterMode){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}});
 document.addEventListener('keydown',e=>{if(!letterMode&&!aiOpen&&!urlOpen&&!window.emoOpen&&!window.helpOpen&&!window.infoOpen&&!window.signOpen&&!window.bookOpen&&document.activeElement!==ta&&$('intro').style.display==='none')ta.focus()});
 $('bView').onclick=()=>{initAudio();sPage();setMode(!letterMode)};
+letterEl.addEventListener('click',e=>{if(letterMode&&e.target===letterEl){initAudio();sPage();setMode(false)}});   /* tapping the grey area around the paper goes back to the typewriter */
 $('bInk').onclick=()=>{initAudio();sInk();inkIdx=(inkIdx+1)%INKS.length;$('bInk').style.setProperty('--c',INKS[inkIdx]);if(!letterMode)ta.focus()};
 $('bInvert').onclick=()=>{initAudio();sInk();ribbonInverted=!ribbonInverted;$('bInvert').classList.toggle('on',ribbonInverted);$('sheet').classList.toggle('ribbon-chaos',ribbonInverted);$('letter').classList.toggle('ribbon-chaos',ribbonInverted);render();if(letterMode)buildLetter();toast(ribbonInverted?S('ribbonOn'):S('ribbonOff'),2600);if(!letterMode)ta.focus()};
 $('bMirror').onclick=()=>{initAudio();sInk();mirrorWriting=!mirrorWriting;$('bMirror').classList.toggle('on',mirrorWriting);render();if(letterMode)buildLetter();toast(LANG==='es'?(mirrorWriting?'Escritura en espejo activada':'Escritura normal restaurada'):(mirrorWriting?'Mirror writing on':'Normal writing restored'),2600);if(!letterMode)ta.focus()};
@@ -737,6 +738,7 @@ $('bKb').onclick=()=>{initAudio();osKb=!osKb;ta.setAttribute('inputmode',osKb?'t
 /* ================= LETTER WRITER ================= */
 const AI_ENDPOINT='';   /* optional: URL of your own AI proxy that answers {letter:"..."} — leave empty to use the built-in writer */
 const LT=[
+ ['freud','Freudian Typo Letter',0,'Optional: what is it about?'],
  ['love','Love Letter',0,'Something special about them (optional)'],
  ['thanks','Thank-You Letter',0,'What are you thankful for? e.g. your help with the move'],
  ['condolence','Condolence / Sympathy Letter',0,'The loss, e.g. the passing of your father'],
@@ -788,7 +790,8 @@ const LT_CAT=[
  ['Unconventional Professional & Creative','Profesional y creativo no convencional',['open','clientexit','fan']],
  ['Existential, Historical & Speculative','Existencial, histórico y especulativo',['contingency','gratitude','stranger']],
  ['Strategic, Guerilla & Business Unconventional','Estratégico, de guerrilla y empresarial no convencional',['momentum','reversepitch','legacyannounce']],
- ['Psychological & Creative Writing Exercises','Ejercicios psicológicos y de escritura creativa',['object','peer','epiphany']]];
+ ['Psychological & Creative Writing Exercises','Ejercicios psicológicos y de escritura creativa',['object','peer','epiphany']],
+ ['Freudian','Freudiano',['freud']]];
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const sentence=s=>{s=(s||'').trim();if(!s)return '';s=cap(s);return /[.!?]$/.test(s)?s:s+'.'};
 const noTo=s=>(s||'').trim().replace(LANG==='es'?/^(de|para)\s+/i:/^to\s+/i,'');
@@ -802,6 +805,15 @@ function writeLocal(id,to,from,about,g){
  const sm=g==='m'?'Sir':g==='f'?'Madam':'Sir or Madam';
  const PR=g==='m'?{s:'he',S:'He',o:'him',p:'his',be:'is',v:'s'}:g==='f'?{s:'she',S:'She',o:'her',p:'her',be:'is',v:'s'}:{s:'they',S:'They',o:'them',p:'their',be:'are',v:''};
  const P={
+ freud:()=>[`Hell ${to||'everyone'},`,
+  `I hope this letter finds you well. I am writing about the pubic announcement planned for next week, and I want to be ass clear as possible. The shit change begins on Monday, so please give me a sex before you start asking questions. The cunt of attendees is still growing, and I have been fucking through the files all night to keep up.${about?' '+sentence(about):''}`,
+  `Our new mangler will introduce herself in the office kitten, where the new die plan will be shown. I promise that this time we will be united, and I definitely will not forget the cake. Many thanks to everyone who has offered to have some fun at the party, and please take the leftovers home.`,
+  `As a small treat, here is a sneak peek: the cock is ticking, and the cereal number on every badge will be replaced. Please wear the company shit on Friday, and remember that everyone fucks on the goal.`,
+  `I will send you a message about the clinic project. The weekly statue report is ready, there is no sin of delay, and not a single fart of the plan is missing. If you cannot find your copy, fill in the from on the intranet and please attack the signed version to your reply.`,
+  `The trail run ends on Friday, and the whore team deserves a big hand. Good fuck to everyone, and have a fuck of a week!`,
+  `We cover a board range of topics, and the directors have asked for a causal link between the budget and the dairy schedule, and a fresh angel on the numbers would help. Dress is causal, the standared template is on the shared drive, and the coast of the venue has gone up. I would like a boarder view of the plan, so please contract me directly. I need only a mutant of your time.`,
+  `For every customer report we keep, the pride of the tickets drops, and a badger room means more seats. Please test me if anything is unclear. You are the best asses this company has.`,
+  close('Kind retards,')],
  love:()=>[`My dearest${to?' '+to:''},`,
   `I have been trying to find the right words, and I keep arriving at the same ones: I love you. ${about?sentence(about)+' It reminds me how lucky I am.':'Every day beside you feels like a small miracle.'}`,
   `You are the first person I want to tell good news to and the last voice I want to hear at night. Your laughter turns ordinary days golden, and your kindness makes me want to be a better person.`,
@@ -1015,6 +1027,7 @@ function writeLocal(id,to,from,about,g){
  return P[id]().join('\n\n')}
 
 const LT_ES={
+ freud:['Carta con errata freudiana','Opcional: ¿de qué trata?'],
  love:['Carta de amor','Algo especial sobre esa persona (opcional)'],
  thanks:['Carta de agradecimiento','¿Por qué das las gracias? p. ej. tu ayuda con la mudanza'],
  condolence:['Carta de pésame / condolencia','La pérdida, p. ej. el fallecimiento de tu padre'],
@@ -1072,6 +1085,14 @@ function writeES(id,to,from,about,g){
  const vos=fem?'vosotras':'vosotros';
  const cand=g==='m'?'este candidato':g==='f'?'esta candidata':g==='t'?'estos candidatos':g==='tf'?'estas candidatas':'esta persona';
  const P={
+ freud:()=>[`Hola ${to||'equipo'},`,
+  `Te escribo para contarte cómo va todo este ano. El infarto de gestión está casi listo, aunque llevo la semana con un moño en la oficina y sin tiempo ni para tomar una taza de caca caliente.${about?' '+sentence(about):''}`,
+  `Perdona, se me escapó un pez en la reunión. Revisé todas las pajas del documento y, para comer, preparé polla con arroz. Mi jefe es un hombre muy culo, de los que llevan siempre una teta de buena calidad en el cuello, y reconoce que es una puta casualidad que todo saliera bien.`,
+  `Te envío el follo de la feria. Mañana te enseño el pito nuevo, que está cerca de la verga del río. Ya he revisado el tetas que me pasaste, y el mocos del restaurante dice que hay mesa para todos.`,
+  `Voy a mierda tu propuesta con calma. Hoy me puse un polvo azul y un trozo de cabrón para la barbacoa me salvó la comida. Es una marica muy conocida, en una zorra muy tranquila, con un coño de helado para cada uno.`,
+  `Estoy esperando la presi del embalse, que llegará a las sexo. Gracias por tu pedo de ayer: me da mucho pene no haber podido atenderte antes. Llevaré un collar de perra para la fiesta, porque no quiero chupar con otro coche camino de allí.`,
+  `Tu mamada de ayer me dejó pensando, y el pezón de la obra ya está terminado. Cuéntame cómo te fue.`,
+  close('Un cordial saludo,')],
  love:()=>[to?to+', mi amor,':'Mi amor,',
   `He estado buscando las palabras justas y siempre llego a las mismas: te quiero. ${about?sentence(about)+' Me recuerda cuánta suerte tengo.':'Cada día a tu lado se siente como un pequeño milagro.'}`,
   `Eres la primera persona a quien quiero contarle las buenas noticias y la última voz que quiero oír por la noche. Tu risa convierte los días normales en días dorados, y tu bondad me inspira a ser mejor persona.`,
