@@ -1925,7 +1925,7 @@ const HELP=[
 ['bKb','Phone keyboard','Teclado del móvil','On touch devices, a button lets you switch to your phone’s own keyboard.','En dispositivos táctiles, un botón te permite cambiar al teclado propio del móvil.'],
 ['🔁','Hold a key','Mantener una tecla','Hold a key on the machine and it keeps striking, like a real Selectric.','Mantén pulsada una tecla de la máquina y sigue golpeando, como una Selectric de verdad.'],
 ['📜','Scroll the pages','Recorrer las páginas','Scroll or drag the paper to look back at earlier pages; typing brings you back.','Desplaza o arrastra el papel para ver páginas anteriores; al escribir vuelves al final.'],
-['🃏','Easter egg: jokes','Huevo de Pascua: chistes','Hold 1 until a full line of 1s is typed and the Selectric tells classic jokes non-stop (in Spanish, translated live). Press 1 again, or tap the red button, to stop.','Mantén 1 hasta escribir una línea entera de unos y la Selectric cuenta chistes clásicos sin parar (en español, traducidos en directo). Pulsa 1 otra vez, o toca el botón rojo, para parar.'],
+['🃏','Easter egg: jokes','Huevo de Pascua: chistes','Hold 1 until a full line of 1s is typed and the Selectric tells classic jokes non-stop (in Spanish, translated live). Press 1 again, or tap the red button, to stop. Also, if you leave the typewriter alone for 8 seconds after the page loads, joke mode starts on its own and reads each joke aloud once it has finished typing. Click anywhere to stop it.','Mantén 1 hasta escribir una línea entera de unos y la Selectric cuenta chistes clásicos sin parar (en español, traducidos en directo). Pulsa 1 otra vez, o toca el botón rojo, para parar. Además, si dejas la máquina quieta 8 segundos tras cargar la página, el modo chistes arranca solo y lee en voz alta cada chiste cuando termina de escribirlo. Haz clic en cualquier sitio para pararlo.'],
 ['🌐','Language','Idioma','Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
 ['bRestart','Restart','Reiniciar','Clears the sheet and starts again (it asks first).','Borra la hoja y empieza de nuevo (te pregunta antes).'],
 ['📲','Install the app','Instalar la app','Add the Selectric to your home screen or desktop so it opens like a normal app.','Añade la Selectric a tu pantalla de inicio o escritorio para abrirla como una app normal.']
@@ -2740,19 +2740,19 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     e.preventDefault();e.stopPropagation();
     if(k.dataset.a==='1'&&Date.now()-startT>300){flashG('1');stop()}},true);
   /* ---------- idle start: only at the very beginning ----------
-     If nobody touches the machine for 15 s after the page opens, joke mode starts by itself and reads each joke aloud
+     If nobody touches the machine for 8 s after the page opens, joke mode starts by itself and reads each joke aloud
      once it is typed. Any click, tap, key or scroll before that cancels it for good; a click anywhere stops it once running. */
-  const IDLE_MS=15000;
+  const IDLE_MS=8000;
   let lastMove=Date.now(),idleTimer=0,swallow=false;
-  /* "busy" = box not opened yet, paper still loading, or dust cover on: the 15 s only start once the machine is ready */
+  /* "busy" = box not opened yet, paper still loading, or dust cover on: the 8 s only start once the machine is ready */
   const busy=()=>coverIdx||!fed||$('intro').style.display!=='none'||$('paper').classList.contains('in');
-  const disarm=()=>{if(busy()){lastMove=Date.now();return}   /* opening the dust cover is not "using" the machine: just restart the 15 s */
+  const disarm=()=>{if(busy()){lastMove=Date.now();return}   /* opening the dust cover is not "using" the machine: just restart the 8 s */
     clearInterval(idleTimer);idleTimer=0;['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.removeEventListener(t,disarm,true));window.removeEventListener('mousemove',bump,true)};
   const bump=()=>{lastMove=Date.now()};
   ['pointerdown','keydown','touchstart','wheel'].forEach(t=>window.addEventListener(t,disarm,{capture:true,passive:true}));
   window.addEventListener('mousemove',bump,{capture:true,passive:true});
   idleTimer=setInterval(()=>{
-    if(busy())lastMove=Date.now();      /* the 15 s are counted from the moment the paper has loaded / the cover is off */
+    if(busy())lastMove=Date.now();      /* the 8 s are counted from the moment the paper has loaded / the cover is off */
     if(Date.now()-lastMove<IDLE_MS)return;
     if(document.visibilityState!=='visible'||coverIdx||letterMode||typing||ta.disabled||window.helpOpen)return;   /* wait until the machine is really free */
     disarm();start(true)},500);
