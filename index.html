@@ -2562,4 +2562,154 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     app.classList.add('vs');move((e.deltaMode===1?e.deltaY*18:e.deltaY)/u*mult);
     clearTimeout(app._wt);app._wt=setTimeout(()=>app.classList.remove('vs'),160)},{passive:false});
 })();
+/* ================= EASTER EGG: hold "1" for two full lines -> the Selectric tells jokes non-stop ================= */
+/* Two full lines of 1s start it. It keeps going after you let go and stops when you press 1 again (key, on-screen key or the pill).
+   Jokes are never stored here: they are fetched live from public joke APIs (JokeAPI in both languages, icanhazdadjoke as an extra source in English). */
+(function(){
+  Object.assign(I18N.en,{jokeOn:'Joke mode on',jokePill:'Telling jokes… press 1 or tap to stop',jokeOff:'Joke mode off',jokeFail:'Could not reach a joke source',jokeFull:'The paper is full — joke mode off'});
+  Object.assign(I18N.es,{jokeOn:'Modo chistes activado',jokePill:'Contando chistes… pulsa 1 o toca para parar',jokeOff:'Modo chistes desactivado',jokeFail:'No se pudo conectar con una fuente de chistes',jokeFull:'El papel está lleno — modo chistes desactivado'});
+  const pill=document.createElement('button');pill.type='button';pill.id='jokePill';
+  pill.style.cssText='position:fixed;z-index:85;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);display:none;background:#c4161c;color:#fff;border:0;border-radius:999px;padding:11px 18px;font:600 14px system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;max-width:92vw';
+  document.body.appendChild(pill);
+  const MAX_PAGES=60;            /* safety net: every keystroke redraws the whole paper, so stop before it gets sluggish */
+  let joking=false,gen=0,startT=0,ctl=null,fetching=null,fails=0;
+  const strict=[],loose=[],seen=new Set();
+  let dadPages=0;const played=[];
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const nLines=t=>wrap(t).length;
+
+  /* ---------- fetching ---------- */
+  async function getJSON(url,hdr){
+    const c=new AbortController(),tm=setTimeout(()=>c.abort(),9000),sig=ctl?ctl.signal:null;
+    if(sig)sig.addEventListener('abort',()=>c.abort(),{once:true});
+    try{const r=await fetch(url,{headers:hdr||{},signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('http '+r.status);return await r.json()}
+    finally{clearTimeout(tm)}}
+  async function fromJokeAPI(lang){
+    const q='?safe-mode&amount=10&lang='+lang;      /* classic everyday jokes: no Programming, no Dark */
+    let d=await getJSON('https://v2.jokeapi.dev/joke/Misc,Pun'+q);
+    if(d.error)d=await getJSON('https://v2.jokeapi.dev/joke/Misc,Pun,Spooky,Christmas'+q);
+    if(d.error)throw new Error('api');
+    return (d.jokes||[d]).filter(j=>j&&(j.joke||j.setup)).map(j=>({k:'j'+lang+j.id,lang,
+      text:j.type==='twopart'?String(j.setup).trim()+'\n'+String(j.delivery).trim():String(j.joke).trim()}))}
+  async function fromDad(){
+    const pg=1+Math.floor(Math.random()*(dadPages||30));
+    const d=await getJSON('https://icanhazdadjoke.com/search?limit=30&page='+pg,{Accept:'application/json'});
+    if(d.total_pages)dadPages=d.total_pages;
+    return (d.results||[]).map(j=>({k:'d'+j.id,lang:'en',text:String(j.joke)}))}
+  async function fromOfficial(){
+    const d=await getJSON('https://official-joke-api.appspot.com/jokes/ten');
+    return (Array.isArray(d)?d:[]).filter(j=>j&&j.setup&&j.punchline&&j.type!=='programming').map(j=>({k:'o'+j.id,lang:'en',text:String(j.setup).trim()+'\n'+String(j.punchline).trim()}))}
+  /* Spanish mode: the English pool, translated live (free endpoints, no key) before it is typed. Odd translations are part of the fun. */
+  const unent=h=>{const t=document.createElement('textarea');t.innerHTML=h;return t.value};
+  async function tr1(l){
+    try{const d=await getJSON('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q='+encodeURIComponent(l));
+      const r=(d[0]||[]).map(x=>x[0]).join('');if(!r)throw new Error('tr');return r}
+    catch(e){if(ctl&&ctl.signal.aborted)throw e;
+      const d=await getJSON('https://api.mymemory.translated.net/get?langpair=en%7Ces&q='+encodeURIComponent(l));
+      const r=d&&d.responseData&&d.responseData.translatedText;if(!r||+d.responseStatus!==200)throw new Error('tr');return unent(r)}}
+  async function toES(j){try{const out=[];for(const l of j.text.split('\n'))out.push(await tr1(l));return{k:'es'+j.k,lang:'es',text:out.join('\n')}}catch(e){if(ctl&&ctl.signal.aborted)throw e;return null}}
+  async function translateAll(list){const out=[];
+    for(let i=0;i<list.length;i+=10){const r=await Promise.all(list.slice(i,i+10).map(toES));r.forEach(x=>x&&out.push(x))}
+    return out}
+  /* one fetch round: pulls a batch, cleans it for the typewriter, and sorts it by length (2-3 lines is the target) */
+  async function round(lang){
+    let got;
+    const srcs=[fromJokeAPI,fromDad,fromOfficial].sort(()=>Math.random()-.5);
+    for(const f of srcs){try{got=await f('en');if(got&&got.length)break}catch(e){if(ctl&&ctl.signal.aborted)throw e}}
+    if(lang==='es'){
+      let es=got&&got.length?await translateAll(got.filter(j=>!seen.has('es'+j.k))):[];
+      if(!es.length){try{es=await fromJokeAPI('es')}catch(e){if(ctl&&ctl.signal.aborted)throw e}}      /* last resort if translating is down */
+      got=es}
+    if(!got||!got.length)return 0;
+    let fresh=0;
+    for(const j of got){
+      if(seen.has(j.k))continue;
+      const t=cleanForTypewriter(j.text,400).replace(/\n{2,}/g,'\n');if(!t)continue;
+      const n=nLines(t),o={k:j.k,lang:j.lang,text:t};
+      if(n>=2&&n<=3){strict.push(o);fresh++}else if(n>=1&&n<=4){loose.push(o);fresh++}
+      seen.add(j.k)}
+    return fresh}
+  function refill(){
+    if(fetching||!joking)return fetching;
+    fetching=(async()=>{try{
+      let tries=0;
+      while(joking&&strict.filter(j=>j.lang===LANG).length<10&&tries<6){
+        tries++;const f=await round(LANG);
+        if(!f&&tries>=2&&seen.size>20){seen.clear()}      /* small pool (e.g. Spanish): allow repeats once it is used up */
+      }}catch(e){}finally{fetching=null}})();
+    return fetching}
+  async function nextJoke(){
+    for(let a=0;a<3&&joking;a++){
+      let i=strict.findIndex(j=>j.lang===LANG);
+      if(i<0){await refill();i=strict.findIndex(j=>j.lang===LANG)}
+      if(i>=0){const [j]=strict.splice(i,1);if(strict.filter(x=>x.lang===LANG).length<7)refill();return j}
+      const k=loose.findIndex(j=>j.lang===LANG);
+      if(k>=0)return loose.splice(k,1)[0];
+      if(!fetching&&seen.size)seen.clear();      /* pool used up: start a fresh pass */
+      await sleep(600)}
+    if(played.length){const pl=played.filter(j=>j.lang===LANG);if(pl.length)return pl[Math.floor(Math.random()*pl.length)]}
+    return null}
+
+  /* ---------- typing ---------- */
+  async function typeChars(chars,my){
+    for(const c of chars){
+      if(!joking||my!==gen||letterMode)return false;
+      flashKey(c==='\n'?'Enter':c);typeText(c,true);
+      await sleep(c==='\n'?70:c===' '?7:/[.,;:!?]/.test(c)?16:3+Math.random()*4)}
+    return true}
+  async function run(my){
+    let first=true;
+    while(joking&&my===gen){
+      const j=await nextJoke();
+      if(!joking||my!==gen)return;
+      if(!j){if(!fails++)toast(S('jokeFail'),2600);await sleep(3000);continue}      /* never gives up: keeps retrying */
+      fails=0;pill.textContent=S('jokePill');
+      if(Math.floor((lines.length-1)/LPP)>=MAX_PAGES){toast(S('jokeFull'),3500);stop(true);return}
+      let pre='';
+      if(first){pre=!text.length||text.endsWith('\n\n')?'':text.endsWith('\n')?'\n':'\n\n'}
+      else{await sleep(250+Math.random()*200);pre='\n\n'}      /* time to read the last one */
+      if(first)await sleep(250);      /* a beat of suspense before the first joke */
+      first=false;
+      if(!await typeChars(pre+j.text,my))return;
+      if(played.length<300&&!played.some(x=>x.k===j.k))played.push(j)}}
+
+  /* ---------- start / stop ---------- */
+  function start(){
+    if(joking)return;
+    joking=true;gen++;startT=Date.now();ctl=new AbortController();fails=0;
+    quiet=true;ta.value=ta.value.replace(/1+$/,'');ta.dispatchEvent(new Event('input'));quiet=false;   /* the secret 1s disappear */
+    pill.textContent=S('jokePill');pill.style.display='block';
+    toast(S('jokeOn'),2200);
+    refill();run(gen)}
+  function stop(silent){
+    if(!joking)return;
+    joking=false;gen++;try{ctl.abort()}catch(e){}ctl=null;fetching=null;
+    pill.style.display='none';
+    if(!silent)toast(S('jokeOff'),2200)}
+  pill.addEventListener('pointerdown',e=>{e.preventDefault();stop()});
+
+  /* trigger: the last two lines of the paper are completely filled with 1s */
+  ta.addEventListener('input',()=>{
+    if(joking||typing||quiet||letterMode||coverIdx)return;
+    const a=lines[lines.length-1];
+    if(a[1]-a[0]===COLS&&/^1{36}$/.test(text.slice(a[0],a[1])))start()});      /* one full line of 1s */
+
+  /* while it runs, the keyboard is the typewriter's: any "1" stops it, other keys are ignored */
+  const isOne=e=>e.key==='1'||e.code==='Digit1'||e.code==='Numpad1';
+  document.addEventListener('keydown',e=>{
+    if(!joking)return;
+    const t=e.target;if(t!==ta&&t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;      /* dialogs keep working */
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    if(e.key==='Escape'){stop();return}
+    if(isOne(e)){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat){flashKey('1');stop()}return}   /* a repeat is the key still held from the trigger */
+    if(e.key.length===1||/^(Enter|Backspace|Tab|Delete)$/.test(e.key)){e.preventDefault();e.stopImmediatePropagation()}},true);
+  ta.addEventListener('beforeinput',e=>{
+    if(!joking)return;e.preventDefault();
+    if(e.data==='1'&&matchMedia('(pointer:coarse)').matches&&Date.now()-startT>800)stop()},true);   /* phone keyboards */
+  keysEl.addEventListener('pointerdown',e=>{
+    if(!joking)return;const k=e.target.closest('.k');if(!k)return;
+    e.preventDefault();e.stopPropagation();
+    if(k.dataset.a==='1'&&Date.now()-startT>300){flashG('1');stop()}},true);
+  const _press=press;press=function(a){if(joking)return;return _press.apply(this,arguments)};   /* a held on-screen key stops repeating into the jokes */
+})();
 </script></body></html>
