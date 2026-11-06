@@ -477,8 +477,25 @@ ta.addEventListener('select',()=>ta.setSelectionRange(ta.value.length,ta.value.l
 ta.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowUp','Home','PageUp'].includes(e.key))e.preventDefault();
  if(e.key==='Tab'){e.preventDefault();doTab();return}
  if(e.key==='Shift'){if(!e.repeat){sShift();flashG(e.location===2?'shr':'shl')}return}
- if(e.key==='CapsLock'){sLock();return}
+ if(e.key==='CapsLock'){syncCaps(e);return}
+ syncCaps(e);
+ if(lockOn&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+  const id=CH2ID[e.key],k=id&&KMAP[id];let c=e.key;
+  if(k&&k.l.length===1&&e.key===k.l)c=k.u;
+  if(c!==e.key){e.preventDefault();typeText(c);flashKey(e.key);return}}
  flashKey(e.key)});
+ta.addEventListener('keyup',e=>{if(e.key==='CapsLock')syncCaps(e)});
+/* the computer's Caps Lock and the machine's lock key are the same switch */
+let physCaps=null;
+function syncCaps(e){const st=!!(e.getModifierState&&e.getModifierState('CapsLock'));
+ if(st===physCaps)return;const first=physCaps===null;physCaps=st;if(first&&!st&&e.key!=='CapsLock')return;
+ if(lockOn!==st){lockOn=st;if(!st)shiftOn=false;sLock();updMods()}}
+/* iPhone keyboard: it never reports Caps Lock, so two capitals in a row mean it is on and a small letter means it is off */
+ta.addEventListener('input',e=>{if(!matchMedia('(pointer:coarse)').matches||e.inputType!=='insertText'||!e.data||e.data.length!==1)return;
+ const ch=e.data;if(ch.toLowerCase()===ch.toUpperCase())return;
+ const up=ch===ch.toUpperCase(),prev=ta.value.slice(-2,-1),prevUp=prev&&prev.toLowerCase()!==prev.toUpperCase()&&prev===prev.toUpperCase();
+ if(up&&prevUp&&!lockOn){lockOn=true;sLock();updMods()}
+ else if(!up&&lockOn){lockOn=false;shiftOn=false;sLock();updMods()}});
 app.addEventListener('click',()=>{if(!letterMode){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)}});
 document.addEventListener('keydown',e=>{if(!letterMode&&!aiOpen&&!urlOpen&&!window.emoOpen&&!window.helpOpen&&!window.signOpen&&document.activeElement!==ta&&$('intro').style.display==='none')ta.focus()});
 $('bView').onclick=()=>{initAudio();sPage();setMode(!letterMode)};
@@ -598,13 +615,13 @@ KEYS.forEach(([id,l,u2,cx,cy,w,h])=>{
 function groupEls(g){return keysEl.querySelectorAll('[data-g="'+g+'"]')}
 function flashG(g){groupEls(g).forEach(el=>{el.classList.add('dn');setTimeout(()=>el.classList.remove('dn'),95)})}
 function flashKey(k){let id=null;if(k===' ')id='space';else if(k==='Enter')id='ret';else if(k==='Backspace')id='bs';else if(k.length===1)id=CH2ID[k.toLowerCase()]||CH2ID[k];if(id)flashG(id)}
-function updMods(){['shl','shr'].forEach(g=>groupEls(g).forEach(el=>el.classList.toggle('on',shiftOn)));groupEls('lock').forEach(el=>el.classList.toggle('on',lockOn))}
+function updMods(){['shl','shr'].forEach(g=>groupEls(g).forEach(el=>el.classList.toggle('on',shiftOn||lockOn)));groupEls('lock').forEach(el=>el.classList.toggle('on',lockOn))}
 function typeText(c){ta.value=ta.value+c;ta.dispatchEvent(new Event('input'))}
 function doTab(){const col=lines[lines.length-1][1]-lines[lines.length-1][0];const n=5-(col%5);sTab();quiet=true;ta.value=ta.value+' '.repeat(n);ta.dispatchEvent(new Event('input'));quiet=false}
 function press(a){
  if(letterMode||coverIdx)return;
  flashG(a);
- if(a==='shl'){shiftOn=!shiftOn;sShift();updMods();return}
+ if(a==='shl'){if(lockOn){lockOn=false;shiftOn=false}else shiftOn=!shiftOn;sShift();updMods();return}
  if(a==='lock'){lockOn=!lockOn;sLock();updMods();return}
  if(a==='ret'){typeText('\n');return}
  if(a==='bs'){if(ta.value.length){ta.value=ta.value.slice(0,-1);ta.dispatchEvent(new Event('input'))}else sBack();return}
@@ -612,7 +629,7 @@ function press(a){
  if(a==='space'){typeText(' ');return}
  const k=KMAP[a];if(!k)return;
  const isL=/^[a-z]$/.test(k.l);
- const c=isL?((shiftOn!==lockOn)?k.u:k.l):(shiftOn?k.u:k.l);
+ const c=(shiftOn||lockOn)?k.u:k.l;
  typeText(c);
  if(shiftOn){shiftOn=false;updMods()}}
 keysEl.addEventListener('pointerdown',e=>{const k=e.target.closest('.k');if(!k)return;e.preventDefault();initAudio();press(k.dataset.a);ta.focus({preventScroll:true})});
