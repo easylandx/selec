@@ -2247,6 +2247,11 @@ var coverIdx=0;
    const t=plain();if(!t){toast(S('noText'),1800);return}
    const parts=chunks(t),my=++gen,lang=LANG==='es'?'es-ES':'en-US';let i=0,fails=0;
    const cnt=[];let c=0;parts.forEach(x=>{cnt.push(c);c+=(x.match(/[\p{L}\p{N}]/gu)||[]).length});
+   /* start from the first line visible at the top of the preview, so a book can be read from the middle */
+   try{const els=letterEl.querySelectorAll('.ln'),top=letterEl.getBoundingClientRect().top;let ln=0;
+    if(letterEl.scrollTop>4)for(let j=0;j<els.length;j++){if(els[j].getBoundingClientRect().top>=top-2){ln=j;break}ln=j}
+    if(ln>0&&lines[ln]){const before=(text.slice(0,lines[ln][0]).match(/[\p{L}\p{N}]/gu)||[]).length;
+     for(let k=0;k<cnt.length;k++){if(cnt[k]<=before)i=k;else break}}}catch(_){}
    ss.cancel();setUI(true);lock();
    const next=()=>{if(my!==gen)return;if(i>=parts.length){setUI(false);return}
     const k=i++,r=SPD()[lvl],u=new SpeechSynthesisUtterance(parts[k]),v=pickVoice(lang);
