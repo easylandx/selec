@@ -2914,12 +2914,14 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     if(e.ctrlKey||e.metaKey||e.altKey)return;
     if(e.key==='Escape'){stop();return}
     if(isOne(e)){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat){flashKey('1');stop()}return}   /* a repeat is the key still held from the trigger */
-    if(e.key.length===1||/^(Enter|Backspace|Tab|Delete)$/.test(e.key)){e.preventDefault();e.stopImmediatePropagation()}},true);
+    /* every other key types normally: you can write on the paper while the jokes are being typed */},true);
   ta.addEventListener('beforeinput',e=>{
-    if(!joking)return;e.preventDefault();
+    if(!joking)return;
+    if(auto||e.data==='1')e.preventDefault();      /* only the 1 is held back (it stops the jokes); anything else types normally */
     if(e.data==='1'&&matchMedia('(pointer:coarse)').matches&&Date.now()-startT>800)stop()},true);   /* phone keyboards */
   keysEl.addEventListener('pointerdown',e=>{
     if(!joking)return;const k=e.target.closest('.k');if(!k)return;
+    if(!auto&&k.dataset.a!=='1')return;      /* the other on-screen keys type normally while the jokes run */
     e.preventDefault();e.stopPropagation();
     if(k.dataset.a==='1'&&Date.now()-startT>300){flashG('1');stop()}},true);
   /* ---------- idle start: only at the very beginning ----------
@@ -2941,9 +2943,15 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     if(document.visibilityState!=='visible'||coverIdx||letterMode||typing||ta.disabled||window.helpOpen)return;   /* wait until the machine is really free */
     disarm();start(true)},500);
   /* click anywhere stops idle-start mode (and that click does nothing else) */
-  document.addEventListener('pointerdown',e=>{if(!joking||!auto)return;e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
+  document.addEventListener('pointerdown',e=>{
+    if(!joking)return;
+    if(!auto){      /* 1s easter egg: a click anywhere stops it, except on the typewriter keys, any button/dialog and the paper area (scrolling / clicking the page keeps it going) */
+      if(e.target.closest&&e.target.closest('button,a,input,select,label,[role=button],[role=dialog],#keys,#jokePill,#ta,#fab,#fab2,#fabL'))return;
+      const r=$('paper').getBoundingClientRect();
+      if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY<=r.bottom)return}
+    e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
   document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false}},true);
-  const _press=press;press=function(a){if(joking)return;return _press.apply(this,arguments)};   /* a held on-screen key stops repeating into the jokes */
+  const _press=press;press=function(a){if(joking&&(auto||a==='1'))return;return _press.apply(this,arguments)};   /* a held 1 from the trigger stops repeating into the jokes; other keys type normally */
 })();
 
 /* ================= DEMO: a guided tour of every function =================
