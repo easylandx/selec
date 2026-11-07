@@ -2404,7 +2404,7 @@ var coverIdx=0;
    if(rel<h*.12||rel>h*.6)letterEl.scrollTo({top:Math.max(0,letterEl.scrollTop+rel-h*.3),behavior:'smooth'})}catch(_){}}
   const SVG_SPK=sb.innerHTML,SVG_STOP=SVG_SPK.replace(/<path[\s\S]*<\/svg>/,'<rect x="6" y="6" width="12" height="12" rx="1.5" fill="#fff"/></svg>');
   function setUI(on){reading=on;sb.classList.toggle('on',on);sb.innerHTML=on?SVG_STOP:SVG_SPK;sb.setAttribute('aria-label',S(on?'speakStop':'tipSpeak'));if(!on)unlock()}
-  function stop(){gen++;if(ss)ss.cancel();setUI(false)}
+  function stop(){gen++;if(ss&&reading)ss.cancel();setUI(false)}
   window.speakStop=stop;
   sb.onclick=()=>{try{sInk()}catch(_){}
    if(!ss){toast(S('speakNA'),2600);return}
@@ -2417,7 +2417,7 @@ var coverIdx=0;
     if(letterEl.scrollTop>4)for(let j=0;j<els.length;j++){if(els[j].getBoundingClientRect().top>=top-2){ln=j;break}ln=j}
     if(ln>0&&lines[ln]){const before=(text.slice(0,lines[ln][0]).match(/[\p{L}\p{N}]/gu)||[]).length;
      for(let k=0;k<cnt.length;k++){if(cnt[k]<=before)i=k;else break}}}catch(_){}
-   ss.cancel();setUI(true);lock();
+   if(window.__jokeStop)window.__jokeStop(true);ss.cancel();setUI(true);lock();
    /* live viewer: when the voice catches up with the host, wait for the next finished sentence and carry on */
    const more=()=>{
     if(!window.__liveViewer)return 0;
@@ -2770,6 +2770,25 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   let dadPages=0;const played=[];
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const nLines=t=>wrap(t).length;
+  /* easter-egg mode runs this many times faster (typing, pauses and voice). The 8 s idle-start mode stays at normal speed. */
+  const EGG_SPEED=2;
+  const spd=()=>auto?1:EGG_SPEED;
+
+  /* ---------- preview mode: the joke mode keeps going and the letter view follows the typing ---------- */
+  let lt=0,lcost=20,lfollow=true,wasLM=false;
+  function paintLetter(){
+    if(!letterMode)return;
+    const t0=performance.now(),st=letterEl.scrollTop;
+    buildLetter();
+    letterEl.scrollTop=lfollow?letterEl.scrollHeight:st;
+    lcost=performance.now()-t0}
+  function liveLetter(now){
+    if(!letterMode){wasLM=false;return}
+    if(!wasLM){wasLM=true;lfollow=true}      /* just entered preview: follow the newest line until the reader scrolls by hand */
+    if(now){clearTimeout(lt);lt=0;paintLetter();return}
+    if(lt)return;
+    lt=setTimeout(()=>{lt=0;paintLetter()},Math.max(120,lcost*4))}      /* throttled: rebuilding the whole letter on every key would be too heavy */
+  ['wheel','touchstart','pointerdown'].forEach(t=>letterEl.addEventListener(t,()=>{lfollow=false},{passive:true}));
 
   /* ---------- fetching ---------- */
   async function getJSON(url,hdr){
@@ -2845,10 +2864,15 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
 
   /* ---------- typing ---------- */
   async function typeChars(chars,my){
+    const k=spd();let acc=0;
     for(const c of chars){
-      if(!joking||my!==gen||letterMode)return false;
+      if(!joking||my!==gen)return false;      /* keeps typing in preview mode too: the letter view follows live */
       flashKey(c==='\n'?'Enter':c);typeText(c,true);
-      await sleep(c==='\n'?70:c===' '?7:/[.,;:!?]/.test(c)?16:3+Math.random()*4)}
+      liveLetter();
+      const d=c==='\n'?70:c===' '?7:/[.,;:!?]/.test(c)?16:3+Math.random()*4;
+      if(k===1)await sleep(d);
+      else{acc+=d/k;if(acc>=4){await sleep(acc);acc=0}}}      /* x2: tiny waits are pooled so the browser's 4 ms timer floor cannot slow it down */
+    liveLetter(true);
     return true}
   /* read a joke aloud (both modes); resolves when the voice finishes, fails or is stopped */
   function say(t,my){return new Promise(res=>{
@@ -2859,7 +2883,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       const u=new SpeechSynthesisUtterance(t.replace(/([^.!?…])[ \t]*\n[ \t]*/g,'$1. ').replace(/\s*\n\s*/g,' '));
       const pool=vs.filter(x=>x.lang&&x.lang.toLowerCase().replace('_','-').slice(0,2)===L.slice(0,2));
       const v=pool.find(x=>x.lang.toLowerCase().replace('_','-')===L&&x.localService)||pool.find(x=>x.localService)||pool[0];
-      u.lang=lang;if(v)u.voice=v;u.onend=fin;u.onerror=fin;
+      u.lang=lang;if(v)u.voice=v;u.rate=spd();u.onend=fin;u.onerror=fin;
       wd=setTimeout(()=>{try{ss.cancel()}catch(e){}fin()},Math.max(6000,t.length*130+4000));   /* safety net if the browser never reports the end */
       window.__jokeU=u;   /* keep a reference: iOS can drop an utterance that gets garbage-collected mid-speech */
       try{ss.resume()}catch(e){}
@@ -2875,12 +2899,12 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       if(Math.floor((lines.length-1)/LPP)>=MAX_PAGES){toast(S('jokeFull'),3500);stop(true);return}
       let pre='';
       if(first){pre=!text.length||text.endsWith('\n\n')?'':text.endsWith('\n')?'\n':'\n\n'}
-      else{await sleep(250+Math.random()*200);pre='\n\n'}      /* time to read the last one */
-      if(first)await sleep(250);      /* a beat of suspense before the first joke */
+      else{await sleep((250+Math.random()*200)/spd());pre='\n\n'}      /* time to read the last one */
+      if(first)await sleep(250/spd());      /* a beat of suspense before the first joke */
       first=false;
       if(!await typeChars(pre+j.text,my))return;
       if(played.length<300&&!played.some(x=>x.k===j.k))played.push(j);
-      if(joking&&my===gen){await say(j.text,my);if(joking&&my===gen)await sleep(600)}}}      /* read each joke out loud once it is typed, then the next one (both modes) */
+      if(joking&&my===gen){await say(j.text,my);if(joking&&my===gen)await sleep(600/spd())}}}      /* read each joke out loud once it is typed, then the next one (both modes) */
 
   /* ---------- start / stop ---------- */
   function start(isAuto){
@@ -2898,6 +2922,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     pill.style.display='none';
     if(!silent)toast(S('jokeOff'),2200)}
   pill.addEventListener('pointerdown',e=>{e.preventDefault();stop()});
+  window.__jokeStop=stop;
 
   /* trigger: the last two lines of the paper are completely filled with 1s */
   ta.addEventListener('input',()=>{
@@ -2946,7 +2971,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   document.addEventListener('pointerdown',e=>{
     if(!joking)return;
     if(!auto){      /* 1s easter egg: a click anywhere stops it, except on the typewriter keys, any button/dialog and the paper area (scrolling / clicking the page keeps it going) */
-      if(e.target.closest&&e.target.closest('button,a,input,select,label,[role=button],[role=dialog],#keys,#jokePill,#ta,#fab,#fab2,#fabL'))return;
+      if(e.target.closest&&e.target.closest('button,a,input,select,label,[role=button],[role=dialog],#keys,#jokePill,#ta,#fab,#fab2,#fabL,#letter,#pgCount'))return;
       const r=$('paper').getBoundingClientRect();
       if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY<=r.bottom)return}
     e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
