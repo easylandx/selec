@@ -20,8 +20,8 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #pad{display:none}
 @media (hover:none) and (pointer:coarse) and (display-mode:browser){html{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:none}body{height:auto;min-height:100%;overflow:visible}#pad{display:block;width:1px;height:calc(100vh + 220px);height:calc(100lvh + 220px);pointer-events:none}}
 #app{position:fixed;left:0;right:0;top:0;overflow:hidden;background:#fefefe}
-#stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--u)*1536);height:calc(var(--u)*1024)}
-@media (hover:none) and (pointer:coarse){#stage{top:auto;bottom:env(safe-area-inset-bottom,0px);transform:translateX(-50%)}}
+/* typewriter sits at the bottom of the window (desktop and mobile), leaving the whole screen above it for the paper */
+#stage{position:absolute;left:50%;top:auto;bottom:env(safe-area-inset-bottom,0px);transform:translateX(-50%);width:calc(var(--u)*1536);height:calc(var(--u)*1024)}
 #clip{position:absolute;inset:0;z-index:3;pointer-events:none;clip-path:inset(-6000px 0 calc(var(--u)*772) 0)}
 #clip:not(.in) #sheet{visibility:hidden}
 #paper{position:absolute;left:calc(var(--u)*396);width:calc(var(--u)*741);bottom:calc(var(--u)*772);height:0;transition:height .17s cubic-bezier(.3,.75,.3,1);background:rgb(245,243,248);box-shadow:0 0 calc(var(--u)*10) rgba(0,0,0,.10)}
