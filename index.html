@@ -2017,7 +2017,7 @@ const HELP=[
 ['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
 ['bDictate','Dictate','Dictar','Speak and the Selectric types your words. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
 ['bClock','Clock','Reloj','Tap and the Selectric types the actual time every second, each on a new line. Tap again to stop.','Toca y la Selectric escribe la hora real cada segundo, cada una en una línea nueva. Toca de nuevo para parar.'],
-['bFocus','Focus Force Field','Campo de concentración','Hides almost every control.','Oculta casi todos los controles.'],
+['bFocus','Focus Force Field','Modo Foco','Hides almost every control.','Oculta casi todos los controles.'],
 ['bMute','Mute machine sounds','Silenciar la máquina','Turns the typewriter sounds off or on. Your choice is remembered.','Apaga o enciende los sonidos de la máquina de escribir. Tu elección se recuerda.'],
 ['bLive','Live viewer','Visor en vivo','Tap to share a live link: anyone who opens it watches your typing in real time, read-only.','Toca para compartir un enlace en vivo: quien lo abra ve tu escritura en tiempo real, solo lectura.'],
 ['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
@@ -2556,7 +2556,7 @@ Object.assign(I18N.es,{tipClock:'Reloj: escribe la hora real cada segundo, una p
 
 /* ================= FOCUS FORCE FIELD ================= */
 Object.assign(I18N.en,{tipFocus:'Focus Force Field: hide everything but the paper and keyboard',tipFocusBack:'Bring the controls back',focusOn:'Focus on · tap the empty background or the corner shield to leave'});
-Object.assign(I18N.es,{tipFocus:'Campo de concentración: oculta todo menos el papel y el teclado',tipFocusBack:'Volver a mostrar los controles',focusOn:'Concentración activada · toca el fondo vacío o el escudo de la esquina para salir'});
+Object.assign(I18N.es,{tipFocus:'Modo Foco: oculta todo menos el papel y el teclado',tipFocusBack:'Volver a mostrar los controles',focusOn:'Concentración activada · toca el fondo vacío o el escudo de la esquina para salir'});
 (function(){
   const fb=$('bFocus'),back=$('bFocusBack');
   function set(on){
@@ -3229,7 +3229,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
    run:async w=>{const was=muted;await w(400);$('bMute').click();await w(900);
     await dtype(sep()+T('Silence, please.','Silencio, por favor.'),2600,w);
     await w(600);if(muted!==was)$('bMute').click();await w(600)}},
-  {id:'bFocus',t:['Focus Force Field','Campo de concentración'],d:['Hides every control except the paper and the keyboard. Only the ribbon colour, preview and dictation buttons stay. Tap the empty background, or the tiny shield in the top-left corner, to bring the controls back. Scrolling or clicking the paper does not leave.','Oculta todos los controles menos el papel y el teclado. Solo quedan los botones de color de cinta, vista previa y dictado. Toca el fondo vacío, o el pequeño escudo de la esquina superior izquierda, para recuperar los controles. Desplazarte o hacer clic en el papel no sale.'],
+  {id:'bFocus',t:['Focus Force Field','Modo Foco'],d:['Hides every control except some basics.','Oculta todos los controles menos algunos básicos.'],
    run:async w=>{try{await w(500);$('bFocus').click();await w(4200)}finally{if(document.body.classList.contains('focus'))$('bFocusBack').click()}}},
 
   /* ---- the secret joke mode (simulated, so it also works offline) ---- */
