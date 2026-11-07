@@ -1737,8 +1737,14 @@ $('aiAll').onclick=async()=>{initAudio();sPop();
  /* every letter starts at the top of a new sheet: pad with line breaks up to the next multiple of LPP */
  const sheetPad=()=>{const full=text+base+txt,ls=wrap(full),L=ls.length-1;if(L%LPP===0&&ls[L][1]===ls[L][0])return '';return '\n'.repeat(LPP-(L%LPP))};
  out.forEach(([l,k],n)=>{if(n||text.length){const p=sheetPad();txt+=p;for(let i=0;i<p.length;i++)cc.push(k)}txt+=l;for(let i=0;i<l.length;i++)cc.push(k)});
- const foot='\n\n\n*All this letter types are written with Selectric easylandx.github.io/selec';
- txt+=foot;for(let i=0;i<foot.length;i++)cc.push(5);
+ const HEART="         ########  ########\n        #********##********#\n       #********************#\n       #********************#\n       #********************#\n        #******************#\n         #****************#\n          #**************#\n           ##**********##\n             ###****###\n                ####";
+ const add=(str,k)=>{const p=sheetPad();txt+=p+str;for(let i=0;i<p.length+str.length;i++)cc.push(k)};
+ const BONUS=LANG==='es'
+  ?'Carta extra: a la Selectric\n\nQuerida Selectric,\n\nHas escrito cuarenta y tres tipos de carta sin cansarte, sin una sola queja y sin perder el ritmo. Has dado las gracias, pedido perdón, consolado y felicitado; has dejado escapar algún desliz freudiano y ni siquiera te has sonrojado.\n\nCada tecla tuya suena a promesa: lo que se escribe aquí, se escribe con ganas. Gracias por las páginas, por el papel que no se acaba y por esa bolita que gira sin prisa y sin pausa.\n\nSi alguien te pregunta qué has hecho hoy, puedes decir con orgullo: he escrito todas las cartas del mundo.\n\nCon cariño,\nTu operador'
+  :'Bonus letter: to the Selectric\n\nDear Selectric,\n\nYou have just written forty-three kinds of letter without tiring, without one complaint and without losing your rhythm. You thanked, apologised, consoled and congratulated; you let a Freudian slip or two escape and never even blushed.\n\nEvery stroke of yours sounds like a promise: what is written here is written with heart. Thank you for the pages, for the paper that never runs out, and for that little ball that spins on without hurry or pause.\n\nIf anyone asks what you did today, you may say with pride: I wrote every letter in the world.\n\nWith love,\nYour operator';
+ add(BONUS,0);   /* one invented extra sheet so the whole run reaches 50 pages */
+ add('*All this letter types are written with Selectric easylandx.github.io/selec',5);   /* orange, on a new sheet */
+ const gap='\n\n'+HEART;txt+=gap;for(let i=0;i<gap.length;i++)cc.push(1);   /* small red ASCII heart right below it, same sheet */
  closeAI();autoType(txt,true,cc)};
 
 /* ---- the Selectric types it out ---- */
