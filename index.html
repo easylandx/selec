@@ -2850,9 +2850,9 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       flashKey(c==='\n'?'Enter':c);typeText(c,true);
       await sleep(c==='\n'?70:c===' '?7:/[.,;:!?]/.test(c)?16:3+Math.random()*4)}
     return true}
-  /* read a joke aloud (idle-start mode only); resolves when the voice finishes, fails or is stopped */
+  /* read a joke aloud (both modes); resolves when the voice finishes, fails or is stopped */
   function say(t,my){return new Promise(res=>{
-    const ss=window.speechSynthesis;if(!ss||!auto||my!==gen){res();return}
+    const ss=window.speechSynthesis;if(!ss||!joking||my!==gen){res();return}
     let done=false,wd=0;const fin=()=>{if(done)return;done=true;clearTimeout(wd);res()};
     try{
       const lang=LANG==='es'?'es-ES':'en-US',L=lang.toLowerCase(),vs=ss.getVoices()||[];
@@ -2880,7 +2880,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       first=false;
       if(!await typeChars(pre+j.text,my))return;
       if(played.length<300&&!played.some(x=>x.k===j.k))played.push(j);
-      if(auto&&joking&&my===gen){await say(j.text,my);if(joking&&my===gen)await sleep(600)}}}      /* idle-start mode: read it out loud, then the next one */
+      if(joking&&my===gen){await say(j.text,my);if(joking&&my===gen)await sleep(600)}}}      /* read each joke out loud once it is typed, then the next one (both modes) */
 
   /* ---------- start / stop ---------- */
   function start(isAuto){
@@ -2894,7 +2894,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   function stop(silent){
     if(!joking)return;
     joking=false;gen++;try{ctl.abort()}catch(e){}ctl=null;fetching=null;
-    if(auto){try{window.speechSynthesis.cancel()}catch(e){}}auto=false;
+    try{window.speechSynthesis.cancel()}catch(e){}auto=false;
     pill.style.display='none';
     if(!silent)toast(S('jokeOff'),2200)}
   pill.addEventListener('pointerdown',e=>{e.preventDefault();stop()});
