@@ -12,7 +12,7 @@
 <link rel="manifest" href="selec.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Cutive+Mono&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Cutive+Mono&family=Share+Tech+Mono&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:light;--u:1px;--mono:"Courier Prime","Courier New",Courier,monospace}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -270,6 +270,11 @@ body.focus #fabL button:not(#bDictate){display:none!important}
 body.focus #fabL #bDictate{display:grid!important}
 body.focus #fabL{top:calc(env(safe-area-inset-top,0px) + 46px);left:8px;gap:0}
 @media (max-width:480px){body.focus #fabL{left:6px}}
+/* handwriting mode: the whole page in Shadows Into Light, every letter keeping the colour it was typed in */
+#sheet.hand .ln,.page.hand .ln{font-family:"Shadows Into Light",cursive!important;font-size:1.4em!important}
+#fab2 #bHand.on{background:#17171c;border-color:#17171c;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#fab2 #bHand.on svg{stroke:#fff}
+#fab2 #bHand svg text{fill:#17171c}#fab2 #bHand.on svg text{fill:#fff}
 #bMuteI{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);display:grid;place-items:center;padding:0;cursor:pointer}
 #bMuteI.on{background:#17171c;border-color:#17171c}#bMuteI.on svg{stroke:#fff}#bMuteI .sx{display:none}#bMuteI.on .sx{display:inline}#bMuteI.on .sw{display:none}
 #helpList .sx,#fabL #bMute .sx{display:none}#fabL #bMute.on .sx{display:inline}#fabL #bMute.on .sw{display:none}
@@ -344,6 +349,7 @@ body.demoOn #toast{display:none}
 <button id="bHelp" type="button" aria-label="Help" data-ia="tipHelp"><b>?</b></button>
 <button id="bRestart" type="button" aria-label="Restart" data-ia="restart" title="Restart"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c4161c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></button>
 <button id="bDemo" type="button" aria-label="Demo" aria-pressed="false"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.3l6 3.7-6 3.7z"/></svg></button>
+<button id="bHand" type="button" aria-label="Handwriting font" aria-pressed="false" data-ia="tipHand"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="19.500" text-anchor="middle" font-family="'Shadows Into Light',cursive" font-size="24" fill="#17171c">A</text></svg></button>
 <button id="bFocus" type="button" aria-label="Focus Force Field" data-ia="tipFocus"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 7.7-7.5 9.5-4.4-1.8-7.5-5.1-7.5-9.5V6z"/><circle cx="12" cy="11.5" r="2.4"/></svg></button>
 </div>
 <div id="fabL">
@@ -437,7 +443,7 @@ const fsU=(PWU-2*MU)/COLS/0.6,lhU=fsU*1.5,cwU=fsU*0.6;
 const FONTS={courier:{n:'Courier',css:'"Courier Prime","Courier New",Courier,monospace',g:'Courier Prime'},
  prestige:{n:'Prestige Elite',css:'"Cutive Mono","Courier New",Courier,monospace',g:'Cutive Mono'},
  orator:{n:'Orator',css:'"Share Tech Mono","Courier New",Courier,monospace',g:'Share Tech Mono'}};
-let fontKey='courier',FK=1;
+let fontKey='courier',FK=1,handOn=false;
 function fontFam(){return FONTS[fontKey].css}
 function calcFK(){try{const x=document.createElement('canvas').getContext('2d');x.font='100px '+fontFam();const w=x.measureText('M').width/100;FK=w>0.3&&w<1?0.6/w:1}catch(e){FK=1}}
 const INKS=['#17171c','#c4161c','#1c3f9e','#1f7a3a','#7a2ea8','#d9731a'];
@@ -575,7 +581,9 @@ function ribbonColor(i){
  return INKS[twist[i%twist.length]];
 }
 function styCss(f){return(f&1?'font-weight:700;':'')+(f&2?'font-style:italic;':'')+(f&4?'text-decoration:underline;':'')}
-function runs(s,e){let h='',cur='',buf='',cs=0;
+function runs(s,e){const h=runs0(s,e);return handOn?`<span class="hw">${h}</span>`:h}
+function handCaret(){sheet.classList.toggle('hand',handOn);if(!handOn)return;const l=sheet.querySelectorAll('.ln'),last=l[l.length-1],c=sheet.querySelector('.caret');if(!last||!c)return;const hw=last.querySelector('.hw');c.style.left=(hw?hw.offsetWidth:0)+'px'}
+function runs0(s,e){let h='',cur='',buf='',cs=0;
  for(let i=s;i<e;i++){const c=ribbonColor(i),f=stl[i]||0;if(c!==cur||f!==cs){if(buf)h+=`<span style="color:${cur};${styCss(cs)}">${esc(buf)}</span>`;buf='';cur=c;cs=f}buf+=text[i]}
  if(buf)h+=`<span style="color:${cur};${styCss(cs)}">${esc(buf)}</span>`;return h}
 
@@ -611,7 +619,7 @@ function render(){lines=wrap(text);const n=lines.length-1;
  let h=lines.map(([s,e],i)=>`<div class="ln" style="height:${lhU*u}px${i&&i%LPP===0?`;margin-top:${PGAP*u}px`:''}">${runs(s,e)}</div>`).join('');
  const last=lines[n],cl=last[1]-last[0];
  h+=`<i class="caret" style="left:${cl*cwU*u}px;top:${(n*lhU+Math.floor(n/LPP)*PGAP)*u+lhU*u*.16}px;height:${lhU*u*.68}px"></i>`;
- sheet.innerHTML=h;sheet.appendChild(paperImages);Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0);img.style.top=((line*lhU+Math.floor(line/LPP)*PGAP)*u+lhU*u*.12)+'px';img.style.left=(col*cwU*u)+'px';if(img.classList.contains('sig')){img.style.width=(9*lhU*u)+'px';img.style.height=(3*lhU*u)+'px'}});sheet.classList.toggle('mirror-writing',mirrorWriting);pageBreakFx(n);if(!window.__liveViewer)viewPos=null;applyView();paperLook();paperH()}
+ sheet.innerHTML=h;handCaret();sheet.appendChild(paperImages);Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0);img.style.top=((line*lhU+Math.floor(line/LPP)*PGAP)*u+lhU*u*.12)+'px';img.style.left=(col*cwU*u)+'px';if(img.classList.contains('sig')){img.style.width=(9*lhU*u)+'px';img.style.height=(3*lhU*u)+'px'}});sheet.classList.toggle('mirror-writing',mirrorWriting);pageBreakFx(n);if(!window.__liveViewer)viewPos=null;applyView();paperLook();paperH()}
 function paperH(){if(!fed)return;const textHeight=PEEK+(lines.length-1)*lhU+Math.floor((lines.length-1)/LPP)*PGAP;$('paper').style.height=(textHeight*u)+'px'}
 
 /* last page is cropped to its content so short letters don't leave a big empty sheet */
@@ -628,7 +636,7 @@ function buildLetter(){
  const pw=Math.min(innerWidth-24,794),ph=pw*RATIO;
  const fs=pw*0.72/COLS/0.6,lh=fs*1.5,np=Math.max(1,Math.ceil(lines.length/LPP));let h='';
  for(let p=0;p<np;p++){
-  h+=`<div class="page${mirrorWriting?' mirror-writing':''}" style="width:${pw}px;height:${pageHeight(p,np,pw,lines.length,lh)}px;font-size:${fs*FK}px;line-height:${lh}px;${pageBgCss(pageColor(p))}">`;
+  h+=`<div class="page${mirrorWriting?' mirror-writing':''}${handOn?' hand':''}" style="width:${pw}px;height:${pageHeight(p,np,pw,lines.length,lh)}px;font-size:${fs*FK}px;line-height:${lh}px;${pageBgCss(pageColor(p))}">`;
   lines.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{h+=`<div class="ln" style="left:${pw*.14}px;top:${pw*.14+i*lh}px;height:${lh}px">${runs(s,e)}</div>`});
   Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0),pageNo=Math.floor(line/LPP);if(pageNo===p){const localLine=line%LPP;h+=`<img class="pageInlineImage" src="${img.src}" alt="${esc(img.alt||'Uploaded image')}" style="position:absolute;left:${pw*.14+col*(fs*.6)}px;top:${pw*.14+localLine*lh}px;${img.classList.contains('sig')?`width:${9*lh}px;height:${3*lh}px;object-fit:contain;z-index:1;pointer-events:none`:'width:min(38%,250px);height:190px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 2px 7px rgba(0,0,0,.2);z-index:1;pointer-events:none'}">`}});
   h+='</div>'}
@@ -726,12 +734,14 @@ async function renderPNG(pi,fmt,cap){const one=pi!=null;
    x.save();x.fillStyle='#fff';x.shadowColor='rgba(0,0,0,.2)';x.shadowBlur=7;x.fillRect(ix,iy,boxW,boxH);x.drawImage(im,ix+(boxW-dw)/2,iy+(boxH-dh)/2,dw,dh);x.restore();
   }
   x.font=`${fs*FK}px ${fontFam()}`;x.textBaseline='alphabetic';x.globalAlpha=.93;
-  ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BW*.14+i*lh+lh*.68;
+  const hfs=handOn?fs*FK*1.4:fs*FK,hfam=handOn?'"Shadows Into Light",cursive':fontFam();
+  ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BW*.14+i*lh+lh*.68;let pen=0;
    for(let k=s;k<e;k++){
-    const sf=stl[k]||0,tx=pad+BW*.14+(k-s)*cw;
-    if(sf&4){x.save();x.globalAlpha=.93;x.strokeStyle=ribbonColor(k);x.lineWidth=Math.max(1,fs*.06);x.beginPath();x.moveTo(tx,y+fs*.14);x.lineTo(tx+cw,y+fs*.14);x.stroke();x.restore()}
+    const sf=stl[k]||0;
+    x.font=`${sf&2?'italic ':''}${sf&1?'700 ':''}${hfs}px ${hfam}`;
+    const adv=handOn?x.measureText(text[k]).width:cw,tx=pad+BW*.14+(handOn?pen:(k-s)*cw);pen+=adv;
+    if(sf&4){x.save();x.globalAlpha=.93;x.strokeStyle=ribbonColor(k);x.lineWidth=Math.max(1,fs*.06);x.beginPath();x.moveTo(tx,y+fs*.14);x.lineTo(tx+adv,y+fs*.14);x.stroke();x.restore()}
     if(text[k]===' ')continue;
-    x.font=`${sf&2?'italic ':''}${sf&1?'700 ':''}${fs*FK}px ${fontFam()}`;
     /* Match the live preview's Moebius/tricolor ribbon mapping and RGB fringe. */
     x.fillStyle=ribbonColor(k);
     if(ribbonInverted){
@@ -1968,9 +1978,9 @@ const HELP=[
 ['bMirror','Mirror writing','Escritura en espejo','Flips the writing like a mirror.','Voltea la escritura como en un espejo.'],
 ['bDictate','Dictate','Dictar','Speak and the Selectric types your words. Tap again to stop. Needs a browser with speech recognition (Chrome, Edge, Safari) and microphone permission.','Habla y la Selectric escribe tus palabras. Toca de nuevo para parar. Necesita un navegador con reconocimiento de voz (Chrome, Edge, Safari) y permiso para el micrófono.'],
 ['bClock','Clock','Reloj','Tap and the Selectric types the actual time every second, each on a new line. Tap again to stop.','Toca y la Selectric escribe la hora real cada segundo, cada una en una línea nueva. Toca de nuevo para parar.'],
-['bFocus','Focus Force Field','Campo de concentración','Hides every control except the paper and the keyboard. Only the ribbon colour, preview and dictation buttons stay. Tap the empty background, or the tiny shield in the top-left corner, to bring the controls back. Scrolling or clicking the paper does not leave.','Oculta todos los controles menos el papel y el teclado. Solo quedan los botones de color de cinta, vista previa y dictado. Toca el fondo vacío, o el pequeño escudo de la esquina superior izquierda, para recuperar los controles. Desplazarte o hacer clic en el papel no sale.'],
+['bFocus','Focus Force Field','Campo de concentración','Hides almost every control.','Oculta casi todos los controles.'],
 ['bMute','Mute machine sounds','Silenciar la máquina','Turns the typewriter sounds off or on. Your choice is remembered.','Apaga o enciende los sonidos de la máquina de escribir. Tu elección se recuerda.'],
-['bLive','Live viewer','Visor en vivo','Tap to share a live link: anyone who opens it watches your typing in real time, read-only. The link is copied and WhatsApp opens with the invite ready to send; the number shows how many are watching. Tap again to stop and end the link.','Toca para compartir un enlace en vivo: quien lo abra ve tu escritura en tiempo real, solo lectura. El enlace se copia y WhatsApp se abre con la invitación lista para enviar; el número indica cuánta gente mira. Toca de nuevo para parar y cerrar el enlace.'],
+['bLive','Live viewer','Visor en vivo','Tap to share a live link: anyone who opens it watches your typing in real time, read-only.','Toca para compartir un enlace en vivo: quien lo abra ve tu escritura en tiempo real, solo lectura.'],
 ['bTypos','Typos','Erratas','Every word you type — and every letter the Selectric writes for you — comes out with a typo: swapped letters, a slipped key or a doubled strike.','Cada palabra que escribes — y cada carta que la Selectric escribe por ti — sale con una errata: letras cambiadas, una tecla equivocada o un doble golpe.'],
 ['bCover','Dust cover','Funda antipolvo','Protects the Selectric while you are away.','Protege la Selectric cuando no la usas.'],
 ['bFont','Typeface','Tipo de letra','Choose the typeball: Courier, Prestige Elite or Orator.','Elige la esfera de escritura: Courier, Prestige Elite u Orator.'],
@@ -1980,7 +1990,7 @@ const HELP=[
 ['bKb','Phone keyboard','Teclado del móvil','On touch devices, a button lets you switch to your phone’s own keyboard.','En dispositivos táctiles, un botón te permite cambiar al teclado propio del móvil.'],
 ['🔁','Hold a key','Mantener una tecla','Hold a key on the machine and it keeps striking, like a real Selectric.','Mantén pulsada una tecla de la máquina y sigue golpeando, como una Selectric de verdad.'],
 ['📜','Scroll the pages','Recorrer las páginas','Scroll or drag the paper to look back at earlier pages; typing brings you back.','Desplaza o arrastra el papel para ver páginas anteriores; al escribir vuelves al final.'],
-['🃏','Easter egg: jokes','Huevo de Pascua: chistes','Hold 1 until a full line of 1s is typed and the Selectric tells classic jokes non-stop (in Spanish, translated live). Press 1 again, or tap the red button, to stop. Also, if you leave the typewriter alone for 8 seconds after the page loads, joke mode starts on its own and reads each joke aloud once it has finished typing. Click anywhere to stop it.','Mantén 1 hasta escribir una línea entera de unos y la Selectric cuenta chistes clásicos sin parar (en español, traducidos en directo). Pulsa 1 otra vez, o toca el botón rojo, para parar. Además, si dejas la máquina quieta 8 segundos tras cargar la página, el modo chistes arranca solo y lee en voz alta cada chiste cuando termina de escribirlo. Haz clic en cualquier sitio para pararlo.'],
+['🃏','Easter egg: jokes','Huevo de Pascua: chistes','Hold 1 until a full line of 1s is typed and the Selectric tells classic jokes non-stop. Also, if you leave the typewriter alone for 8 seconds after the page loads.','Mantén 1 hasta escribir una línea entera de unos y la Selectric cuenta chistes clásicos sin parar. Además, si dejas la máquina quieta 8 segundos tras cargar la página.'],
 ['🌐','Language','Idioma','Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
 ['bRestart','Restart','Reiniciar','Clears the sheet and starts again (it asks first).','Borra la hoja y empieza de nuevo (te pregunta antes).'],
 ['📲','Install the app','Instalar la app','Add the Selectric to your home screen or desktop so it opens like a normal app.','Añade la Selectric a tu pantalla de inicio o escritorio para abrirla como una app normal.']
@@ -2056,7 +2066,7 @@ document.addEventListener('keydown',e=>{if(window.helpOpen&&e.key==='Escape')clo
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bDemo:'tipDemo',bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive',bMute:'tipMute',bFocus:'tipFocus',bFocusBack:'tipFocusBack'};
+ const TIPS={bDemo:'tipDemo',bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bHand:'tipHand',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive',bMute:'tipMute',bFocus:'tipFocus',bFocusBack:'tipFocusBack'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
@@ -2530,6 +2540,22 @@ Object.assign(I18N.es,{tipFocus:'Campo de concentración: oculta todo menos el p
     if(e.clientX>=pr.left-m&&e.clientX<=pr.right+m&&e.clientY<=pr.bottom+m)return;
     e.preventDefault();e.stopPropagation();swallow=true;setTimeout(()=>{swallow=false},400);set(false)},true);
   document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false}},true);
+})();
+
+/* ================= HANDWRITING (Shadows Into Light) ================= */
+Object.assign(I18N.en,{tipHand:'Handwriting font',handOn:'Handwriting on',handOff:'Handwriting off'});
+Object.assign(I18N.es,{tipHand:'Fuente manuscrita',handOn:'Letra a mano activada',handOff:'Letra a mano desactivada'});
+HELP.splice(HELP.findIndex(h=>h[0]==='bFont')+1,0,['bHand','Handwriting','Letra a mano','Turns all the text on into handwriting font','Convierte todo el texto en letra a mano']);
+(function(){
+  const b=$('bHand');
+  b.onclick=async()=>{
+    initAudio();try{sInk()}catch(e){}
+    const on=!handOn;
+    if(on){try{await document.fonts.load('32px "Shadows Into Light"')}catch(e){}}
+    handOn=on;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on?'true':'false');
+    render();if(letterMode)buildLetter();
+    toast(S(on?'handOn':'handOff'),1600);
+    if(!letterMode)try{ta.focus({preventScroll:true})}catch(e){}};
 })();
 
 /* ================= MUTE MACHINE SOUNDS ================= */
