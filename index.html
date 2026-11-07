@@ -63,6 +63,8 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 #aiG button.sel{background:#17171c;color:#fff;border-color:#17171c}
 .aiAct{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
 .aiAct button,.aiAct #urlGo{font:600 15px system-ui,sans-serif;padding:11px 18px;border-radius:999px;border:1px solid #d9d3c6;background:#fff;color:#17171c;cursor:pointer}
+.aiAct #aiAll{margin-right:auto}
+.aiAct #aiAll:disabled{opacity:.4;cursor:default}
 .aiAct #aiGo,.aiAct #urlGo,.aiAct #sigGo{background:#c4161c;border-color:#c4161c;color:#fff}
 .aiAct #aiGo:disabled,.aiAct #urlGo:disabled{opacity:.4;cursor:default}
 #urlIn{resize:vertical;min-height:120px}
@@ -198,6 +200,7 @@ html,body{margin:0;height:100%;background:#fefefe;overflow:hidden;font-family:sy
 @media (max-width:480px){#title{left:12px;gap:6px;font-size:15px}#title img{width:28px;height:28px;border-radius:7px}#fab{gap:6px;right:8px}#fab button{width:40px;height:40px}#fab button svg{width:22px;height:22px}#fab2{top:calc(env(safe-area-inset-top,0px) + 60px);gap:6px;right:8px}#fab2 button{width:40px;height:40px}#fab2 button svg{width:22px;height:22px}}
 @media (max-width:360px){#title{left:10px;font-size:14px}#fab{gap:4px;right:6px}#fab button{width:36px;height:36px}#fab button svg{width:20px;height:20px}#fab2{top:calc(env(safe-area-inset-top,0px) + 56px);gap:4px;right:6px}#fab2 button{width:36px;height:36px}#fab2 button svg{width:20px;height:20px}}
 #bInk i{width:20px;height:20px;border-radius:50%;background:var(--c,#17171c);box-shadow:0 0 0 3px #fff,0 0 0 4px #bbb}
+#pgCount{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 22px);z-index:41;display:none;padding:7px 16px;border-radius:999px;background:rgba(23,23,28,.82);color:#fff;font:600 13px/1 system-ui,sans-serif;letter-spacing:.03em;pointer-events:none;white-space:nowrap}
 #letter{position:fixed;inset:0;z-index:40;display:none;overflow:auto;background:#d8d4cb;padding:calc(env(safe-area-inset-top,0px) + 66px) 12px 28px;touch-action:pan-x pan-y pinch-zoom}
 .page{margin:0 auto 18px;background:radial-gradient(circle at 30% 20%,#fffefb,#fbf9f3 70%,#f6f3ea);box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:var(--mono);white-space:pre;color:#17171c;position:relative;flex:none}
 .page .ln{position:absolute}
@@ -336,6 +339,7 @@ body.demoOn #toast{display:none}
 <input id="imageUpload" type="file" accept="image/*" aria-label="Choose an image">
 <textarea id="ta" inputmode="none" autocorrect="off" autocapitalize="sentences" autocomplete="off" spellcheck="false" aria-label="Type here" data-ia="ta"></textarea>
 <div id="letter"></div>
+<div id="pgCount" aria-live="polite"></div>
 <div id="fab2">
  <button id="bCollab" type="button" aria-label="Write together" data-ia="tipCollab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.200"/><path d="M3 20c0-3.300 2.700-5.500 6-5.500s6 2.200 6 5.500"/><circle cx="17" cy="9" r="2.500"/><path d="M17 14.500c2.600 0 4.500 1.800 4.500 4.500"/></svg></button>
  <button id="bKb" aria-label="Use the iPhone keyboard" data-ia="kb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9.5 16h5"/></svg></button>
@@ -373,7 +377,7 @@ body.demoOn #toast{display:none}
  <div class="aiRow"><label class="aiF"><span data-i="to">To</span><input id="aiTo" type="text" placeholder="Name (optional)" data-ip="toPh" autocomplete="off"></label><label class="aiF"><span data-i="from">From</span><input id="aiFrom" type="text" placeholder="Your name (optional)" data-ip="fromPh" autocomplete="off"></label></div>
  <label class="aiF"><span id="aiHintL" data-i="hint">Details (optional)</span><textarea id="aiAbout" rows="2" placeholder="Choose a letter type first" data-ip="aboutPh" autocomplete="off"></textarea></label>
  <div class="aiF"><span data-i="forL">The letter is for…</span><div id="aiG" role="group"></div></div>
- <div class="aiAct"><button id="aiCancel" type="button" data-i="cancel">Cancel</button><button id="aiGo" type="button" disabled data-i="go">Write it</button></div>
+ <div class="aiAct"><button id="aiAll" type="button" data-i="writeAll">Write all</button><button id="aiCancel" type="button" data-i="cancel">Cancel</button><button id="aiGo" type="button" disabled data-i="go">Write it</button></div>
 </div></div>
 <div id="urlModal"><div id="urlCard" role="dialog" aria-label="Paste text" data-ia="urlDlg">
  <h2 data-i="urlDlg">Paste text</h2>
@@ -455,7 +459,7 @@ let quiet=false,fed=false;const PEEK=105,PGAP=(PEEK-48)*2+60;let pbLast=0,pbT=0;
 const I18N={
  en:{ta:'Type here',kb:'Use the iPhone keyboard',ai:'Write a letter for me',dlg:'Write a letter',
   sub:'Pick a type and I’ll type it out for you on the Selectric.',to:'To',from:'From',toPh:'Name (optional)',fromPh:'Your name (optional)',
-  hint:'Details (optional)',forL:'The letter is for…',aboutPh:'Choose a letter type first',cancel:'Cancel',go:'Write it',writing:'Writing…',
+  hint:'Details (optional)',forL:'The letter is for…',aboutPh:'Choose a letter type first',cancel:'Cancel',go:'Write it',writeAll:'Write all',writing:'Writing…',
   skip:'Tap to finish typing',ink:'Ribbon colour',view:'Finished letter view',wa:'Share on WhatsApp',
   introAlt:'IBM Selectric Typewriter box',introP:'Tap the box to open',lang:'Language',
   imgFail:'Couldn’t create the letter image',saved:'Letter saved as an image',
@@ -465,7 +469,7 @@ const I18N={
   install:'Install App',iosHint:'Install: tap Share → Add to Home Screen',close:'Close',tipUpload:'Add a photo to the paper',tipInk:'Change ribbon colour',tipView:'Switch between typewriter and finished letter',tipWA:'Share the letter on WhatsApp',tipKb:'Use the iPhone keyboard',tipAI:'Write a letter for me',tipURL:'Paste text to type out',tipInvert:'Ribbon Möbius strip effect',tipMirror:'Mirror writing',tipRestart:'Restart everything',tipLang:'Switch language (EN / ES)',restart:'Restart',restartQ:'Restart everything? Your letter, photos and settings will be cleared.'},
  es:{ta:'Escribe aquí',kb:'Usar el teclado del iPhone',ai:'Escríbeme una carta',dlg:'Escribir una carta',
   sub:'Elige un tipo y la escribiré por ti en la Selectric.',to:'Para',from:'De',toPh:'Nombre (opc.)',fromPh:'Tu nombre (opc.)',
-  hint:'Detalles (opcional)',forL:'La carta es para…',aboutPh:'Primero elige un tipo de carta',cancel:'Cancelar',go:'Escribir',writing:'Escribiendo…',
+  hint:'Detalles (opcional)',forL:'La carta es para…',aboutPh:'Primero elige un tipo de carta',cancel:'Cancelar',go:'Escribir',writeAll:'Escribir todas',writing:'Escribiendo…',
   skip:'Toca para terminar de escribir',ink:'Color de la cinta',view:'Ver la carta terminada',wa:'Compartir por WhatsApp',
   introAlt:'Caja de la máquina de escribir IBM Selectric',introP:'Toca la caja para abrirla',lang:'Idioma',
   imgFail:'No se pudo crear la imagen de la carta',saved:'Carta guardada como imagen',
@@ -640,11 +644,17 @@ function buildLetter(){
   lines.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{h+=`<div class="ln" style="left:${pw*.14}px;top:${pw*.14+i*lh}px;height:${lh}px">${runs(s,e)}</div>`});
   Array.from(paperImages.children).forEach(img=>{const line=Number(img.dataset.line||0),col=Number(img.dataset.col||0),pageNo=Math.floor(line/LPP);if(pageNo===p){const localLine=line%LPP;h+=`<img class="pageInlineImage" src="${img.src}" alt="${esc(img.alt||'Uploaded image')}" style="position:absolute;left:${pw*.14+col*(fs*.6)}px;top:${pw*.14+localLine*lh}px;${img.classList.contains('sig')?`width:${9*lh}px;height:${3*lh}px;object-fit:contain;z-index:1;pointer-events:none`:'width:min(38%,250px);height:190px;object-fit:contain;background:#fff;padding:5px;box-shadow:0 2px 7px rgba(0,0,0,.2);z-index:1;pointer-events:none'}">`}});
   h+='</div>'}
- letterEl.innerHTML=h}
+ letterEl.innerHTML=h;updatePC()}
+/* page counter in preview mode: the sheet that fills most of the screen */
+function updatePC(){const el=$('pgCount');if(!el)return;el.style.display=letterMode?'block':'none';if(!letterMode)return;
+ const pg=letterEl.querySelectorAll('.page'),n=pg.length,vr=letterEl.getBoundingClientRect();let best=0,bo=-1;
+ pg.forEach((p,i)=>{const r=p.getBoundingClientRect(),o=Math.min(r.bottom,vr.bottom)-Math.max(r.top,vr.top);if(o>bo){bo=o;best=i}});
+ el.textContent=(LANG==='es'?'Página ':'Page ')+(best+1)+' / '+n}
 
 function setMode(m){if(typeof finishAuto==='function')finishAuto();letterMode=m;letterEl.style.display=m?'block':'none';$('fab').classList.toggle('lm',!!m);if(!m&&window.speakStop)window.speakStop();
  $('bInk').style.display=m?'none':'';$('bLang').style.display=m?'none':'';$('fab2').style.display=m?'none':'';$('fabL').style.display=m?'none':'';$('bUpload').style.display=m?'none':'';$('bView').innerHTML=m?ICON_TW:ICON_DOC;
- if(m){ta.blur();lines=wrap(text);buildLetter();letterEl.scrollTop=0}else{ta.focus();}}
+ if(m){ta.blur();lines=wrap(text);buildLetter();letterEl.scrollTop=0}else{ta.focus();}updatePC()}
+letterEl.addEventListener('scroll',()=>updatePC(),{passive:true});addEventListener('resize',()=>{if(letterMode)updatePC()});
 
 ta.addEventListener('input',()=>{if(collabIn())return;let t=ta.value.replace(/\r/g,'');if(window.typoFilter){const t2=window.typoFilter(t);if(t2!==t){t=t2;ta.value=t}}const old=text.length;let p=0;const m=Math.min(t.length,text.length);
  while(p<m&&t[p]===text[p])p++;
@@ -1707,6 +1717,29 @@ aiGo.onclick=async()=>{if(!aiSel)return;initAudio();sPop();
  aiGo.disabled=true;aiGo.textContent=S('writing');$('bAI').classList.add('busy');
  let txt;try{txt=await makeLetter(id,to,from,about,gSel)}finally{aiGo.textContent=S('go');aiGo.disabled=false;$('bAI').classList.remove('busy')}
  closeAI();autoType(txt)};
+/* Write all ink colours (INKS index): positive blue, neutral green, negative red, Freudian purple, footer orange */
+const ALL_INK=id=>{const i=ALL_ORDER.indexOf(id);return i<20?2:i<32?3:i<41?1:4};
+/* Write all: positive first, then neutral, then negative / sad / rejection, and the Freudian ones last */
+const ALL_ORDER=[
+ 'love','thanks','congrats','birthday','anniversary','welcome','invite','getwell','update','offer','promotion','recommend','fan','gratitude','peer','object','stranger','momentum','legacy','peace',
+ 'cover','followup','inquiry','intent','partnership','announcement','open','reversepitch','legacyannounce','timecapsule','contingency','epiphany',
+ 'condolence','apology','farewell','unsent','resign','complaint','demand','termination','clientexit',
+ 'freud','freudx'].filter(id=>LT.some(t=>t[0]===id));
+$('aiAll').onclick=async()=>{initAudio();sPop();
+ const to=$('aiTo').value,from=$('aiFrom').value,about=$('aiAbout').value,all=$('aiAll');
+ all.disabled=true;aiGo.disabled=true;all.textContent=S('writing');$('bAI').classList.add('busy');
+ const out=[];
+ try{for(const id of ALL_ORDER){try{const l=await makeLetter(id,to,from,about,gSel);if(l)out.push([l,ALL_INK(id)])}catch(e){}}}
+ finally{all.textContent=S('writeAll');all.disabled=false;aiGo.disabled=!aiSel;$('bAI').classList.remove('busy')}
+ if(!out.length)return;
+ let txt='',cc=[];
+ const base=text.length?'\n\n':'';
+ /* every letter starts at the top of a new sheet: pad with line breaks up to the next multiple of LPP */
+ const sheetPad=()=>{const full=text+base+txt,ls=wrap(full),L=ls.length-1;if(L%LPP===0&&ls[L][1]===ls[L][0])return '';return '\n'.repeat(LPP-(L%LPP))};
+ out.forEach(([l,k],n)=>{if(n||text.length){const p=sheetPad();txt+=p;for(let i=0;i<p.length;i++)cc.push(k)}txt+=l;for(let i=0;i<l.length;i++)cc.push(k)});
+ const foot='\n\n\n*All this letter types are written with Selectric easylandx.github.io/selec';
+ txt+=foot;for(let i=0;i<foot.length;i++)cc.push(5);
+ closeAI();autoType(txt,true,cc)};
 
 /* ---- the Selectric types it out ---- */
 function autoType(txt,fast,colors){
