@@ -325,6 +325,13 @@ body.liveEnded #liveEnd{display:flex}
 body.demoOn #toast{display:none}
 @media (max-height:760px){#fab2{max-height:calc(100dvh - 76px - env(safe-area-inset-top,0px));overflow-y:auto;padding:3px 4px 3px 6px;margin:-3px -4px -3px -6px;scrollbar-width:none}#fab2::-webkit-scrollbar{display:none}}
 @media (max-width:480px){#demoCap{font-size:14px;padding:10px 13px 14px}#demoCap .dt{font-size:15px}#demoCap .dx{display:none}}
+#bImg{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 66px);right:10px;display:none;width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);place-items:center;padding:0;cursor:pointer;-webkit-touch-callout:none;user-select:none}
+#bImg.on,#bImgS.on{display:grid}
+#bImg:active,#bImgS:active{transform:scale(.94)}
+#bImgS{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 122px);right:10px;display:none;width:46px;height:46px;border-radius:50%;border:1px solid #ddd;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.18);place-items:center;padding:0;cursor:pointer;-webkit-touch-callout:none;user-select:none}
+body.liveView #bImg,body.liveView #bImgS{display:none!important}
+@media (max-width:480px){#bImg{top:calc(env(safe-area-inset-top,0px) + 60px);right:8px;width:40px;height:40px}#bImg svg,#bImgS svg{width:22px;height:22px}#bImgS{top:calc(env(safe-area-inset-top,0px) + 106px);right:8px;width:40px;height:40px}}
+@media (max-width:360px){#bImg{top:calc(env(safe-area-inset-top,0px) + 56px);right:6px;width:36px;height:36px}#bImg svg,#bImgS svg{width:20px;height:20px}#bImgS{top:calc(env(safe-area-inset-top,0px) + 96px);right:6px;width:36px;height:36px}}
 </style></head><body class="io">
 <div id="liveBadge">LIVE</div><div id="liveEnd"></div><div id="topRed"></div><div id="sideL"></div><div id="sideR"></div>
 <div id="pad"></div>
@@ -356,6 +363,8 @@ body.demoOn #toast{display:none}
 <button id="bHand" type="button" aria-label="Handwriting font" aria-pressed="false" data-ia="tipHand"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="19.500" text-anchor="middle" font-family="'Shadows Into Light',cursive" font-size="24" fill="#17171c">A</text></svg></button>
 <button id="bFocus" type="button" aria-label="Focus Force Field" data-ia="tipFocus"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 7.7-7.5 9.5-4.4-1.8-7.5-5.1-7.5-9.5V6z"/><circle cx="12" cy="11.5" r="2.4"/></svg></button>
 </div>
+<button id="bImg" type="button" aria-label="Save this page as an image" data-ia="tipImg"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10"/><path d="M8 10.500l4 4 4-4"/><path d="M5 19h14"/></svg></button>
+<button id="bImgS" type="button" aria-label="Save this page as a small image" data-ia="tipImgS"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#17171c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg></button>
 <div id="fabL">
  <button id="bInvert" type="button" aria-label="Ribbon Möbius strip" title="Ribbon Möbius strip"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7c-2.2 0-4 2.2-4 5s1.8 5 4 5c2.4 0 4.2-2.5 6-5s3.6-5 6-5c2.2 0 4 2.2 4 5s-1.8 5-4 5c-2.4 0-4.2-2.5-6-5S8.4 7 6 7Z"/></svg></button>
  <button id="bMirror" type="button" aria-label="Mirror writing" title="Mirror writing"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 7h5M5 7l2-2M5 7l2 2M19 17h-5M19 17l-2-2M19 17l-2 2"/><path d="M3 4v16M21 4v16" opacity=".45"/></svg></button>
@@ -725,7 +734,16 @@ imageUpload.addEventListener('change',async()=>{
 });
 const isPhone=()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform));
 
-async function renderPNG(pi,fmt,cap){const one=pi!=null;
+/* emoji are 2+ UTF-16 units: draw each one whole, with a colour-emoji font stack, instead of splitting it into broken halves */
+const EMO_FONT=',"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const EMO_PIC=/\p{Extended_Pictographic}|\p{Regional_Indicator}/u;
+const isEmo=g=>EMO_PIC.test(g)&&(g.length>1||g.codePointAt(0)>=0x2190);
+const GSEG=window.Intl&&Intl.Segmenter?new Intl.Segmenter(undefined,{granularity:'grapheme'}):null;
+function glyphs(s,e){const t=text.slice(s,e),out=[];
+ if(GSEG){for(const g of GSEG.segment(t)){if(isEmo(g.segment))out.push([s+g.index,g.segment,true]);else for(let j=0;j<g.segment.length;j++)out.push([s+g.index+j,g.segment[j],false])}}
+ else{let i=0;for(const ch of t){const em=isEmo(ch);if(em)out.push([s+i,ch,true]);else for(let j=0;j<ch.length;j++)out.push([s+i+j,ch[j],false]);i+=ch.length}}
+ return out}
+async function renderPNG(pi,fmt,cap,qual){const one=pi!=null;
  try{await document.fonts.load('32px "'+FONTS[fontKey].g+'"')}catch(e){}
  const BW=794,BH=Math.round(BW*RATIO),pad=40,ls=wrap(text),np=Math.max(1,Math.ceil(ls.length/LPP));
  const HS=[];for(let p=0;p<np;p++)HS.push(pageHeight(p,np,BW,ls.length,BW*0.72/COLS/0.6*1.5));const TH=HS.reduce((a,b)=>a+b,0);
@@ -746,26 +764,26 @@ async function renderPNG(pi,fmt,cap){const one=pi!=null;
   x.font=`${fs*FK}px ${fontFam()}`;x.textBaseline='alphabetic';x.globalAlpha=.93;
   const hfs=handOn?fs*FK*1.4:fs*FK,hfam=handOn?'"Shadows Into Light",cursive':fontFam();
   ls.slice(p*LPP,p*LPP+LPP).forEach(([s,e],i)=>{const y=py+BW*.14+i*lh+lh*.68;let pen=0;
-   for(let k=s;k<e;k++){
+   for(const [k,gl,emo] of glyphs(s,e)){
     const sf=stl[k]||0;
-    x.font=`${sf&2?'italic ':''}${sf&1?'700 ':''}${hfs}px ${hfam}`;
-    const adv=handOn?x.measureText(text[k]).width:cw,tx=pad+BW*.14+(handOn?pen:(k-s)*cw);pen+=adv;
+    x.font=`${sf&2?'italic ':''}${sf&1?'700 ':''}${hfs}px ${hfam}${EMO_FONT}`;
+    const adv=handOn?x.measureText(gl).width:cw*gl.length,tx=pad+BW*.14+(handOn?pen:(k-s)*cw);pen+=adv;
     if(sf&4){x.save();x.globalAlpha=.93;x.strokeStyle=ribbonColor(k);x.lineWidth=Math.max(1,fs*.06);x.beginPath();x.moveTo(tx,y+fs*.14);x.lineTo(tx+adv,y+fs*.14);x.stroke();x.restore()}
-    if(text[k]===' ')continue;
+    if(gl===' ')continue;
     /* Match the live preview's Moebius/tricolor ribbon mapping and RGB fringe. */
     x.fillStyle=ribbonColor(k);
-    if(ribbonInverted){
+    if(ribbonInverted&&!emo){
      x.save();
      x.globalAlpha=.65;
-     x.fillText(text[k],tx-.7,y);
-     x.fillText(text[k],tx+.7,y);
+     x.fillText(gl,tx-.7,y);
+     x.fillText(gl,tx+.7,y);
      x.restore();
     }
     x.fillStyle=ribbonColor(k);
-    x.fillText(text[k],tx,y);
+    x.fillText(gl,tx,y);
    }});
   x.globalAlpha=1}
- return new Promise((res,rej)=>c.toBlob(b=>{c.width=c.height=0;b?res(b):rej(new Error('png'))},fmt==='jpeg'?'image/jpeg':'image/png',fmt==='jpeg'?.92:undefined))}   /* the canvas is freed straight away: phones run out of canvas memory after a few big pages */
+ return new Promise((res,rej)=>c.toBlob(b=>{c.width=c.height=0;b?res(b):rej(new Error('png'))},fmt==='jpeg'?'image/jpeg':'image/png',fmt==='jpeg'?(qual||.92):undefined))}   /* the canvas is freed straight away: phones run out of canvas memory after a few big pages */
 
 async function legacyCopy(blob){try{const url=URL.createObjectURL(blob),im=new Image();im.src=url;await im.decode();
  const d=document.createElement('div');d.contentEditable='true';d.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';d.appendChild(im);document.body.appendChild(d);
@@ -2011,6 +2029,8 @@ const HELP=[
 ['bSpeak','Read aloud','Leer en voz alta','In the finished letter view, reads the whole text out loud. Tap again to stop.','En la vista de carta terminada, lee todo el texto en voz alta. Toca de nuevo para parar.'],
 ['bSpeed','Reading speed','Velocidad de lectura','Tap to read faster: x2, x3, then back to normal.','Toca para leer más rápido: x2, x3 y de nuevo normal.'],
 ['bCopy','Copy the text','Copiar el texto','Copies all the typed text to the clipboard.','Copia todo el texto escrito al portapapeles.'],
+['bImg','Save the page as an image','Guardar la página como imagen','In the finished-letter view, saves the page you are looking at as an image. On a phone it opens the share sheet, where you can pick Save Image.','En la vista de carta terminada, guarda como imagen la página que estás viendo. En el móvil abre el menú de compartir, donde puedes elegir Guardar imagen.'],
+['bImgS','Save the page as a small image','Guardar la página como imagen pequeña','Same as the button above, but saves a much smaller file (lower resolution, compressed JPEG): easy to send or upload.','Igual que el botón de arriba, pero guarda un archivo mucho más pequeño (menos resolución, JPEG comprimido): fácil de enviar o subir.'],
 ['👆','Back to the typewriter','Volver a la máquina','In the finished letter view, tap the grey area around the paper to go back.','En la vista de carta terminada, toca la zona gris alrededor del papel para volver.'],
 ['bWA','Share on WhatsApp','Compartir por WhatsApp','Sends your letter as an image. Longer letters go as one image per page on phones, or as a PDF on a computer.','Envía tu carta como imagen. Las cartas largas van en una imagen por página en el móvil, o en PDF en el ordenador.'],
 ['bCollab','Write together','Escribir juntos','Invite up to 5 people through WhatsApp.','Invita hasta a 5 personas por WhatsApp.'],
@@ -2108,7 +2128,7 @@ document.addEventListener('keydown',e=>{if(window.helpOpen&&e.key==='Escape')clo
 
 /* ===== function preview on floating buttons (hover on desktop, press-and-hold on touch) ===== */
 (function(){
- const TIPS={bDemo:'tipDemo',bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bHand:'tipHand',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive',bMute:'tipMute',bFocus:'tipFocus',bFocusBack:'tipFocusBack'};
+ const TIPS={bDemo:'tipDemo',bUpload:'tipUpload',bInk:'tipInk',bView:'tipView',bWA:'tipWA',bKb:'tipKb',bAI:'tipAI',bURL:'tipURL',bSpeak:'tipSpeak',bSpeed:'tipSpeed',bCopy:'tipCopy',bImg:'tipImg',bImgS:'tipImgS',bBook:'tipBook',bEmoji:'tipEmoji',bPaper:'tipPaper',bHelp:'tipHelp',bInfo:'tipInfo',bWpm:'tipWpm',bFont:'tipFont',bHand:'tipHand',bStyle:'tipStyle',bCollab:'tipCollab',bInvert:'tipInvert',bMirror:'tipMirror',bRestart:'tipRestart',bLang:'tipLang',bCover:'tipCover',bTypos:'tipTypos',bSign:'tipSign',bDictate:'tipDictate',bClock:'tipClock',bLive:'tipLive',bMute:'tipMute',bFocus:'tipFocus',bFocusBack:'tipFocusBack'};
  const tip=$('tip');let hideT=0,pressT=0,swallow=false;
  const place=b=>{tip.textContent=S(TIPS[b.id]);tip.style.display='block';tip.style.left='0px';tip.style.top='0px';
   const r=b.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let x,y;
@@ -3001,15 +3021,9 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     'Expand the scope and scale of human consciousness','The machine that builds the machine','First principles','Order of magnitude',
     'Prototypes are easy, production is hard','The best part is no part. The best process is no process.',
     'Based','Kek','Grok','Skill issue','Maximum acceleration','Extremely hardcore','Funding secured','Next level','S3XY']},
-   {ch:'x',tOn:'xpOn',tOff:'xpOff',on:false,list:['Lovu','Goodnight Lovelies','💋','Optimism','Techno-optimism','Earnest','Earnestness','Total Endorsement!','I agree.',
-    'Intellectual honesty','Privacy is not secrecy','Plurality','Pluralist','Bullish','Quadratic funding','Coordination problem','Unpopular opinion',
-    'Take a look, y\'all','My new album is out Friday.','👻','Feature, not a bug','Don\'t buy it then.','And yet I\'m rich.',
-    'issuing a correction on a previous tweet','Here we go!','🚨','Exclusive:','Understand,','Agreement reached.','Official.','wuv u ❤️','lol',
-    'MAKE AMERICA GREAT AGAIN!','MAGA!','Substack economy','Orthogonal','Linday Effect','Fragile','Antifragile','They are watching','Current Thing',
-    'AI will save the world','Skin in the game','Sad!','Bad!','I mean, seriously...','i am not mad','Fake News','Witch Hunt!','ELECTION INTERFERENCE!',
-    'Blasphemy!','Unmitigated disaster','Stay off the weed!','log off','you do not have to hand it to them','Insulting remarks','Dismissive query']}];
+   {ch:'x',tOn:'xpOn',tOff:'xpOff',on:false,list:['Lovu','Goodnight Lovelies','💋','Optimism','Techno-optimism','Earnest','Earnestness','Total Endorsement!','I agree.','Intellectual honesty','Privacy is not secrecy','Plurality','Pluralist','Bullish','Quadratic funding','Coordination problem','Unpopular opinion','Take a look, y\'all','My new album is out Friday.','👻','Feature, not a bug','Don\'t buy it then.','And yet I\'m rich.','issuing a correction on a previous tweet','Here we go!','🚨','Exclusive:','Understand,','Agreement reached.','Official.','wuv u ❤️','lol','Let\'s unpack this.','Very mindful, very demure','In the loop','Manifesting this','Big energy','Period.','Real talk','Main character energy','We are so back','Let them cook','Keep shining','Pure joy','Wholesome content','Sending love','Grateful for this community','Incredible milestone','Brilliant work','So proud of this team','Absolute masterclass','Inspiring journey','A beautiful day to build','Massive win','Heartwarming','MAKE AMERICA GREAT AGAIN!','MAGA!','Substack economy','Orthogonal','Linday Effect','Fragile','Antifragile','They are watching','Current Thing','AI will save the world','Skin in the game','Sad!','Bad!','I mean, seriously...','i am not mad','Fake News','Witch Hunt!','ELECTION INTERFERENCE!','Blasphemy!','Unmitigated disaster','Stay off the weed!','log off','you do not have to hand it to them','Insulting remarks','Dismissive query','L','Cope','Seethe','Rent free','Not reading all that','Unserious person','Do better']}];
   MODES[0].es=['Interesante','Cierto','Enorme, si es cierto','Preocupante','Exacto','Guau','Lo estoy investigando','Sí','🤣','😂','💯','🎯','👀','🔥','🇺🇸','🦅','El virus de la mente woke','Medios tradicionales','MSM','Periodismo ciudadano','El pueblo ha hablado','Vox Populi, Vox Dei','Deja que eso cale','Ampliar el alcance y la escala de la conciencia humana','La máquina que construye la máquina','Primeros principios','Orden de magnitud','Los prototipos son fáciles, la producción es difícil','La mejor pieza es ninguna pieza. El mejor proceso es ningún proceso.','Based','Kek','Grok','Falta de habilidad','Aceleración máxima','Extremadamente hardcore','Financiación asegurada','Siguiente nivel','S3XY'];
-  MODES[1].es=['Lovu','Buenas noches, bellezas','💋','Optimismo','Tecnooptimismo','Sincero','Sinceridad','¡Apoyo total!','Estoy de acuerdo.','Honestidad intelectual','La privacidad no es secretismo','Pluralidad','Pluralista','Alcista','Financiación cuadrática','Problema de coordinación','Opinión impopular','Echadle un vistazo, gente','Mi nuevo álbum sale el viernes.','👻','No es un error, es una característica','Pues no lo compres.','Y aun así soy rico.','publicando una corrección de un tuit anterior','¡Allá vamos!','🚨','Exclusiva:','Entiéndase,','Acuerdo alcanzado.','Oficial.','wuv u ❤️','jaja','¡HAGAMOS AMÉRICA GRANDE OTRA VEZ!','¡MAGA!','Economía de Substack','Ortogonal','Efecto Linday','Frágil','Antifrágil','Nos vigilan','La cosa del momento','La IA salvará el mundo','Jugarse la piel','¡Triste!','¡Malo!','Es decir, en serio...','no estoy enfadado','Noticias falsas','¡Caza de brujas!','¡INTERFERENCIA ELECTORAL!','¡Blasfemia!','Desastre sin paliativos','¡Aléjate de la hierba!','desconéctate','no tienes por qué dárselo','Comentarios insultantes','Pregunta displicente'];
+  MODES[1].es=['Lovu','Buenas noches, bellezas','💋','Optimismo','Tecnooptimismo','Sincero','Sinceridad','¡Apoyo total!','Estoy de acuerdo.','Honestidad intelectual','La privacidad no es secretismo','Pluralidad','Pluralista','Alcista','Financiación cuadrática','Problema de coordinación','Opinión impopular','Echadle un vistazo, gente','Mi nuevo álbum sale el viernes.','👻','No es un error, es una característica','Pues no lo compres.','Y aun así soy rico.','publicando una corrección de un tuit anterior','¡Allá vamos!','🚨','Exclusiva:','Entiéndase,','Acuerdo alcanzado.','Oficial.','wuv u ❤️','jaja','Analicemos esto.','Muy consciente, muy recatada','Al tanto','Manifestando esto','Gran energía','Punto.','Hablando en serio','Energía de protagonista','Estamos de vuelta','Déjalos cocinar','Sigue brillando','Pura alegría','Contenido sano','Mando cariño','Agradecido por esta comunidad','Un hito increíble','Trabajo brillante','Muy orgulloso de este equipo','Una auténtica lección magistral','Un camino inspirador','Un hermoso día para construir','Victoria enorme','Conmovedor','¡HAGAMOS AMÉRICA GRANDE OTRA VEZ!','¡MAGA!','Economía de Substack','Ortogonal','Efecto Linday','Frágil','Antifrágil','Nos vigilan','La cosa del momento','La IA salvará el mundo','Jugarse la piel','¡Triste!','¡Malo!','Es decir, en serio...','no estoy enfadado','Noticias falsas','¡Caza de brujas!','¡INTERFERENCIA ELECTORAL!','¡Blasfemia!','Desastre sin paliativos','¡Aléjate de la hierba!','desconéctate','no tienes por qué dárselo','Comentarios insultantes','Pregunta displicente','L','Consuélate','Rabia','Sin pagar alquiler','No pienso leer todo eso','Persona poco seria','Mejora'];
   MODES.forEach(m=>{m.cur=()=>LANG==='es'?m.es:m.list});
   MODES.forEach(m=>{m.full=new RegExp('^['+m.ch+m.ch.toUpperCase()+']{'+COLS+'}$')});
   let machine=false,userFlag=false,prevN=1,lastPick='',seqObj=null,lastGrew=false,rem='',pendingRestore=null;
@@ -3133,6 +3147,43 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
         if(m.on)startList(m);
         return}}
     if(MODES.some(m=>m.on)&&grew)lineDone(n)});
+})();
+
+/* ================= PREVIEW: save the page you are looking at as an image ================= */
+(function(){
+  Object.assign(I18N.en,{tipImgS:'Save this page as a small image (much smaller file)',pageSavedS:'Small image saved',tipImg:'Save this page as an image',pageSaved:'Page saved as an image',pageMaking:'Making the image…'});
+  Object.assign(I18N.es,{tipImgS:'Guardar esta página como imagen pequeña (archivo mucho más ligero)',pageSavedS:'Imagen pequeña guardada',tipImg:'Guardar esta página como imagen',pageSaved:'Página guardada como imagen',pageMaking:'Creando la imagen…'});
+  const btn=$('bImg'),btnS=$('bImgS');
+  /* only in the finished-letter view */
+  const _sm=setMode;
+  setMode=function(m){const r=_sm.apply(this,arguments);btn.classList.toggle('on',!!m);btnS.classList.toggle('on',!!m);return r};
+  /* the sheet that fills most of the screen (same rule as the page counter) */
+  function viewedPage(){
+    const pg=letterEl.querySelectorAll('.page'),vr=letterEl.getBoundingClientRect();let best=0,bo=-1;
+    pg.forEach((p,i)=>{const r=p.getBoundingClientRect(),o=Math.min(r.bottom,vr.bottom)-Math.max(r.top,vr.top);if(o>bo){bo=o;best=i}});
+    return best}
+  let busy=false;
+  /* small=true: lower resolution + compressed JPEG, a file many times lighter than the normal PNG */
+  async function save(small){
+    if(busy||!letterMode)return;
+    busy=true;initAudio();sPop();
+    try{
+      const pi=viewedPage();
+      toast(S('pageMaking'),1500);
+      let blob;try{blob=small?await renderPNG(pi,'jpeg',.7,.55):await renderPNG(pi,'png',2)}catch(e){toast(S('imgFail'));return}
+      const name='page-'+(pi+1)+(small?'-small.jpg':'.png'),type=small?'image/jpeg':'image/png';
+      /* phones: the share sheet offers "Save Image" (Photos), Files, WhatsApp… */
+      try{
+        const f=new File([blob],name,{type});
+        if(isPhone()&&navigator.canShare&&navigator.canShare({files:[f]})){
+          try{await navigator.share({files:[f]});return}catch(e){if(e&&e.name==='AbortError')return}}
+      }catch(e){}
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),20000);
+      toast(S(small?'pageSavedS':'pageSaved')+(small?' ('+Math.max(1,Math.round(blob.size/1024))+' KB)':''),2600);
+    }finally{busy=false}}
+  btn.addEventListener('click',()=>save(false));
+  btnS.addEventListener('click',()=>save(true));
 })();
 
 /* ================= DEMO: a guided tour of every function =================
