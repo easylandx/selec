@@ -1755,14 +1755,15 @@ function autoType(txt,fast,colors){
   if(i>=chars.length){endAuto();return}
   const c=chars[i++];flashKey(c==='\n'?'Enter':c);window.pendInk=cc&&cc[i-1]||undefined;typeText(c,!!fast);window.pendInk=undefined;
   const d=fast?(c==='\n'?70:c===' '?4:10+Math.random()*6):c==='\n'?330:c===' '?42:/[.,;:!?]/.test(c)?85:16+Math.random()*16;
+  const hk=window.muskAfter&&window.muskAfter();if(hk){const me=typing;hk.then(()=>{if(typing===me)me.t=setTimeout(step,d)});return}
   typing.t=setTimeout(step,d)};
  typing={t:0,rest:()=>chars.slice(i),rc:()=>cc?cc.slice(i):null,stop:()=>{i=chars.length}};
  setTimeout(step,250)}
 function endAuto(){typing=null;if(window.typoFlush)typoFlush();$('skip').classList.remove('on');toast(S('written'),3200)}
-function finishAuto(){if(!typing)return;clearTimeout(typing.t);const r=typing.rest(),rc=typing.rc&&typing.rc();typing=null;$('skip').classList.remove('on');
+function finishAuto(){if(!typing)return;if(window.muskFlush)muskFlush();clearTimeout(typing.t);const r=typing.rest(),rc=typing.rc&&typing.rc();typing=null;$('skip').classList.remove('on');
  if(r){quiet=true;ta.value=ta.value+r;ta.dispatchEvent(new Event('input'));if(rc){const b=text.length-rc.length;rc.forEach((c,k)=>{if(c)cols[b+k]=c});render()}if(window.typoFlush)typoFlush();quiet=false;sReturn()}}
 $('skip').onclick=finishAuto;
-function stopAuto(){if(!typing)return;clearTimeout(typing.t);typing=null;if(window.typoFlush)typoFlush();$('skip').classList.remove('on');toast(S('stopped'),2600)}
+function stopAuto(){if(!typing)return;if(window.muskFlush)muskFlush();clearTimeout(typing.t);typing=null;if(window.typoFlush)typoFlush();$('skip').classList.remove('on');toast(S('stopped'),2600)}
 $('stopT').onclick=stopAuto;
 document.addEventListener('keydown',e=>{if(typing){e.preventDefault();finishAuto()}},true);
 
@@ -2030,6 +2031,8 @@ const HELP=[
 ['🔁','Hold a key','Mantener una tecla','Hold a key on the machine and it keeps striking, like a real Selectric.','Mantén pulsada una tecla de la máquina y sigue golpeando, como una Selectric de verdad.'],
 ['📜','Scroll the pages','Recorrer las páginas','Scroll or drag the paper to look back at earlier pages; typing brings you back.','Desplaza o arrastra el papel para ver páginas anteriores; al escribir vuelves al final.'],
 ['🃏','Easter egg: jokes','Huevo de Pascua: chistes','Hold 1 until a full line of 1s is typed and the Selectric tells classic jokes non-stop. Also, if you leave the typewriter alone for 8 seconds after the page loads.','Mantén 1 hasta escribir una línea entera de unos y la Selectric cuenta chistes clásicos sin parar. Además, si dejas la máquina quieta 8 segundos tras cargar la página.'],
+['🚀','Easter egg: Musk mode','Huevo de Pascua: modo Musk','Type e until a whole line is full of e’s and the Selectric types a list of Musk-style jargon. After that, every time you finish a line (or the Selectric finishes one while writing a letter) it adds a random phrase. Fill a line with e’s again to switch it off.','Escribe e hasta llenar una línea entera de es y la Selectric escribe una lista de jerga estilo Musk. Después, cada vez que termines una línea (o la Selectric termine una al escribir una carta) añade una frase al azar. Vuelve a llenar una línea de es para desactivarlo.'],
+['💬','Easter egg: X personality mode','Huevo de Pascua: modo personalidad X','Type x until a whole line is full of x’s and the Selectric types a list of X-personality jargon. After that, every time you finish a line (or the Selectric finishes one while writing a letter) it adds a random phrase. Fill a line with x’s again to switch it off.','Escribe x hasta llenar una línea entera de equis y la Selectric escribe una lista de jerga de personalidad de X. Después, cada vez que termines una línea (o la Selectric termine una al escribir una carta) añade una frase al azar. Vuelve a llenar una línea de equis para desactivarlo.'],
 ['🌐','Language','Idioma','Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
 ['bRestart','Restart','Reiniciar','Clears the sheet and starts again (it asks first).','Borra la hoja y empieza de nuevo (te pregunta antes).'],
 ['📲','Install the app','Instalar la app','Add the Selectric to your home screen or desktop so it opens like a normal app.','Añade la Selectric a tu pantalla de inicio o escritorio para abrirla como una app normal.']
@@ -2979,6 +2982,157 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     e.preventDefault();e.stopPropagation();swallow=true;stop();setTimeout(()=>{swallow=false},400)},true);
   document.addEventListener('click',e=>{if(swallow){e.preventDefault();e.stopPropagation();swallow=false}},true);
   const _press=press;press=function(a){if(joking&&(auto||a==='1'))return;return _press.apply(this,arguments)};   /* a held 1 from the trigger stops repeating into the jokes; other keys type normally */
+})();
+
+/* ================= EASTER EGGS: a whole line of e's -> Musk jargon mode, a whole line of x's -> X personality jargon mode =================
+   A whole line of the letter switches the mode on: the letters vanish and the Selectric types the whole list, one entry per line.
+   From then on, every time you finish a line (Return, or the carriage wrapping by itself) the machine adds one random entry.
+   Another whole line of the same letter switches that mode off again (and those letters vanish too).
+   The machine also adds an entry after every line it types by itself for letters, pasted text and the like (autoType calls muskAfter).
+   When the app is in Spanish, the lists are typed in Spanish.
+   If both modes are on, the random entry comes from both lists together. */
+(function(){
+  Object.assign(I18N.en,{muskOn:'Musk mode on',muskOff:'Musk mode off',xpOn:'X personality mode on',xpOff:'X personality mode off'});
+  Object.assign(I18N.es,{muskOn:'Modo Musk activado',muskOff:'Modo Musk desactivado',xpOn:'Modo personalidad X activado',xpOff:'Modo personalidad X desactivado'});
+  const MODES=[
+   {ch:'e',tOn:'muskOn',tOff:'muskOff',on:false,list:['Interesting','True','Big if true','Concerning','Exactly','Wow','Looking into it','Yeah',
+    '🤣','😂','💯','🎯','👀','🔥','🇺🇸','🦅',
+    'The woke mind virus','Legacy media','MSM','Citizen journalism','The people have spoken','Vox Populi, Vox Dei','Let that sink in',
+    'Expand the scope and scale of human consciousness','The machine that builds the machine','First principles','Order of magnitude',
+    'Prototypes are easy, production is hard','The best part is no part. The best process is no process.',
+    'Based','Kek','Grok','Skill issue','Maximum acceleration','Extremely hardcore','Funding secured','Next level','S3XY']},
+   {ch:'x',tOn:'xpOn',tOff:'xpOff',on:false,list:['Lovu','Goodnight Lovelies','💋','Optimism','Techno-optimism','Earnest','Earnestness','Total Endorsement!','I agree.',
+    'Intellectual honesty','Privacy is not secrecy','Plurality','Pluralist','Bullish','Quadratic funding','Coordination problem','Unpopular opinion',
+    'Take a look, y\'all','My new album is out Friday.','👻','Feature, not a bug','Don\'t buy it then.','And yet I\'m rich.',
+    'issuing a correction on a previous tweet','Here we go!','🚨','Exclusive:','Understand,','Agreement reached.','Official.','wuv u ❤️','lol',
+    'MAKE AMERICA GREAT AGAIN!','MAGA!','Substack economy','Orthogonal','Linday Effect','Fragile','Antifragile','They are watching','Current Thing',
+    'AI will save the world','Skin in the game','Sad!','Bad!','I mean, seriously...','i am not mad','Fake News','Witch Hunt!','ELECTION INTERFERENCE!',
+    'Blasphemy!','Unmitigated disaster','Stay off the weed!','log off','you do not have to hand it to them','Insulting remarks','Dismissive query']}];
+  MODES[0].es=['Interesante','Cierto','Enorme, si es cierto','Preocupante','Exacto','Guau','Lo estoy investigando','Sí','🤣','😂','💯','🎯','👀','🔥','🇺🇸','🦅','El virus de la mente woke','Medios tradicionales','MSM','Periodismo ciudadano','El pueblo ha hablado','Vox Populi, Vox Dei','Deja que eso cale','Ampliar el alcance y la escala de la conciencia humana','La máquina que construye la máquina','Primeros principios','Orden de magnitud','Los prototipos son fáciles, la producción es difícil','La mejor pieza es ninguna pieza. El mejor proceso es ningún proceso.','Based','Kek','Grok','Falta de habilidad','Aceleración máxima','Extremadamente hardcore','Financiación asegurada','Siguiente nivel','S3XY'];
+  MODES[1].es=['Lovu','Buenas noches, bellezas','💋','Optimismo','Tecnooptimismo','Sincero','Sinceridad','¡Apoyo total!','Estoy de acuerdo.','Honestidad intelectual','La privacidad no es secretismo','Pluralidad','Pluralista','Alcista','Financiación cuadrática','Problema de coordinación','Opinión impopular','Echadle un vistazo, gente','Mi nuevo álbum sale el viernes.','👻','No es un error, es una característica','Pues no lo compres.','Y aun así soy rico.','publicando una corrección de un tuit anterior','¡Allá vamos!','🚨','Exclusiva:','Entiéndase,','Acuerdo alcanzado.','Oficial.','wuv u ❤️','jaja','¡HAGAMOS AMÉRICA GRANDE OTRA VEZ!','¡MAGA!','Economía de Substack','Ortogonal','Efecto Linday','Frágil','Antifrágil','Nos vigilan','La cosa del momento','La IA salvará el mundo','Jugarse la piel','¡Triste!','¡Malo!','Es decir, en serio...','no estoy enfadado','Noticias falsas','¡Caza de brujas!','¡INTERFERENCIA ELECTORAL!','¡Blasfemia!','Desastre sin paliativos','¡Aléjate de la hierba!','desconéctate','no tienes por qué dárselo','Comentarios insultantes','Pregunta displicente'];
+  MODES.forEach(m=>{m.cur=()=>LANG==='es'?m.es:m.list});
+  MODES.forEach(m=>{m.full=new RegExp('^['+m.ch+m.ch.toUpperCase()+']{'+COLS+'}$')});
+  let machine=false,userFlag=false,prevN=1,lastPick='',seqObj=null,lastGrew=false,rem='',pendingRestore=null;
+  let holdKey='',holdScreen='',lastKeyCh='',lastKeyT=0,lastPressCh='',lastPressT=0;
+  const pending=[];      /* keystrokes made while the machine is typing by itself: replayed afterwards, none are lost */
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const isTrig=k=>typeof k==='string'&&k.length===1&&MODES.some(m=>m.ch===k.toLowerCase());
+
+  /* tell the user's own typing apart from the machine's: real key events are trusted, on-screen keys go through typeText without "auto" */
+  const _tt=typeText;
+  typeText=function(c,auto){
+    if(machine&&!auto){pending.push(c);return}
+    if(auto)return _tt.apply(this,arguments);
+    userFlag=true;try{return _tt.apply(this,arguments)}finally{userFlag=false}};
+  const _dt=doTab;
+  doTab=function(){if(machine){pending.push('\t');return}return _dt.apply(this,arguments)};
+  const _pr=press;
+  press=function(a){
+    if(isTrig(a)){lastPressCh=a;lastPressT=Date.now()}
+    if(holdScreen&&a===holdScreen)return;                            /* the on-screen key is still held down from the trigger */
+    if(typing&&typing===seqObj){finishAuto();return}                 /* any key during a list skips to its end, like any auto-typing */
+    if(machine&&a==='bs'){pending.push('\b');return}
+    return _pr.apply(this,arguments)};
+  function drain(){
+    while(pending.length&&!machine){
+      const c=pending.shift();
+      if(c==='\b'){if(ta.value.length){ta.value=ta.value.slice(0,-1);ta.dispatchEvent(new Event('input'))}}
+      else if(c==='\t')doTab();
+      else typeText(c)}}
+
+  /* a key still held down from the trigger must not keep typing its letter (or cut the list short) */
+  addEventListener('keydown',e=>{
+    if(!isTrig(e.key))return;
+    lastKeyCh=e.key.toLowerCase();lastKeyT=performance.now();
+    if(holdKey&&e.repeat&&e.key.toLowerCase()===holdKey){e.preventDefault();e.stopImmediatePropagation()}},true);
+  addEventListener('keyup',e=>{if(typeof e.key==='string'&&e.key.toLowerCase()===holdKey)holdKey=''},true);
+  ['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>{holdScreen=''},true));
+  addEventListener('blur',()=>{holdKey='';holdScreen=''});
+
+  ta.addEventListener('beforeinput',e=>{
+    if(!machine)return;
+    const t=e.inputType;
+    if(t==='insertText'&&e.data){for(const ch of e.data)pending.push(ch)}
+    else if(t==='insertLineBreak'||t==='insertParagraph')pending.push('\n');
+    else if(t==='deleteContentBackward')pending.push('\b');
+    e.preventDefault();e.stopImmediatePropagation()},true);
+
+  const pick=()=>{
+    const pool=[].concat(...MODES.filter(m=>m.on).map(m=>m.cur()));
+    let s;do{s=pool[Math.floor(Math.random()*pool.length)]}while(s===lastPick&&pool.length>1);lastPick=s;return s};
+  async function typeOut(str){
+    rem=str;
+    while(rem){
+      const c=String.fromCodePoint(rem.codePointAt(0));rem=rem.slice(c.length);
+      flashKey(c==='\n'?'Enter':c);_tt(c,true);
+      await sleep(c==='\n'?60:c===' '?12:10+Math.random()*8)}}
+  /* put back the word that was lifted when the carriage wrapped mid-word */
+  function doRestore(){
+    const P=pendingRestore;pendingRestore=null;
+    if(P&&P.s){
+      quiet=true;ta.value=ta.value+P.s;ta.dispatchEvent(new Event('input'));quiet=false;
+      const b=text.length-P.s.length;
+      P.cols.forEach((c,k)=>{cols[b+k]=c});P.stl.forEach((f,k)=>{stl[b+k]=f});render()}}
+  /* skip / stop pressed while an entry is half typed: finish it at once (and put the lifted word back) before anything else is added */
+  window.muskFlush=function(){
+    if(!machine)return;
+    if(rem){const r=rem;rem='';quiet=true;ta.value=ta.value+r;ta.dispatchEvent(new Event('input'));quiet=false}
+    doRestore()};
+  function eraseLine(a){      /* removes the line of letters (and the space the carriage swallowed in front of it) */
+    let cut=a[0];if(cut>0&&text[cut-1]===' ')cut--;
+    quiet=true;ta.value=ta.value.slice(0,cut);ta.dispatchEvent(new Event('input'));quiet=false}
+
+  /* ---------- switching on: the whole list, one entry per line ---------- */
+  function startList(m){
+    const pre=!text.length||text.endsWith('\n')?'':'\n';
+    const chars=Array.from(pre+m.cur().join('\n')+'\n');let i=0;
+    const my={t:0,rest:()=>chars.slice(i).join(''),rc:()=>null,stop:()=>{i=chars.length}};
+    seqObj=my;typing=my;$('skip').classList.add('on');
+    const step=()=>{
+      if(typing!==my)return;
+      if(i>=chars.length){typing=null;seqObj=null;$('skip').classList.remove('on');if(window.typoFlush)typoFlush();return}
+      const c=chars[i++];flashKey(c==='\n'?'Enter':c);_tt(c,true);
+      my.t=setTimeout(step,c==='\n'?170:c===' '?30:12+Math.random()*10)};
+    my.t=setTimeout(step,300)}
+
+  /* ---------- a mode is on and a line was finished -> one random entry ---------- */
+  async function inject(P){
+    if(machine)return;
+    machine=true;
+    try{
+      if(P){      /* the carriage wrapped mid-word: lift the word being typed, write the entry on its own line, then put the word back */
+        let cut=text.length-P.s.length;if(cut>0&&text[cut-1]===' ')cut--;
+        quiet=true;ta.value=ta.value.slice(0,cut);ta.dispatchEvent(new Event('input'));quiet=false;pendingRestore=P}
+      await typeOut((P?'\n':'')+pick()+'\n');
+      doRestore()
+    }finally{machine=false;drain()}}
+  function lineDone(n){
+    const prev=lines[n-2];
+    if(!prev||!text.slice(prev[0],prev[1]).trim())return null;      /* an empty line is not a line of text */
+    if(text[text.length-1]==='\n')return inject(null);        /* Return was pressed */
+    const s0=lines[n-1][0];                                    /* the carriage wrapped by itself */
+    return inject({s:text.slice(s0),cols:cols.slice(s0),stl:stl.slice(s0)})}
+
+  /* called by autoType after each character it types: if that character finished a line, the entry is typed now and the promise says when to go on */
+  window.muskAfter=function(){
+    if(!lastGrew||machine||!MODES.some(m=>m.on)||letterMode||coverIdx)return null;
+    lastGrew=false;
+    return lineDone(lines.length)||null};
+
+  ta.addEventListener('input',e=>{
+    const n=lines.length,grew=n===prevN+1;prevN=n;lastGrew=grew;
+    if(machine||quiet||typing||letterMode||coverIdx||document.body.classList.contains('demoOn'))return;
+    if(!(e.isTrusted||userFlag))return;                        /* only the person's own typing counts */
+    const a=lines[n-1];
+    if(a[1]-a[0]===COLS){
+      const m=MODES.find(x=>x.full.test(text.slice(a[0],a[1])));
+      if(m){                                                   /* one full line of the letter: switch that mode on / off */
+        holdKey=(performance.now()-lastKeyT<150&&lastKeyCh===m.ch)?m.ch:'';
+        holdScreen=(Date.now()-lastPressT<150&&lastPressCh===m.ch)?m.ch:'';
+        eraseLine(a);m.on=!m.on;toast(S(m.on?m.tOn:m.tOff),2200);
+        if(m.on)startList(m);
+        return}}
+    if(MODES.some(m=>m.on)&&grew)lineDone(n)});
 })();
 
 /* ================= DEMO: a guided tour of every function =================
