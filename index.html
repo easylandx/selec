@@ -732,7 +732,7 @@ imageUpload.addEventListener('change',async()=>{
   toast(LANG==='es'?'No se pudo cargar la imagen':'Could not load image');
  }finally{imageUpload.value=''}
 });
-const isPhone=()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform));
+const isPhone=()=>/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform))||(navigator.maxTouchPoints>1&&!!window.matchMedia&&matchMedia('(pointer:coarse) and (hover:none)').matches);  /* also phones that ask for the "desktop site" */
 
 /* emoji are 2+ UTF-16 units: draw each one whole, with a colour-emoji font stack, instead of splitting it into broken halves */
 const EMO_FONT=',"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
@@ -749,7 +749,7 @@ async function renderPNG(pi,fmt,cap,qual){const one=pi!=null;
  const HS=[];for(let p=0;p<np;p++)HS.push(pageHeight(p,np,BW,ls.length,BW*0.72/COLS/0.6*1.5));const TH=HS.reduce((a,b)=>a+b,0);
  const TH2=one?HS[pi]+2*pad:TH+pad*(np+1),S=Math.min(cap||2,Math.sqrt(15e6/((BW+2*pad)*TH2)));
  const c=document.createElement('canvas');c.width=Math.round((BW+2*pad)*S);c.height=Math.round(TH2*S);
- const x=c.getContext('2d');x.scale(S,S);x.fillStyle='#d8d4cb';x.fillRect(0,0,c.width,c.height);
+ const x=c.getContext('2d');x.scale(S,S);x.fillStyle='#d8d4cb';x.fillRect(0,0,c.width/S+1,c.height/S+1);
  const fs=BW*0.72/COLS/0.6,lh=fs*1.5,cw=fs*0.6;
  for(let p=one?pi:0;p<(one?pi+1:np);p++){const BHp=HS[p],py=one?pad:pad+HS.slice(0,p).reduce((a,b)=>a+b,0)+p*pad;
   const pc=pageColor(p),pcol=pc||'#fbf9f3';x.save();x.shadowColor='rgba(0,0,0,.3)';x.shadowBlur=18;x.shadowOffsetY=4;x.fillStyle=pcol;x.fillRect(pad,py,BW,BHp);x.restore();
@@ -815,7 +815,7 @@ function buildPDF(im){
  return new Blob(parts,{type:'application/pdf'})}
 async function makePDF(){
  const n=pageCount(),im=[];
- for(let i=0;i<n;i++){const b=await renderPNG(i,'jpeg'),bm=await createImageBitmap(b);im.push({w:bm.width,h:bm.height,d:new Uint8Array(await b.arrayBuffer())});if(bm.close)bm.close()}
+ for(let i=0;i<n;i++){const b=await renderPNG(i,'jpeg',1.5,.72),bm=await createImageBitmap(b);im.push({w:bm.width,h:bm.height,d:new Uint8Array(await b.arrayBuffer())});if(bm.close)bm.close()}
  return buildPDF(im)}
 let waT=0;ta.addEventListener('input',()=>{clearTimeout(waT);waT=setTimeout(()=>{if(text&&!letterMode){if(isPhone()&&pageCount()>1)getPages();else if(!isPhone()&&pageCount()<=2||pageCount()<2)getPNG()}},700)});
 $('bWA').onclick=async()=>{
