@@ -1883,7 +1883,7 @@ function emoPush(e){emoRec=[e].concat(emoRec.filter(x=>x!==e)).slice(0,16);try{l
 document.querySelectorAll('#emoMode button').forEach(b=>b.addEventListener('click',()=>{emoSetMode(b.dataset.m);sPop()}));
 const emoFocus=()=>{if(matchMedia('(hover:hover)').matches)ta.focus()};
 /* "emoji after each word": the machine adds an emoji whenever a word is finished (typed, dictated, pasted or written by the AI) */
-let emoWordsOn=false;try{emoWordsOn=localStorage.getItem('emoWords')==='1'}catch(e){}
+let emoWordsOn=false;try{localStorage.removeItem('emoWords')}catch(e){}   /* always starts switched off */
 const EMO_POOL=['😊','✨','💫','🌸','❤️','🌟','🎉','😄','💛','🌈','🍀','☀️','🎈','💐','🦋','😍','🙌','🔥','💕','🌺','🎶','😎','🥰','👏','💖'];
 let emoLast='';
 function emoForWord(raw){
@@ -1903,7 +1903,7 @@ ta.addEventListener('input',()=>{
   if(changed){emoBusy=true;ta.value=out;ta.dispatchEvent(new Event('input'));emoBusy=false}}
  emoSeen=ta.value.replace(/\r/g,'')});
 const quiet0=()=>typeof collabIn==='function'&&collabIn();
-function emoSetWords(on,say){emoWordsOn=on;try{localStorage.setItem('emoWords',on?'1':'0')}catch(e){}const b=document.getElementById('emoWords');if(b)b.setAttribute('aria-checked',on?'true':'false');if(say)toast(S(on?'emoWordsOn':'emoWordsOff'),1800)}
+function emoSetWords(on,say){emoWordsOn=on;const b=document.getElementById('emoWords');if(b)b.setAttribute('aria-checked',on?'true':'false');if(say)toast(S(on?'emoWordsOn':'emoWordsOff'),1800)}
 document.getElementById('emoWords').addEventListener('click',()=>{sPop();emoSetWords(!emoWordsOn,true)});
 emoSetWords(emoWordsOn,false);
 window.emoOpen=false;
