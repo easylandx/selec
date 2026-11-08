@@ -2773,6 +2773,8 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
   /* easter-egg mode runs this many times faster (typing, pauses and voice). The 8 s idle-start mode stays at normal speed. */
   const EGG_SPEED=2;
   const spd=()=>auto?1:EGG_SPEED;
+  /* voice speed only: phones (iPhone/Android) read at a natural pace, since their system voice at x2 is unintelligible. Typing and pauses keep the x2 speed. */
+  const voiceRate=()=>isPhone()?1:spd();
 
   /* ---------- preview mode: the joke mode keeps going and the letter view follows the typing ---------- */
   let lt=0,lcost=20,lfollow=true,wasLM=false;
@@ -2883,7 +2885,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
       const u=new SpeechSynthesisUtterance(t.replace(/([^.!?…])[ \t]*\n[ \t]*/g,'$1. ').replace(/\s*\n\s*/g,' '));
       const pool=vs.filter(x=>x.lang&&x.lang.toLowerCase().replace('_','-').slice(0,2)===L.slice(0,2));
       const v=pool.find(x=>x.lang.toLowerCase().replace('_','-')===L&&x.localService)||pool.find(x=>x.localService)||pool[0];
-      u.lang=lang;if(v)u.voice=v;u.rate=spd();u.onend=fin;u.onerror=fin;
+      u.lang=lang;if(v)u.voice=v;u.rate=voiceRate();u.onend=fin;u.onerror=fin;
       wd=setTimeout(()=>{try{ss.cancel()}catch(e){}fin()},Math.max(6000,t.length*130+4000));   /* safety net if the browser never reports the end */
       window.__jokeU=u;   /* keep a reference: iOS can drop an utterance that gets garbage-collected mid-speech */
       try{ss.resume()}catch(e){}
