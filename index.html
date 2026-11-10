@@ -2200,7 +2200,7 @@ const HELP=[
 ['bKb','Phone keyboard','Teclado del móvil','On touch devices, a button lets you switch to your phone’s own keyboard.','En dispositivos táctiles, un botón te permite cambiar al teclado propio del móvil.'],
 ['🔁','Hold a key','Mantener una tecla','Hold a key on the machine and it keeps striking, like a real Selectric.','Mantén pulsada una tecla de la máquina y sigue golpeando, como una Selectric de verdad.'],
 ['📜','Scroll the pages','Recorrer las páginas','Scroll or drag the paper to look back at earlier pages; typing brings you back.','Desplaza o arrastra el papel para ver páginas anteriores; al escribir vuelves al final.'],
-['🥚','Easter eggs','Huevos de Pascua','Fill a whole line with 1 (jokes), e (Musk jargon), x (X jargon), k (kid mode: wobbly crayon writing and little drawings) or p (PC mode: the typewriter becomes an IBM PC with a green phosphor screen; Esc brings it back). Repeat to switch off.','Llena una línea entera con 1 (chistes), e (jerga Musk), x (jerga X), k (modo niño: letra de crayón y dibujitos) o p (modo PC: la máquina se convierte en un IBM PC con pantalla verde de fósforo; Esc la devuelve). Repite para desactivar.'],
+['🥚','Easter eggs','Huevos de Pascua','Fill a whole line with 1 (jokes), e (Musk jargon), x (X jargon), k (kid mode: wobbly crayon writing and little drawings) or p (PC mode). Repeat to switch off, or press the spacebar through a whole line to switch them all off.','Llena una línea entera con 1 (chistes), e (jerga Musk), x (jerga X), k (modo niño: letra de crayón y dibujitos) o p (modo PC). Repite para desactivar, o pulsa la barra espaciadora durante una línea entera para desactivarlos todos.'],
 ['🌐','Language','Idioma','Switch the whole app between English and Spanish.','Cambia toda la app entre inglés y español.'],
 ['bRestart','Restart','Reiniciar','Clears the sheet and starts again (it asks first).','Borra la hoja y empieza de nuevo (te pregunta antes).'],
 ['📲','Install the app','Instalar la app','Add the Selectric to your home screen or desktop so it opens like a normal app.','Añade la Selectric a tu pantalla de inicio o escritorio para abrirla como una app normal.']
@@ -3096,7 +3096,7 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
     pill.style.display='none';
     if(!silent)toast(S('jokeOff'),2200)}
   pill.addEventListener('pointerdown',e=>{e.preventDefault();stop()});
-  window.__jokeStop=stop;
+  window.__jokeStop=stop;window.__jokeOn=()=>joking;
 
   /* trigger: the last two lines of the paper are completely filled with 1s */
   ta.addEventListener('input',()=>{
@@ -3296,6 +3296,10 @@ Object.assign(I18N.es,{tipLive:'Visor en vivo: comparte un enlace para que otros
         if(m.on)startList(m);
         return}}
     if(MODES.some(m=>m.on)&&grew)lineDone(n)});
+  /* used by the "spacebar through a whole line" egg-off: switches every Musk / X mode off and cancels a list that is still being typed */
+  window.__muskCtl={on:()=>MODES.some(m=>m.on),off:()=>{
+    MODES.forEach(m=>{m.on=false});
+    if(seqObj&&typing===seqObj){const sq=seqObj;clearTimeout(sq.t);sq.stop();typing=null;seqObj=null;$('skip').classList.remove('on');if(window.typoFlush)typoFlush()}}};
 })();
 
 /* ================= EASTER EGG: a whole line of k's -> KID MODE =================
@@ -3482,6 +3486,7 @@ function kidCanvasDoodles(x,p,ls,x0,y0,lh,BW,fs){
     let cut=a[0];if(cut>0&&text[cut-1]===' ')cut--;      /* the line of k's vanishes (and the space the carriage swallowed in front of it) */
     quiet=true;ta.value=ta.value.slice(0,cut);ta.dispatchEvent(new Event('input'));quiet=false;
     setKid(!kidOn)});
+  window.__kidCtl={on:()=>kidOn,off:()=>setKid(false)};      /* used by the "spacebar through a whole line" egg-off */
 })();
 
 /* ================= PREVIEW: save the page you are looking at as an image ================= */
@@ -4262,5 +4267,63 @@ function kidCanvasDoodles(x,p,ls,x0,y0,lh,BW,fs){
   addEventListener('resize',()=>{if(pcOn)pcLayout()});
   if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(pcOn)pcLayout()});
   window.__pcMode={set:setPC,get on(){return pcOn}};      /* handy for testing */
+})();
+
+/* ================= EASTER EGGS OFF: the spacebar pressed through a whole line (36 spaces in a row) switches every easter egg off =================
+   Jokes, Musk, X, kid and PC mode: whichever are on are stopped at once, and the spaces vanish (like the letters of the other eggs).
+   Only the person's own spaces count: the machine's own typing (jokes, lists) neither adds to the run nor breaks it.
+   When no easter egg is on nothing happens and the spaces stay, so a plain blank line is never touched. */
+(function(){
+  Object.assign(I18N.en,{eggsOff:'All easter eggs off'});
+  Object.assign(I18N.es,{eggsOff:'Todos los huevos de Pascua desactivados'});
+  let run=0,prevLen=text.length,holdKey=false,holdScreen=false,lastKeyT=0,lastPressT=0,userFlag=false,lastOff=0;
+  const jokeOn=()=>!!(window.__jokeOn&&window.__jokeOn());
+  const muskOn=()=>!!(window.__muskCtl&&window.__muskCtl.on());
+  const kidIsOn=()=>!!(window.__kidCtl&&window.__kidCtl.on());
+  const pcIsOn=()=>!!(window.__pcMode&&window.__pcMode.on)&&Date.now()-lastOff>700;      /* the PC takes ~0.4 s to switch off */
+  const anyOn=()=>jokeOn()||muskOn()||kidIsOn()||pcIsOn();
+
+  /* tell the person's own typing apart from the machine's (on-screen keys go through typeText without "auto") */
+  const _tt=typeText;
+  typeText=function(c,auto){
+    if(auto)return _tt.apply(this,arguments);
+    userFlag=true;try{return _tt.apply(this,arguments)}finally{userFlag=false}};
+  const _pr=press;
+  press=function(a){
+    if(a==='space')lastPressT=Date.now();
+    if(holdScreen&&a==='space')return;      /* the on-screen spacebar is still held down from the trigger */
+    return _pr.apply(this,arguments)};
+  /* a spacebar still held down from the trigger must not keep typing spaces */
+  addEventListener('keydown',e=>{
+    if(e.key!==' ')return;
+    lastKeyT=performance.now();
+    if(holdKey&&e.repeat){e.preventDefault();e.stopImmediatePropagation()}},true);
+  addEventListener('keyup',e=>{if(e.key===' ')holdKey=false},true);
+  ['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>{holdScreen=false},true));
+  addEventListener('blur',()=>{holdKey=false;holdScreen=false});
+
+  function allOff(){
+    const pc=pcIsOn();
+    lastOff=Date.now();
+    if(jokeOn())window.__jokeStop(true);
+    if(muskOn())window.__muskCtl.off();
+    if(kidIsOn())window.__kidCtl.off();
+    if(pc)window.__pcMode.set(false);
+    const say=()=>toast(S('eggsOff'),2200);
+    say();if(pc)setTimeout(say,480)}      /* the PC's own "typewriter restored" note comes later: say it again after that */
+
+  ta.addEventListener('input',e=>{
+    const len=text.length,one=len===prevLen+1&&text[len-1]===' ';prevLen=len;
+    if(quiet||letterMode||coverIdx||document.body.classList.contains('demoOn'))return;
+    if(!(e.isTrusted||userFlag))return;      /* only the person's own typing counts */
+    if(!one){run=0;return}
+    if(++run<COLS||!anyOn())return;
+    const n=run;run=0;
+    holdKey=(performance.now()-lastKeyT<150);holdScreen=(Date.now()-lastPressT<150);
+    let cut=text.length;const lim=Math.max(0,cut-n);
+    while(cut>lim&&text[cut-1]===' ')cut--;      /* the spaces vanish */
+    if(cut<text.length){quiet=true;ta.value=ta.value.slice(0,cut);ta.dispatchEvent(new Event('input'));quiet=false}
+    prevLen=text.length;
+    allOff()});
 })();
 </script></body></html>
